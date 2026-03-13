@@ -5,6 +5,7 @@ from datetime import datetime, timedelta, timezone
 
 from polymarket_fair_value_engine import cli
 from polymarket_fair_value_engine.config import AuthConfig, EndpointConfig, EngineConfig, MarketConfig, ModelConfig, OutputConfig, PaperConfig, RiskConfig, StrategyConfig
+from polymarket_fair_value_engine.data.external_prices import CoinbasePriceClient
 from polymarket_fair_value_engine.models.base import FairValueModel
 from polymarket_fair_value_engine.risk.inventory import InventoryPosition
 from polymarket_fair_value_engine.strategy.base import Strategy
@@ -148,6 +149,27 @@ def test_cli_backtest_and_report_smoke(tmp_path, monkeypatch, capsys) -> None:
     report_output = json.loads(capsys.readouterr().out)
     assert report_output["run_id"] == "cli-smoke"
     assert report_output["output_dir"].endswith("cli-smoke")
+
+
+def test_cli_demo_runs_offline_with_bundled_replay(tmp_path, monkeypatch, capsys) -> None:
+    monkeypatch.setenv("PMFE_OUTPUT_ROOT", str(tmp_path / "runs"))
+    monkeypatch.setattr(
+        CoinbasePriceClient,
+        "get_spot",
+        lambda self, asset: (_ for _ in ()).throw(AssertionError(f"unexpected spot fetch for {asset}")),
+    )
+    monkeypatch.setattr(
+        CoinbasePriceClient,
+        "realized_vol_annualized",
+        lambda self, asset, lookback_minutes, fallback: (_ for _ in ()).throw(AssertionError("unexpected vol fetch")),
+    )
+
+    assert cli.main(["demo"]) == 0
+    payload = json.loads(capsys.readouterr().out)
+
+    assert payload["mode"] == "demo"
+    assert payload["run_id"].startswith("demo-")
+    assert payload["input"].endswith("data\\sample_replay.jsonl") or payload["input"].endswith("data/sample_replay.jsonl")
 
 
 def test_cli_scan_smoke(monkeypatch, tmp_path, capsys) -> None:
