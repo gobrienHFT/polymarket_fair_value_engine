@@ -158,7 +158,7 @@ def load_config(dotenv_path: str | None = None) -> EngineConfig:
             market_blend_weight=_as_float("PMFE_MARKET_BLEND_WEIGHT", default=0.20),
         ),
         strategy=StrategyConfig(
-            poll_seconds=_as_int("BOT_POLL_SECONDS", default=15),
+            poll_seconds=_as_int("BOT_POLL_SECONDS", default=1),
             quote_half_spread=_as_float("PMFE_QUOTE_HALF_SPREAD", default=0.02),
             min_edge=_as_float("PMFE_MIN_EDGE", default=0.015),
             inventory_skew_per_contract=_as_float("PMFE_INVENTORY_SKEW_PER_CONTRACT", default=0.003),
@@ -186,4 +186,3 @@ def load_config(dotenv_path: str | None = None) -> EngineConfig:
             root=Path(_pick("PMFE_OUTPUT_ROOT", default="runs")),
         ),
     )
-

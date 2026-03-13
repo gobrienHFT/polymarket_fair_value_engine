@@ -252,9 +252,10 @@ def _live_quote_command(config: EngineConfig, series: str, iterations: int) -> i
             )
             current_orders = [order for order in session_orders if order.market_id == state.market.market_id]
             actions = order_manager.reconcile(filtered.approved_quotes, current_orders, state.observed_at)
-            if any(action.action == "cancel" for action in actions):
-                executor.cancel_all()
-                session_orders.clear()
+            cancel_ids = [action.existing_order_id for action in actions if action.action == "cancel" and action.existing_order_id]
+            if cancel_ids:
+                executor.cancel_orders(cancel_ids)
+                session_orders = [order for order in session_orders if order.order_id not in set(cancel_ids)]
             for action in actions:
                 if action.action != "place" or action.desired is None:
                     continue
@@ -374,4 +375,3 @@ def main(argv: list[str] | None = None) -> int:
         return _report_command(config, args.run_id)
     parser.error(f"Unknown command: {args.command}")
     return 2
-

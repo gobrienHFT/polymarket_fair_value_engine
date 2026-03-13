@@ -15,8 +15,8 @@ class FailPriceClient:
         raise AssertionError("unexpected vol fetch")
 
 
-def _make_state(mid_yes: float = 0.40) -> MarketState:
-    now = datetime.now(timezone.utc)
+def _make_state(mid_yes: float = 0.40, now: datetime | None = None) -> MarketState:
+    now = now or datetime.now(timezone.utc)
     market = NormalizedMarket(
         market_id="m1",
         slug="btc-updown-5m-1",
@@ -88,3 +88,22 @@ def test_crypto_updown_model_blends_with_market_midpoint() -> None:
     assert fair_value.market_mid == 0.20
     assert 0.20 < fair_value.p_yes < 0.99
 
+
+def test_crypto_updown_model_uses_state_timestamp_for_replay_horizon() -> None:
+    historical_now = datetime(2024, 1, 1, 12, 0, tzinfo=timezone.utc)
+    state = _make_state(now=historical_now)
+    model = CryptoUpDownFairValueModel(
+        config=ModelConfig(
+            price_source="coinbase",
+            vol_lookback_minutes=60,
+            base_annual_vol=0.8,
+            vol_floor=0.2,
+            uncertainty_multiplier=0.5,
+            market_blend_weight=0.0,
+        ),
+        price_client=FailPriceClient(),
+    )
+
+    fair_value = model.estimate(state)
+
+    assert fair_value.diagnostics["horizon_minutes"] == 5.0

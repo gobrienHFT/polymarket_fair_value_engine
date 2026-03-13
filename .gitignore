@@ -12,5 +12,5 @@ build/
 dist/
 *.egg-info/
 runs/
-data/
-
+data/*
+!data/sample_replay.jsonl

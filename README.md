@@ -1,165 +1,186 @@
 # Polymarket Fair Value Engine
 
-`polymarket_fair_value_engine` is a paper-trading-first research and execution framework for short-dated Polymarket binary markets. The current implementation focuses on BTC 5-minute up/down markets and is organized so the same stack can later price and quote sports, macro, or other event contracts.
+`polymarket_fair_value_engine` is a paper-trading-first prediction-market research and execution repo built to be explainable in a quant trading or market-making interview.
 
-This repo is intentionally not a hypey betting bot. The goal is to show disciplined trading architecture:
+It is deliberately not a hype project. The point is to show a clean trading stack:
 
-- normalized market metadata
-- explicit fair-value models
-- passive quoting around fair value
-- inventory-aware risk controls
-- paper execution, replay, and reporting
-- guarded live execution paths
+- normalized market discovery
+- reference-price ingestion
+- a baseline fair-value model
+- passive quoting logic
+- inventory and risk limits
+- order reconciliation
+- paper execution and replay backtesting
+- guarded live execution
 
-## What Is Implemented
+The first implemented market family is **BTC 5-minute up/down Polymarket markets**. That choice is intentional: the contracts are simple, the horizon is short, and an external reference price exists. It is a better first proving ground for architecture than pretending a serious sports pricer already exists.
 
-The first market family is `btc-updown-5m`.
+## What Is Actually Implemented
 
-The baseline fair-value model:
+Today the repo can:
 
-- pulls a reference BTC spot price from Coinbase
-- estimates realized volatility from recent 1-minute closes
-- uses a short-horizon diffusion approximation for `P(up)`
-- applies an uncertainty buffer and optional market-mid blend
-- reports diagnostics instead of pretending the model is production alpha
+- discover and normalize BTC short-dated up/down markets
+- pull BTC spot and recent minute closes from Coinbase
+- estimate a baseline `P(up)` with a short-horizon diffusion approximation
+- blend that estimate with market midpoint and apply an uncertainty buffer
+- generate passive YES / NO quote intents around fair value
+- skew quoting behavior based on current YES / NO inventory
+- enforce simple hard limits before quoting
+- reconcile quote updates in paper mode
+- simulate paper fills with a documented touch-or-cross or strict-cross-only rule
+- replay stored market states from JSONL and write out artifacts
+- gate live execution behind explicit flags and config
 
-The default strategy is passive market making. Instead of blindly buying perceived value, it:
+The repo also ships a committed deterministic replay sample at `data/sample_replay.jsonl` so the backtest/report flow works from a clean checkout.
 
-- discovers eligible active markets
-- computes `p_yes`
-- reads YES/NO order books and market midpoint
-- builds passive quotes around fair value
-- converts the YES ask into an equivalent `BUY NO` quote
-- skews quotes based on existing YES/NO inventory
-- throttles cancel/replace activity
-- stops quoting near expiry, on stale data, or when limits are hit
+## What Is Only Scaffolding
 
-## Project Layout
+The repo is structured so it can later support sports and other event markets, but those pieces are scaffolding today:
 
-```text
-polymarket-fair-value-engine/
-  README.md
-  pyproject.toml
-  .env.example
-  src/polymarket_fair_value_engine/
-    config.py
-    cli.py
-    types.py
-    logging_utils.py
-    data/
-    markets/
-    models/
-    strategy/
-    execution/
-    risk/
-    analytics/
-    backtest/
-    legacy/
-    sports/
-  tests/
-```
+- bookmaker consensus adapters
+- sports event normalization
+- team-rating / Poisson-style model hooks
+- websocket market-data plumbing
 
-## CLI
+This is **not** a claim that sports pricing alpha is implemented.
 
-Install the package first:
+## Fair-Value Model
+
+The current BTC model is intentionally simple and honest:
+
+1. pull a BTC reference price
+2. estimate realized volatility from recent 1-minute closes
+3. use a short-horizon diffusion-style approximation for `P(up)`
+4. optionally blend with market midpoint
+5. apply an uncertainty buffer before quoting
+
+This is a **baseline fair-value model**, not a production alpha claim.
+
+## Strategy
+
+The default strategy is passive market making around fair value, not blind taker buying.
+
+For each market:
+
+1. estimate fair value
+2. read YES / NO order books
+3. compute quote targets around fair value
+4. skew quoting based on current YES-minus-NO exposure
+5. quantize to market ticks
+6. run the quotes through risk checks
+7. reconcile cancels / replacements
+
+The first market family stays narrow on purpose: BTC 5-minute up/down markets are easier to reason about, easier to sanity-check, and a cleaner first demo than forcing broad market coverage too early.
+
+## Paper Fill Model
+
+Paper fills are intentionally simple and explicitly documented:
+
+- `PMFE_TOUCH_FILL_ONLY=1` means a paper order fills when the market **touches or crosses** the quoted price.
+- `PMFE_TOUCH_FILL_ONLY=0` means the simulator requires a **strict cross**.
+- The simulator does **not** model queue position, adverse selection, hidden liquidity, or partial matching dynamics beyond immediate full fills on the selected rule.
+
+That is a feature, not a bug: the simulator is meant to be explainable and honest, not cosmetically sophisticated.
+
+## Live Execution
+
+Live mode is heavily gated:
+
+- paper mode is the default
+- `--live` is required
+- `--ack-live-risk` is required
+- `PMFE_LIVE_ENABLED=1` must be set
+- auth failures raise loudly
+
+The current live quote loop only tracks orders placed by the current process. Stale or replaced live quotes are cancelled **targetedly** when possible. `cancel-all` remains available as the manual kill-switch path and is also used when the configured kill-switch file is present.
+
+## Install
+
+Editable install with test dependencies:
 
 ```bash
 python -m pip install -e .[dev]
 ```
 
-For live execution support, install the optional live dependency set:
+If you want live execution support as well:
 
 ```bash
 python -m pip install -e .[dev,live]
 ```
 
+## Demo Commands
+
+Deterministic offline demo:
+
 ```bash
-pmfe scan --series btc-updown-5m
-pmfe quote --series btc-updown-5m --paper --iterations 25
-pmfe backtest --input data/sample_replay.jsonl
-pmfe cancel-all --live --ack-live-risk
-pmfe report --run-id latest
+pytest -q
+pmfe backtest --input data/sample_replay.jsonl --run-id sample-demo
+pmfe report --run-id sample-demo
 ```
 
-### `scan`
+There is also a short demo script:
 
-Discovers eligible markets and prints fair value, midpoint, spread, inventory-neutral quote targets, and model diagnostics.
+```bash
+scripts/demo.sh
+```
 
-### `quote --paper`
+Public-endpoint scan / paper-quote commands:
 
-Runs the passive quoting loop with the paper execution engine. It exports:
+```bash
+pmfe scan --series btc-updown-5m
+pmfe quote --series btc-updown-5m --paper --iterations 10
+```
 
-- orders
-- fills
-- inventory snapshots
-- PnL snapshots
-- summary metadata
+Those two commands use live public market data. The deterministic demo path is the replay sample above.
 
-under `runs/<run_id>/`.
+## Output Artifacts
 
-### `backtest`
+Backtests and paper runs write readable artifacts under `runs/<run_id>/`:
 
-Replays stored JSONL snapshots through the same strategy, order manager, paper engine, and reporting stack.
+- `orders.csv`
+- `fills.csv`
+- `inventory.csv`
+- `pnl.csv`
+- `summary.json`
 
-### `--live`
+## Repository Layout
 
-Live execution is intentionally gated:
+```text
+src/polymarket_fair_value_engine/
+  config.py              # env/config loading
+  cli.py                 # scan / quote / backtest / report / cancel-all
+  data/                  # Gamma, CLOB REST, external prices
+  markets/               # normalization + discovery
+  models/                # fair-value models
+  strategy/              # passive quoting logic
+  risk/                  # limits + inventory
+  execution/             # paper + live execution
+  analytics/             # exports + reports
+  backtest/              # replay loader + simulator
+  sports/                # scaffolding only
+  legacy/                # wrapper around the original prototype
+```
 
-- paper mode is the default
-- `--live` is required
-- `--ack-live-risk` is required
-- the config must explicitly allow live trading
-- auth errors fail loudly instead of silently degrading
+## Known Limitations
 
-## Risk Controls
+- the BTC model is a baseline fair-value approximation
+- the default scan and quote commands still depend on public Polymarket / Coinbase endpoints
+- the paper fill model is deterministic and deliberately simple
+- live quote management only knows about orders placed by the current process
+- websocket ingestion is scaffolded rather than productionized
+- sports support is architecture-only at this stage
 
-The engine applies hard controls before quoting or replacing orders:
+## Why This Shape Works In Interview
 
-- max notional per market
-- max gross exposure
-- max net YES-minus-NO exposure by series
-- max order size
-- max open orders
-- stale data checks
-- no-trade window near expiry
-- cancel-all and kill-switch paths
+The repo is easy to walk through end-to-end:
 
-## Config And Secrets
+1. discover and normalize a market
+2. fetch reference prices and order books
+3. estimate fair value
+4. generate passive quote intents
+5. apply inventory and risk limits
+6. reconcile desired quotes vs open orders
+7. simulate or place execution
+8. export fills, inventory, and PnL
 
-The repo keeps compatibility with the legacy env names already used in the prototype, including:
-
-- `POLY_PRIVATE_KEY`
-- `POLY_FUNDER`
-- `POLY_SIGNATURE_TYPE`
-- `CLOB_API_KEY`
-- `CLOB_SECRET`
-- `CLOB_PASSPHRASE`
-- `POLYGON_RPC`
-- legacy `BOT_*` fields
-
-Real keys belong only in your local `.env`. This repo ships a safe `.env.example`, and `.env` is gitignored so it does not get pushed remotely.
-
-## Current Limitations
-
-- the BTC model is a baseline diffusion model, not a source of claimed alpha
-- paper fills are deterministic touch-or-cross approximations, not queue-position simulation
-- websocket ingestion is scaffolded, but the default implementation uses polling REST snapshots
-- live execution is intentionally conservative and only lightly abstracted beyond the Polymarket client
-
-## Sports Extension Path
-
-The repo already includes extension points for:
-
-- bookmaker consensus odds adapters
-- team-rating or Poisson-style sports models
-- sports event normalization
-
-Those scaffolds are not production sports pricers yet. They exist to keep the architecture obviously extensible from crypto binaries into broader event markets.
-
-## Future Work
-
-- websocket-driven market data and lower-latency order management
-- richer fill models for replay and paper simulation
-- settlement-aware realized PnL for resolved markets
-- bookmaker / exchange consensus adapters for sports
-- event-specific pricing models beyond short-dated crypto directionals
+That is the core story: a clean, defensible market-making research framework with honest scope and clear extension points.

@@ -94,3 +94,26 @@ def test_paper_execution_realizes_pnl_on_sell_fill() -> None:
     assert engine.inventory.position("m1").yes_contracts == 6.0
     assert round(engine.inventory.realized_pnl, 6) == 0.4
 
+
+def test_paper_execution_can_require_strict_cross() -> None:
+    now = datetime.now(timezone.utc)
+    engine = PaperExecutionEngine(starting_cash=100.0, touch_fill_only=False)
+    quote = QuoteIntent(
+        market_id="m1",
+        token_id="yes-1",
+        token_side=TokenSide.YES,
+        side=OrderSide.BUY,
+        price=0.55,
+        size=10.0,
+        fair_value=0.60,
+        reference_mid=0.50,
+        created_at=now,
+        reason="bid_side_buy_yes",
+    )
+
+    engine.apply_actions([OrderAction(action="place", desired=quote)], now)
+    no_fill = engine.process_market_state(_market_state(now, ask=0.55, bid=0.53))
+    yes_fill = engine.process_market_state(_market_state(now, ask=0.54, bid=0.53))
+
+    assert no_fill == []
+    assert len(yes_fill) == 1

@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import math
-from datetime import datetime, timezone
 from statistics import mean
 
 from polymarket_fair_value_engine.config import ModelConfig
@@ -24,7 +23,7 @@ class CryptoUpDownFairValueModel(FairValueModel):
         self.price_client = price_client
 
     def estimate(self, state: MarketState) -> FairValueEstimate:
-        now = datetime.now(timezone.utc)
+        now = state.observed_at
         asset = state.market.asset or "BTC"
         spot = state.reference_price if state.reference_price is not None else self.price_client.get_spot(asset)
         annualized_vol = float(state.market.metadata.get("annualized_vol", 0.0))

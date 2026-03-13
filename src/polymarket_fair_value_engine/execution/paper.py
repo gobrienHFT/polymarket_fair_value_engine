@@ -8,6 +8,12 @@ from polymarket_fair_value_engine.types import FillEvent, ManagedOrder, MarketSt
 
 
 class PaperExecutionEngine:
+    """Simple paper engine with deterministic fill rules.
+
+    When ``touch_fill_only`` is true, an order fills when the market touches or crosses
+    the quoted price. When it is false, the simulator requires a strict cross.
+    """
+
     def __init__(self, starting_cash: float, touch_fill_only: bool = True) -> None:
         self.inventory = InventoryLedger(starting_cash=starting_cash)
         self.touch_fill_only = touch_fill_only
@@ -95,12 +101,15 @@ class PaperExecutionEngine:
             return False
         if order.side is OrderSide.BUY:
             best_ask = book.best_ask.price if book.best_ask else None
-            return best_ask is not None and best_ask <= order.price
+            if best_ask is None:
+                return False
+            return best_ask <= order.price if self.touch_fill_only else best_ask < order.price
         best_bid = book.best_bid.price if book.best_bid else None
-        return best_bid is not None and best_bid >= order.price
+        if best_bid is None:
+            return False
+        return best_bid >= order.price if self.touch_fill_only else best_bid > order.price
 
     def mark_to_market(self, timestamp: datetime, mark_prices: dict[str, float]) -> PnLSnapshot:
         snapshot = self.inventory.pnl_snapshot(timestamp=timestamp, mark_prices=mark_prices)
         self.pnl_history.append(snapshot)
         return snapshot
-

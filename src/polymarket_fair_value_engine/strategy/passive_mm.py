@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import math
-from datetime import datetime, timezone
 
 from polymarket_fair_value_engine.config import StrategyConfig
 from polymarket_fair_value_engine.risk.inventory import InventoryPosition
@@ -36,7 +35,6 @@ class PassiveMarketMaker(Strategy):
         fair_value: FairValueEstimate,
         inventory_position: InventoryPosition,
     ) -> StrategyDecision:
-        now = datetime.now(timezone.utc)
         spread_half = max(self.config.quote_half_spread, (state.spread or 0.0) / 2.0)
         inventory_skew = inventory_position.net_yes_exposure * self.config.inventory_skew_per_contract
 
@@ -59,7 +57,7 @@ class PassiveMarketMaker(Strategy):
                         size=min(inventory_position.no_contracts, bid_size),
                         fair_value=fair_value.p_no,
                         reference_mid=state.yes_mid,
-                        created_at=now,
+                        created_at=state.observed_at,
                         reason="bid_side_sell_no",
                     )
                 )
@@ -74,7 +72,7 @@ class PassiveMarketMaker(Strategy):
                         size=bid_size,
                         fair_value=fair_value.p_yes,
                         reference_mid=state.yes_mid,
-                        created_at=now,
+                        created_at=state.observed_at,
                         reason="bid_side_buy_yes",
                     )
                 )
@@ -93,7 +91,7 @@ class PassiveMarketMaker(Strategy):
                         size=min(inventory_position.yes_contracts, ask_size),
                         fair_value=fair_value.p_yes,
                         reference_mid=state.yes_mid,
-                        created_at=now,
+                        created_at=state.observed_at,
                         reason="ask_side_sell_yes",
                     )
                 )
@@ -112,7 +110,7 @@ class PassiveMarketMaker(Strategy):
                             size=no_size,
                             fair_value=fair_value.p_no,
                             reference_mid=state.yes_mid,
-                            created_at=now,
+                            created_at=state.observed_at,
                             reason="ask_side_buy_no",
                         )
                     )
@@ -130,4 +128,3 @@ class PassiveMarketMaker(Strategy):
                 "observed_spread": state.spread,
             },
         )
-

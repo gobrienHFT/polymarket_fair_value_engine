@@ -57,8 +57,22 @@ class PolymarketLiveExecutor:
         response = self.client.post_order(signed, order_type="GTC")
         return response if isinstance(response, dict) else {"response": str(response)}
 
+    def cancel_order(self, order_id: str) -> Any:
+        if hasattr(self.client, "cancel"):
+            return self.client.cancel(order_id)
+        raise RuntimeError("The installed py-clob-client does not expose cancel(order_id).")
+
+    def cancel_orders(self, order_ids: list[str]) -> list[Any]:
+        if not order_ids:
+            return []
+        if hasattr(self.client, "cancel_orders"):
+            response = self.client.cancel_orders(order_ids)
+            if isinstance(response, list):
+                return response
+            return [response]
+        return [self.cancel_order(order_id) for order_id in order_ids]
+
     def cancel_all(self) -> Any:
         if hasattr(self.client, "cancel_all"):
             return self.client.cancel_all()
         raise RuntimeError("The installed py-clob-client does not expose cancel_all().")
-
