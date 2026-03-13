@@ -1,0 +1,34 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "polymarket-fair-value-engine"
+version = "0.1.0"
+description = "Research-grade fair-value, quoting, and paper-trading framework for Polymarket binary markets."
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+  "python-dotenv>=1.0.0",
+  "requests>=2.32.0",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0.0"]
+live = ["py-clob-client>=0.25.0"]
+parquet = ["pandas>=2.2.0", "pyarrow>=16.0.0"]
+
+[project.scripts]
+pmfe = "polymarket_fair_value_engine.cli:main"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
+addopts = "-q"
+
