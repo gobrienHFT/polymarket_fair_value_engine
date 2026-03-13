@@ -6,6 +6,7 @@ import logging
 import time
 from dataclasses import replace
 from datetime import datetime, timezone
+from pathlib import Path
 from typing import Any
 
 from polymarket_fair_value_engine.analytics.pnl import mark_yes_price
@@ -33,6 +34,14 @@ from polymarket_fair_value_engine.types import ManagedOrder, MarketState, OrderS
 LOGGER = logging.getLogger(__name__)
 
 
+def _repo_root() -> Path:
+    return Path(__file__).resolve().parents[2]
+
+
+def _bundled_sample_replay_path() -> Path:
+    return _repo_root() / "data" / "sample_replay.jsonl"
+
+
 def _build_stack(
     config: EngineConfig,
 ) -> tuple[MarketDiscoveryService, ClobRestClient, CryptoUpDownFairValueModel, PassiveMarketMaker, RiskManager, OrderManager]:
@@ -43,6 +52,23 @@ def _build_stack(
     risk_manager = RiskManager(config.risk)
     order_manager = OrderManager(config.strategy)
     return discovery, clob_client, model, strategy, risk_manager, order_manager
+
+
+def _build_replay_simulator(config: EngineConfig) -> ReplaySimulator:
+    _, _, model, strategy, risk_manager, order_manager = _build_stack(config)
+    return ReplaySimulator(
+        model=model,
+        strategy=strategy,
+        risk_manager=risk_manager,
+        order_manager=order_manager,
+        execution_engine=PaperExecutionEngine(
+            starting_cash=config.paper.starting_cash,
+            touch_fill_only=config.paper.touch_fill_only,
+        ),
+        no_trade_window_seconds=config.market.no_trade_window_seconds,
+        stale_data_seconds=config.risk.stale_data_seconds,
+        output_root=config.output.root,
+    )
 
 
 def _discover_states(
@@ -255,7 +281,8 @@ def _live_quote_command(config: EngineConfig, series: str, iterations: int) -> i
             cancel_ids = [action.existing_order_id for action in actions if action.action == "cancel" and action.existing_order_id]
             if cancel_ids:
                 executor.cancel_orders(cancel_ids)
-                session_orders = [order for order in session_orders if order.order_id not in set(cancel_ids)]
+                cancelled = set(cancel_ids)
+                session_orders = [order for order in session_orders if order.order_id not in cancelled]
             for action in actions:
                 if action.action != "place" or action.desired is None:
                     continue
@@ -287,23 +314,28 @@ def _live_quote_command(config: EngineConfig, series: str, iterations: int) -> i
     return 0
 
 
+def _run_replay(config: EngineConfig, input_path: Path, run_id: str | None = None, mode: str = "backtest") -> dict[str, Any]:
+    simulator = _build_replay_simulator(config)
+    actual_run_id, output_dir, summary = simulator.run(load_replay_file(input_path), run_id=run_id)
+    return {
+        "mode": mode,
+        "input": str(input_path),
+        "output_dir": str(output_dir),
+        **summary,
+        "run_id": actual_run_id,
+    }
+
+
 def _backtest_command(config: EngineConfig, input_path: str, run_id: str | None = None) -> int:
-    _, _, model, strategy, risk_manager, order_manager = _build_stack(config)
-    simulator = ReplaySimulator(
-        model=model,
-        strategy=strategy,
-        risk_manager=risk_manager,
-        order_manager=order_manager,
-        execution_engine=PaperExecutionEngine(
-            starting_cash=config.paper.starting_cash,
-            touch_fill_only=config.paper.touch_fill_only,
-        ),
-        no_trade_window_seconds=config.market.no_trade_window_seconds,
-        stale_data_seconds=config.risk.stale_data_seconds,
-        output_root=config.output.root,
-    )
-    run_id, output_dir, summary = simulator.run(load_replay_file(input_path), run_id=run_id)
-    print(json.dumps({"output_dir": str(output_dir), **summary}, indent=2))
+    payload = _run_replay(config, input_path=Path(input_path), run_id=run_id, mode="backtest")
+    print(json.dumps(payload, indent=2))
+    return 0
+
+
+def _demo_command(config: EngineConfig) -> int:
+    run_id = datetime.now(timezone.utc).strftime("demo-%Y%m%dT%H%M%SZ")
+    payload = _run_replay(config, input_path=_bundled_sample_replay_path(), run_id=run_id, mode="demo")
+    print(json.dumps(payload, indent=2))
     return 0
 
 
@@ -331,6 +363,8 @@ def build_parser() -> argparse.ArgumentParser:
     backtest = subparsers.add_parser("backtest")
     backtest.add_argument("--input", required=True)
     backtest.add_argument("--run-id", default=None)
+
+    subparsers.add_parser("demo")
 
     cancel_all = subparsers.add_parser("cancel-all")
     cancel_all.add_argument("--live", action="store_true", default=False)
@@ -364,6 +398,8 @@ def main(argv: list[str] | None = None) -> int:
         return _paper_quote_command(config, series=series, iterations=args.iterations, run_id=args.run_id)
     if args.command == "backtest":
         return _backtest_command(config, input_path=args.input, run_id=args.run_id)
+    if args.command == "demo":
+        return _demo_command(config)
     if args.command == "cancel-all":
         guard_live_mode(live=bool(args.live), ack_live_risk=bool(args.ack_live_risk), live_enabled=config.auth.live_enabled)
         if not args.live:
