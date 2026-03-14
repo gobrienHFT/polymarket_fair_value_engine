@@ -1,10 +1,10 @@
 # Polymarket Fair Value Engine
 
-`polymarket_fair_value_engine` is a paper-trading-first research and execution framework for short-dated binary/event markets on Polymarket.
+`polymarket_fair_value_engine` is a paper-trading-first research and execution framework for Polymarket binary markets.
 
-The current implemented scope is intentionally narrow: **BTC 5-minute up/down markets**. That keeps the project explainable, testable, and honest. The repo is designed to support later extension into broader event markets, but it does not pretend to be a production sports pricer or a proven alpha engine today.
+The implemented scope is intentionally narrow: **BTC 5-minute up/down markets**. That keeps the repo explainable, testable, and honest. The codebase preserves extension points for sports and other event markets, but it does not claim that those paths are implemented pricers today.
 
-## 60-Second Demo
+## Fastest Demo
 
 Fresh clone:
 
@@ -13,31 +13,34 @@ python -m pip install -e .[dev]
 pmfe demo
 ```
 
-That command:
+That one command runs fully offline against the bundled replay sample in `data/sample_replay.jsonl`, writes artifacts under `runs/<run_id>/`, and prints a JSON summary with the output directory and artifact paths.
 
-- runs fully offline against bundled replay data
-- writes artifacts under `runs/demo-<timestamp>/`
-- prints a concise JSON summary
-- requires no live credentials and no internet access
-
-For a longer deterministic walkthrough:
+The alternate explicit form is:
 
 ```bash
-pytest -q
-pmfe backtest --input data/sample_replay.jsonl --run-id sample-demo
+pmfe backtest --sample --run-id sample-demo
 pmfe report --run-id sample-demo
 ```
 
-Public-endpoint commands that use live market data:
+Convenience wrappers are available at `scripts/demo.sh` and `scripts/demo.ps1`. They install the editable package, run `pytest`, run the sample backtest, run `pmfe report`, and print the output directory. The canonical interface remains `pmfe ...`.
 
-```bash
-pmfe scan --series btc-updown-5m
-pmfe quote --series btc-updown-5m --paper --iterations 10
+## Architecture
+
+```text
+Data -> Model -> Strategy -> Risk -> Order Manager -> Execution -> Reporting
 ```
 
-## What The Current Implementation Actually Does
+- `Data`: market discovery, order books, and reference prices
+- `Model`: baseline fair-value estimate for `P(YES)`
+- `Strategy`: passive YES / NO quote intents around fair value
+- `Risk`: market, gross, series, and open-order limits
+- `Order Manager`: reconcile desired quotes against current open orders
+- `Execution`: paper fills by replay/live market state or guarded live posting
+- `Reporting`: CSV artifacts and JSON summaries under `runs/<run_id>/`
 
-Today the repo can:
+## What The Repo Actually Implements
+
+Today the package can:
 
 - discover and normalize active BTC 5-minute up/down markets
 - ingest YES / NO order books from the Polymarket CLOB REST API
@@ -52,32 +55,42 @@ Today the repo can:
 - replay stored JSONL market states and export run artifacts
 - gate live execution behind explicit flags and config
 
-## What Is Scaffolded But Not Yet Production-Grade
+The repo also includes extension scaffolding for sportsbook adapters, sports normalization, rating models, and websocket ingestion. Those are architecture hooks, not claims of implemented sports pricing.
 
-The repo includes extension points for future work, but these are deliberately described as scaffolding:
+## Replay And Output Artifacts
 
-- sportsbook / bookmaker consensus adapters
-- sports event normalization
-- team-rating or Poisson-style sports model hooks
-- websocket-driven data ingestion
-- richer live order-state synchronization
+Backtests, demos, and paper runs write:
 
-That is architecture, not a claim of implemented sports pricing alpha.
+```text
+runs/<run_id>/
+  summary.json
+  orders.csv
+  fills.csv
+  inventory.csv
+  pnl.csv
+```
 
-## Architecture
+`pmfe report --run-id <run_id>` reads the stored summary and prints the run location plus the artifact paths again.
 
-The core flow is:
+Paper fill behavior is intentionally simple:
 
-1. market discovery and normalization
-2. reference-price and order-book ingestion
-3. fair-value estimation
-4. passive quote construction
-5. inventory/risk filtering
-6. order reconciliation
-7. paper execution or guarded live execution
-8. replay/reporting outputs
+- `PMFE_TOUCH_FILL_ONLY=1`: fill only when the quoted price touches or crosses the best quote
+- `PMFE_TOUCH_FILL_ONLY=0`: allow more permissive replay fills within `PMFE_REPLAY_FILL_SLACK`
+- no queue-position realism
+- no hidden-liquidity modeling
+- no claim that replay fills equal live fills
 
-Repository layout:
+## Live Execution Guardrails
+
+The live path is present but deliberately guarded:
+
+- paper mode is the default
+- `--live` and `--ack-live-risk` are required
+- `PMFE_LIVE_ENABLED=1` must be set
+- auth or config failures raise loudly
+- `cancel-all` remains the explicit kill-switch path
+
+## Repository Layout
 
 ```text
 src/polymarket_fair_value_engine/
@@ -91,126 +104,46 @@ src/polymarket_fair_value_engine/
   execution/             # paper + live execution paths
   analytics/             # exports + run summaries
   backtest/              # replay loader + simulator
-  sports/                # extension scaffolding only
-  legacy/                # wrapper around the original seed script
+  sports/                # extension scaffolding
+
+legacy/
+  polymarket_bot.py      # archived single-file prototype
+
+scripts/
+  demo.sh
+  demo.ps1
 ```
 
-## Model + Strategy Summary
+## What To Demo In Interview
 
-### Fair value model
+One straightforward interview walkthrough is:
 
-The current BTC model is a baseline diffusion-style fair-value model, not a production alpha claim.
-
-Inputs:
-
-- BTC reference spot
-- recent 1-minute closes for realized volatility
-- market midpoint
-- replay metadata when running historical/offline paths
-
-Output:
-
-- a fair-value estimate for `P(YES)` and `P(NO)`
-- an uncertainty buffer
-- model diagnostics for inspection
-
-In replay mode, the model uses the market state's own timestamp and replay metadata rather than current wall-clock time, so historical runs remain deterministic.
-
-### Passive quote construction
-
-The default strategy does not blindly cross the spread. It builds passive quote intents around fair value:
-
-- `bid_yes = fair_value - half_spread - uncertainty - inventory_skew`
-- `ask_yes = fair_value + half_spread + uncertainty + inventory_skew`
-
-When appropriate, the strategy expresses the opposite side through `NO` quotes instead of pretending the market is only one-sided.
-
-### Inventory skew
-
-Inventory skew is explicit:
-
-- if the engine is already long YES, it becomes less willing to buy more YES and more willing to sell YES
-- if it is long NO, it skews the other way
-
-That keeps the quoting logic closer to a market-making conversation than a one-way directional buyer.
-
-### Paper execution assumptions
-
-The paper engine is intentionally simple and honest:
-
-- `PMFE_TOUCH_FILL_ONLY=1` fills on touch-or-cross
-- `PMFE_TOUCH_FILL_ONLY=0` requires a strict cross
-- no queue-position realism
-- no hidden-liquidity modeling
-- no claim that replay fills equal live fills
-
-### Why replay/backtest exists
-
-Replay exists so the repo can:
-
-- demonstrate the full stack offline
-- test model/strategy/execution behavior deterministically
-- export interpretable artifacts for review
-
-That is especially useful in interviews because it removes dependence on live APIs or market conditions.
-
-### Live path
-
-The live path exists, but it is intentionally conservative:
-
-- paper mode is the default
-- `--live` and `--ack-live-risk` are required
-- `PMFE_LIVE_ENABLED=1` must be set
-- auth/config failures raise loudly
-- stale/replaced orders are cancelled target-by-target when possible
-- `cancel-all` remains the explicit kill-switch path
-
-## Output Artifacts
-
-Backtests, demos, and paper runs write:
-
-- `orders.csv`
-- `fills.csv`
-- `inventory.csv`
-- `pnl.csv`
-- `summary.json`
-
-under `runs/<run_id>/`.
+1. Run `pmfe demo` or `pmfe backtest --sample --run-id interview-demo`.
+2. Show the JSON summary and the generated `runs/<run_id>/` directory.
+3. Open `summary.json`, `fills.csv`, and `pnl.csv` to show the replay outcome.
+4. Walk the pipeline from data ingestion to fair value, strategy, risk, order reconciliation, execution, and reporting.
+5. Point out that the live path is guarded and that the current implemented scope is BTC 5-minute up/down only.
+6. Mention that sports is an extension path in the package layout, not a completed public claim.
 
 ## Install
 
-Editable install with test dependencies:
+Editable install with tests:
 
 ```bash
 python -m pip install -e .[dev]
 ```
 
-If you want the optional live client dependency too:
+If you want the optional live dependency too:
 
 ```bash
 python -m pip install -e .[dev,live]
 ```
 
-## Known Limitations
+## Limitations
 
 - the BTC fair-value model is a baseline, not a claim of persistent alpha
-- scan and live-data paper quoting still depend on public Polymarket / Coinbase endpoints
-- the paper fill model is deliberately simplistic
+- scan and live-data paper quoting still depend on public Polymarket and Coinbase endpoints
+- the paper fill model is intentionally simple
 - live order management only knows about orders placed by the current running process
 - websocket ingestion is still scaffolding
-- sports support remains an extension path rather than a real implemented pricer
-
-## Why This Project Works As An Interview Demo
-
-It is easy to explain end-to-end:
-
-1. normalize a market
-2. ingest a reference price and order books
-3. estimate fair value
-4. generate inventory-aware passive quotes
-5. enforce hard risk limits
-6. reconcile orders
-7. simulate execution or invoke guarded live execution
-8. inspect artifacts and PnL
-
-That is a realistic research/execution framework story without pretending this is already a production market-making system.
+- sports support remains an extension path rather than an implemented public pricer

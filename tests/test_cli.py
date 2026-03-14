@@ -97,7 +97,7 @@ def _config(tmp_path) -> EngineConfig:
             max_open_orders=8,
             stale_data_seconds=20,
         ),
-        paper=PaperConfig(starting_cash=100.0, touch_fill_only=True, mark_source="mid"),
+        paper=PaperConfig(starting_cash=100.0, touch_fill_only=True, replay_fill_slack=0.01, mark_source="mid"),
         output=OutputConfig(root=tmp_path / "runs"),
     )
 
@@ -144,6 +144,7 @@ def test_cli_backtest_and_report_smoke(tmp_path, monkeypatch, capsys) -> None:
     assert cli.main(["backtest", "--input", "data/sample_replay.jsonl", "--run-id", "cli-smoke"]) == 0
     backtest_output = json.loads(capsys.readouterr().out)
     assert backtest_output["run_id"] == "cli-smoke"
+    assert backtest_output["artifacts"]["summary_json"].endswith("cli-smoke/summary.json") or backtest_output["artifacts"]["summary_json"].endswith("cli-smoke\\summary.json")
 
     assert cli.main(["report", "--run-id", "cli-smoke"]) == 0
     report_output = json.loads(capsys.readouterr().out)
@@ -164,11 +165,33 @@ def test_cli_demo_runs_offline_with_bundled_replay(tmp_path, monkeypatch, capsys
         lambda self, asset, lookback_minutes, fallback: (_ for _ in ()).throw(AssertionError("unexpected vol fetch")),
     )
 
-    assert cli.main(["demo"]) == 0
+    assert cli.main(["demo", "--run-id", "demo-smoke"]) == 0
     payload = json.loads(capsys.readouterr().out)
 
     assert payload["mode"] == "demo"
-    assert payload["run_id"].startswith("demo-")
+    assert payload["run_id"] == "demo-smoke"
+    assert payload["input"].endswith("data\\sample_replay.jsonl") or payload["input"].endswith("data/sample_replay.jsonl")
+    assert payload["artifacts"]["orders_csv"].endswith("demo-smoke/orders.csv") or payload["artifacts"]["orders_csv"].endswith("demo-smoke\\orders.csv")
+
+
+def test_cli_backtest_sample_flag_uses_bundled_replay(tmp_path, monkeypatch, capsys) -> None:
+    monkeypatch.setenv("PMFE_OUTPUT_ROOT", str(tmp_path / "runs"))
+    monkeypatch.setattr(
+        CoinbasePriceClient,
+        "get_spot",
+        lambda self, asset: (_ for _ in ()).throw(AssertionError(f"unexpected spot fetch for {asset}")),
+    )
+    monkeypatch.setattr(
+        CoinbasePriceClient,
+        "realized_vol_annualized",
+        lambda self, asset, lookback_minutes, fallback: (_ for _ in ()).throw(AssertionError("unexpected vol fetch")),
+    )
+
+    assert cli.main(["backtest", "--sample", "--run-id", "sample-flag"]) == 0
+    payload = json.loads(capsys.readouterr().out)
+
+    assert payload["mode"] == "backtest"
+    assert payload["run_id"] == "sample-flag"
     assert payload["input"].endswith("data\\sample_replay.jsonl") or payload["input"].endswith("data/sample_replay.jsonl")
 
 

@@ -11,12 +11,14 @@ class PaperExecutionEngine:
     """Simple paper engine with deterministic fill rules.
 
     When ``touch_fill_only`` is true, an order fills when the market touches or crosses
-    the quoted price. When it is false, the simulator requires a strict cross.
+    the quoted price. When it is false, the simulator can fill more permissively
+    using ``replay_fill_slack`` to model coarse replay data.
     """
 
-    def __init__(self, starting_cash: float, touch_fill_only: bool = True) -> None:
+    def __init__(self, starting_cash: float, touch_fill_only: bool = True, replay_fill_slack: float = 0.01) -> None:
         self.inventory = InventoryLedger(starting_cash=starting_cash)
         self.touch_fill_only = touch_fill_only
+        self.replay_fill_slack = max(0.0, replay_fill_slack)
         self.order_history: list[ManagedOrder] = []
         self.fill_history: list[FillEvent] = []
         self.pnl_history: list[PnLSnapshot] = []
@@ -99,15 +101,16 @@ class PaperExecutionEngine:
         book = state.yes_book if order.token_side is TokenSide.YES else state.no_book
         if book is None:
             return False
+        replay_fill_slack = 0.0 if self.touch_fill_only else self.replay_fill_slack
         if order.side is OrderSide.BUY:
             best_ask = book.best_ask.price if book.best_ask else None
             if best_ask is None:
                 return False
-            return best_ask <= order.price if self.touch_fill_only else best_ask < order.price
+            return best_ask <= (order.price + replay_fill_slack)
         best_bid = book.best_bid.price if book.best_bid else None
         if best_bid is None:
             return False
-        return best_bid >= order.price if self.touch_fill_only else best_bid > order.price
+        return best_bid >= (order.price - replay_fill_slack)
 
     def mark_to_market(self, timestamp: datetime, mark_prices: dict[str, float]) -> PnLSnapshot:
         snapshot = self.inventory.pnl_snapshot(timestamp=timestamp, mark_prices=mark_prices)

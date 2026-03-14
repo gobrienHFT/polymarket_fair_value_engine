@@ -72,6 +72,8 @@ class RiskManager:
         open_order_count = sum(1 for order in open_orders if self._is_open(order))
 
         for quote in quotes:
+            # Batch filtering is sequential: every approved quote changes the projected
+            # exposure for the next candidate in the same decision set.
             notional_addition = self._quote_notional_addition(quote)
             signed_contracts = self._signed_contracts(quote.token_side, quote.side, quote.size)
             projected_notional = current_market_notional + notional_addition

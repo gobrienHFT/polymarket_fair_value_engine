@@ -94,6 +94,7 @@ class RiskConfig:
 class PaperConfig:
     starting_cash: float
     touch_fill_only: bool
+    replay_fill_slack: float
     mark_source: str
 
 
@@ -180,6 +181,7 @@ def load_config(dotenv_path: str | None = None) -> EngineConfig:
         paper=PaperConfig(
             starting_cash=bankroll,
             touch_fill_only=_as_bool("PMFE_TOUCH_FILL_ONLY", default=True),
+            replay_fill_slack=_as_float("PMFE_REPLAY_FILL_SLACK", default=0.01),
             mark_source=_pick("PMFE_MARK_SOURCE", default="mid"),
         ),
         output=OutputConfig(

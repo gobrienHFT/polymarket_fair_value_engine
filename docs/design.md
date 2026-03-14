@@ -84,7 +84,7 @@ Replay exists to make the stack deterministic and demoable without live dependen
 The paper engine intentionally uses simple fill rules:
 
 - touch-or-cross fills
-- optional strict-cross-only mode
+- optional replay-fill slack for more permissive sample/replay fills
 
 It does not claim queue-position realism, hidden-liquidity realism, or live-equivalent fill quality.
 

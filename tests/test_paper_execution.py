@@ -57,6 +57,30 @@ def test_paper_execution_fills_buy_orders_on_touch() -> None:
     assert round(engine.inventory.cash, 6) == 94.5
 
 
+def test_paper_execution_touch_fill_only_waits_for_touch_or_cross() -> None:
+    now = datetime.now(timezone.utc)
+    engine = PaperExecutionEngine(starting_cash=100.0, touch_fill_only=True)
+    quote = QuoteIntent(
+        market_id="m1",
+        token_id="yes-1",
+        token_side=TokenSide.YES,
+        side=OrderSide.BUY,
+        price=0.55,
+        size=10.0,
+        fair_value=0.60,
+        reference_mid=0.50,
+        created_at=now,
+        reason="touch_only_buy_yes",
+    )
+
+    engine.apply_actions([OrderAction(action="place", desired=quote)], now)
+    no_fill = engine.process_market_state(_market_state(now, ask=0.56, bid=0.53))
+    yes_fill = engine.process_market_state(_market_state(now, ask=0.55, bid=0.53))
+
+    assert no_fill == []
+    assert len(yes_fill) == 1
+
+
 def test_paper_execution_realizes_pnl_on_sell_fill() -> None:
     now = datetime.now(timezone.utc)
     engine = PaperExecutionEngine(starting_cash=100.0)
@@ -95,9 +119,9 @@ def test_paper_execution_realizes_pnl_on_sell_fill() -> None:
     assert round(engine.inventory.realized_pnl, 6) == 0.4
 
 
-def test_paper_execution_can_require_strict_cross() -> None:
+def test_paper_execution_can_use_more_permissive_replay_fill_slack() -> None:
     now = datetime.now(timezone.utc)
-    engine = PaperExecutionEngine(starting_cash=100.0, touch_fill_only=False)
+    engine = PaperExecutionEngine(starting_cash=100.0, touch_fill_only=False, replay_fill_slack=0.02)
     quote = QuoteIntent(
         market_id="m1",
         token_id="yes-1",
@@ -112,8 +136,8 @@ def test_paper_execution_can_require_strict_cross() -> None:
     )
 
     engine.apply_actions([OrderAction(action="place", desired=quote)], now)
-    no_fill = engine.process_market_state(_market_state(now, ask=0.55, bid=0.53))
-    yes_fill = engine.process_market_state(_market_state(now, ask=0.54, bid=0.53))
+    no_fill = engine.process_market_state(_market_state(now, ask=0.58, bid=0.53))
+    yes_fill = engine.process_market_state(_market_state(now, ask=0.57, bid=0.53))
 
     assert no_fill == []
     assert len(yes_fill) == 1

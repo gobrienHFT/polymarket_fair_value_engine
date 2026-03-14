@@ -31,6 +31,16 @@ def write_run_report(
         json.dump(summary, handle, indent=2, default=str)
 
 
+def run_artifacts(output_dir: Path) -> dict[str, str]:
+    return {
+        "summary_json": str(output_dir / "summary.json"),
+        "orders_csv": str(output_dir / "orders.csv"),
+        "fills_csv": str(output_dir / "fills.csv"),
+        "inventory_csv": str(output_dir / "inventory.csv"),
+        "pnl_csv": str(output_dir / "pnl.csv"),
+    }
+
+
 def latest_run_directory(root: Path) -> Path | None:
     if not root.exists():
         return None

@@ -91,11 +91,11 @@ def test_risk_manager_rejects_quotes_that_exceed_market_notional_limit() -> None
     assert result.rejected_reasons == ("oversized_yes_bid:market_notional",)
 
 
-def test_risk_manager_accumulates_market_notional_and_gross_across_approved_quotes() -> None:
+def test_risk_manager_rejects_second_quote_when_combined_market_notional_breaches_limit() -> None:
     risk_manager = RiskManager(
         RiskConfig(
             max_notional_per_market=7.5,
-            max_gross_exposure=7.5,
+            max_gross_exposure=100.0,
             max_net_exposure_per_series=100.0,
             max_order_size=100.0,
             max_open_orders=5,
@@ -141,6 +141,58 @@ def test_risk_manager_accumulates_market_notional_and_gross_across_approved_quot
 
     assert result.approved_quotes == (first_quote,)
     assert result.rejected_reasons == ("second_no_bid:market_notional",)
+
+
+def test_risk_manager_rejects_second_quote_when_combined_gross_exposure_breaches_limit() -> None:
+    risk_manager = RiskManager(
+        RiskConfig(
+            max_notional_per_market=100.0,
+            max_gross_exposure=7.5,
+            max_net_exposure_per_series=100.0,
+            max_order_size=100.0,
+            max_open_orders=5,
+            stale_data_seconds=20,
+        )
+    )
+    ledger = InventoryLedger(starting_cash=100.0)
+    now = datetime.now(timezone.utc)
+    first_quote = QuoteIntent(
+        market_id="m1",
+        token_id="yes-1",
+        token_side=TokenSide.YES,
+        side=OrderSide.BUY,
+        price=0.40,
+        size=10.0,
+        fair_value=0.50,
+        reference_mid=0.40,
+        created_at=now,
+        reason="gross_yes_bid_1",
+    )
+    second_quote = QuoteIntent(
+        market_id="m1",
+        token_id="yes-2",
+        token_side=TokenSide.YES,
+        side=OrderSide.BUY,
+        price=0.40,
+        size=10.0,
+        fair_value=0.50,
+        reference_mid=0.40,
+        created_at=now,
+        reason="gross_yes_bid_2",
+    )
+
+    result = risk_manager.filter_quotes(
+        quotes=(first_quote, second_quote),
+        inventory=ledger,
+        market_id="m1",
+        market_series="btc-updown-5m",
+        mark_yes=0.50,
+        market_series_map={"m1": "btc-updown-5m"},
+        open_orders=[],
+    )
+
+    assert result.approved_quotes == (first_quote,)
+    assert result.rejected_reasons == ("gross_yes_bid_2:gross_exposure",)
 
 
 def test_risk_manager_accumulates_series_exposure_and_open_orders() -> None:

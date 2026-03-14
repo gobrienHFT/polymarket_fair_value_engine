@@ -10,7 +10,7 @@ from pathlib import Path
 from typing import Any
 
 from polymarket_fair_value_engine.analytics.pnl import mark_yes_price
-from polymarket_fair_value_engine.analytics.reports import create_run_directory, load_summary, write_run_report
+from polymarket_fair_value_engine.analytics.reports import create_run_directory, load_summary, run_artifacts, write_run_report
 from polymarket_fair_value_engine.backtest.replay import load_replay_file
 from polymarket_fair_value_engine.backtest.simulator import ReplaySimulator
 from polymarket_fair_value_engine.config import EngineConfig, load_config
@@ -64,6 +64,7 @@ def _build_replay_simulator(config: EngineConfig) -> ReplaySimulator:
         execution_engine=PaperExecutionEngine(
             starting_cash=config.paper.starting_cash,
             touch_fill_only=config.paper.touch_fill_only,
+            replay_fill_slack=config.paper.replay_fill_slack,
         ),
         no_trade_window_seconds=config.market.no_trade_window_seconds,
         stale_data_seconds=config.risk.stale_data_seconds,
@@ -143,6 +144,7 @@ def _paper_quote_command(config: EngineConfig, series: str, iterations: int, run
     execution_engine = PaperExecutionEngine(
         starting_cash=config.paper.starting_cash,
         touch_fill_only=config.paper.touch_fill_only,
+        replay_fill_slack=config.paper.replay_fill_slack,
     )
     run_id, output_dir = create_run_directory(config.output.root, run_id=run_id)
     latest_marks: dict[str, float] = {}
@@ -241,7 +243,7 @@ def _paper_quote_command(config: EngineConfig, series: str, iterations: int, run
         pnl_rows=execution_engine.pnl_history,
         summary=summary,
     )
-    print(json.dumps({"output_dir": str(output_dir), **summary}, indent=2))
+    print(json.dumps(_run_payload(output_dir, summary, mode="paper", series=series), indent=2))
     return 0
 
 
@@ -314,26 +316,37 @@ def _live_quote_command(config: EngineConfig, series: str, iterations: int) -> i
     return 0
 
 
-def _run_replay(config: EngineConfig, input_path: Path, run_id: str | None = None, mode: str = "backtest") -> dict[str, Any]:
-    simulator = _build_replay_simulator(config)
-    actual_run_id, output_dir, summary = simulator.run(load_replay_file(input_path), run_id=run_id)
+def _run_payload(output_dir: Path, summary: dict[str, Any], **extra: Any) -> dict[str, Any]:
     return {
-        "mode": mode,
-        "input": str(input_path),
+        **extra,
         "output_dir": str(output_dir),
+        "artifacts": run_artifacts(output_dir),
         **summary,
-        "run_id": actual_run_id,
     }
 
 
-def _backtest_command(config: EngineConfig, input_path: str, run_id: str | None = None) -> int:
-    payload = _run_replay(config, input_path=Path(input_path), run_id=run_id, mode="backtest")
+def _run_replay(config: EngineConfig, input_path: Path, run_id: str | None = None, mode: str = "backtest") -> dict[str, Any]:
+    simulator = _build_replay_simulator(config)
+    actual_run_id, output_dir, summary = simulator.run(load_replay_file(input_path), run_id=run_id)
+    return _run_payload(output_dir, summary, mode=mode, input=str(input_path), run_id=actual_run_id)
+
+
+def _resolve_backtest_input(input_path: str | None, sample: bool) -> Path:
+    if sample:
+        return _bundled_sample_replay_path()
+    if input_path is None:
+        raise RuntimeError("backtest requires either --input or --sample.")
+    return Path(input_path)
+
+
+def _backtest_command(config: EngineConfig, input_path: str | None = None, sample: bool = False, run_id: str | None = None) -> int:
+    payload = _run_replay(config, input_path=_resolve_backtest_input(input_path, sample=sample), run_id=run_id, mode="backtest")
     print(json.dumps(payload, indent=2))
     return 0
 
 
-def _demo_command(config: EngineConfig) -> int:
-    run_id = datetime.now(timezone.utc).strftime("demo-%Y%m%dT%H%M%SZ")
+def _demo_command(config: EngineConfig, run_id: str | None = None) -> int:
+    run_id = run_id or datetime.now(timezone.utc).strftime("demo-%Y%m%dT%H%M%SZ")
     payload = _run_replay(config, input_path=_bundled_sample_replay_path(), run_id=run_id, mode="demo")
     print(json.dumps(payload, indent=2))
     return 0
@@ -341,7 +354,7 @@ def _demo_command(config: EngineConfig) -> int:
 
 def _report_command(config: EngineConfig, run_id: str) -> int:
     output_dir, summary = load_summary(config.output.root, run_id)
-    print(json.dumps({"output_dir": str(output_dir), **summary}, indent=2))
+    print(json.dumps(_run_payload(output_dir, summary), indent=2))
     return 0
 
 
@@ -361,10 +374,13 @@ def build_parser() -> argparse.ArgumentParser:
     quote.add_argument("--run-id", default=None)
 
     backtest = subparsers.add_parser("backtest")
-    backtest.add_argument("--input", required=True)
+    backtest_input = backtest.add_mutually_exclusive_group(required=True)
+    backtest_input.add_argument("--input", default=None)
+    backtest_input.add_argument("--sample", action="store_true", default=False)
     backtest.add_argument("--run-id", default=None)
 
-    subparsers.add_parser("demo")
+    demo = subparsers.add_parser("demo")
+    demo.add_argument("--run-id", default=None)
 
     cancel_all = subparsers.add_parser("cancel-all")
     cancel_all.add_argument("--live", action="store_true", default=False)
@@ -397,9 +413,9 @@ def main(argv: list[str] | None = None) -> int:
             raise RuntimeError("Paper mode is the default. Use --live to opt in to live execution.")
         return _paper_quote_command(config, series=series, iterations=args.iterations, run_id=args.run_id)
     if args.command == "backtest":
-        return _backtest_command(config, input_path=args.input, run_id=args.run_id)
+        return _backtest_command(config, input_path=args.input, sample=bool(args.sample), run_id=args.run_id)
     if args.command == "demo":
-        return _demo_command(config)
+        return _demo_command(config, run_id=args.run_id)
     if args.command == "cancel-all":
         guard_live_mode(live=bool(args.live), ack_live_risk=bool(args.ack_live_risk), live_enabled=config.auth.live_enabled)
         if not args.live:
