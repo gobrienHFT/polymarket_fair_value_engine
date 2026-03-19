@@ -1,0 +1,198 @@
+[
+  {
+    "fixture": {
+      "event_id": "epl-arsenal-chelsea-20260321",
+      "league": "Premier League",
+      "kickoff_utc": "2026-03-21T15:00:00Z",
+      "home_team": "Arsenal",
+      "away_team": "Chelsea"
+    },
+    "bookmakers": [
+      {
+        "source_name": "pinnacle",
+        "home_decimal": 2.08,
+        "draw_decimal": 3.4,
+        "away_decimal": 3.85
+      },
+      {
+        "source_name": "betfair",
+        "home_decimal": 2.02,
+        "draw_decimal": 3.5,
+        "away_decimal": 3.95
+      }
+    ],
+    "markets": [
+      {
+        "market_id": "m-ars-che-home-win",
+        "market_slug": "arsenal-vs-chelsea-home-win",
+        "market_question": "Will Arsenal win vs Chelsea?",
+        "market_type": "home_win",
+        "best_bid_yes": 0.43,
+        "best_ask_yes": 0.46
+      },
+      {
+        "market_id": "m-ars-che-draw",
+        "market_slug": "arsenal-vs-chelsea-draw",
+        "market_question": "Will Arsenal vs Chelsea end in a draw?",
+        "market_type": "draw",
+        "best_bid_yes": 0.26,
+        "best_ask_yes": 0.3
+      },
+      {
+        "market_id": "m-ars-che-either-team-wins",
+        "market_slug": "arsenal-vs-chelsea-either-team-wins",
+        "market_question": "Will Arsenal vs Chelsea have a winner?",
+        "market_type": "either_team_wins",
+        "best_bid_yes": 0.69,
+        "best_ask_yes": 0.72
+      }
+    ]
+  },
+  {
+    "fixture": {
+      "event_id": "epl-liverpool-spurs-20260321",
+      "league": "Premier League",
+      "kickoff_utc": "2026-03-21T17:30:00Z",
+      "home_team": "Liverpool",
+      "away_team": "Tottenham"
+    },
+    "bookmakers": [
+      {
+        "source_name": "pinnacle",
+        "home_decimal": 1.78,
+        "draw_decimal": 4.05,
+        "away_decimal": 4.7
+      },
+      {
+        "source_name": "betfair",
+        "home_decimal": 1.83,
+        "draw_decimal": 3.95,
+        "away_decimal": 4.5
+      }
+    ],
+    "markets": [
+      {
+        "market_id": "m-liv-spu-home-win",
+        "market_slug": "liverpool-vs-spurs-home-win",
+        "market_question": "Will Liverpool win vs Tottenham?",
+        "market_type": "home_win",
+        "best_bid_yes": 0.5,
+        "best_ask_yes": 0.53
+      },
+      {
+        "market_id": "m-liv-spu-away-or-draw",
+        "market_slug": "liverpool-vs-spurs-away-or-draw",
+        "market_question": "Will Tottenham avoid defeat vs Liverpool?",
+        "market_type": "away_or_draw",
+        "best_bid_yes": 0.43,
+        "best_ask_yes": 0.46
+      },
+      {
+        "market_id": "m-liv-spu-either-team-wins",
+        "market_slug": "liverpool-vs-spurs-either-team-wins",
+        "market_question": "Will Liverpool vs Tottenham have a winner?",
+        "market_type": "either_team_wins",
+        "best_bid_yes": 0.7,
+        "best_ask_yes": 0.73
+      }
+    ]
+  },
+  {
+    "fixture": {
+      "event_id": "seriea-inter-juventus-20260322",
+      "league": "Serie A",
+      "kickoff_utc": "2026-03-22T19:45:00Z",
+      "home_team": "Inter",
+      "away_team": "Juventus"
+    },
+    "bookmakers": [
+      {
+        "source_name": "pinnacle",
+        "home_decimal": 2.52,
+        "draw_decimal": 3.2,
+        "away_decimal": 2.98
+      },
+      {
+        "source_name": "betfair",
+        "home_decimal": 2.6,
+        "draw_decimal": 3.05,
+        "away_decimal": 2.92
+      }
+    ],
+    "markets": [
+      {
+        "market_id": "m-int-juv-draw",
+        "market_slug": "inter-vs-juventus-draw",
+        "market_question": "Will Inter vs Juventus end in a draw?",
+        "market_type": "draw",
+        "best_bid_yes": 0.24,
+        "best_ask_yes": 0.37
+      },
+      {
+        "market_id": "m-int-juv-away-win",
+        "market_slug": "inter-vs-juventus-away-win",
+        "market_question": "Will Juventus win at Inter?",
+        "market_type": "away_win",
+        "best_bid_yes": 0.34,
+        "best_ask_yes": 0.36
+      },
+      {
+        "market_id": "m-int-juv-home-or-draw",
+        "market_slug": "inter-vs-juventus-home-or-draw",
+        "market_question": "Will Inter avoid defeat vs Juventus?",
+        "market_type": "home_or_draw",
+        "best_bid_yes": 0.65,
+        "best_ask_yes": 0.69
+      }
+    ]
+  },
+  {
+    "fixture": {
+      "event_id": "laliga-madrid-barca-20260322",
+      "league": "La Liga",
+      "kickoff_utc": "2026-03-22T20:00:00Z",
+      "home_team": "Real Madrid",
+      "away_team": "Barcelona"
+    },
+    "bookmakers": [
+      {
+        "source_name": "pinnacle",
+        "home_decimal": 2.28,
+        "draw_decimal": 3.6,
+        "away_decimal": 2.96
+      },
+      {
+        "source_name": "betfair",
+        "home_decimal": 2.34,
+        "draw_decimal": 3.5,
+        "away_decimal": 2.86
+      }
+    ],
+    "markets": [
+      {
+        "market_id": "m-rma-bar-home-or-draw",
+        "market_slug": "real-madrid-vs-barcelona-home-or-draw",
+        "market_question": "Will Real Madrid avoid defeat vs Barcelona?",
+        "market_type": "home_or_draw",
+        "best_bid_yes": 0.61,
+        "best_ask_yes": 0.64
+      },
+      {
+        "market_id": "m-rma-bar-away-win",
+        "market_slug": "real-madrid-vs-barcelona-away-win",
+        "market_question": "Will Barcelona win at Real Madrid?",
+        "market_type": "away_win",
+        "best_bid_yes": 0.3,
+        "best_ask_yes": 0.33
+      },
+      {
+        "market_id": "m-rma-bar-draw",
+        "market_slug": "real-madrid-vs-barcelona-draw",
+        "market_question": "Will Real Madrid vs Barcelona end in a draw?",
+        "market_type": "draw",
+        "best_bid_yes": 0.23,
+        "best_ask_yes": 0.29
+      }
+    ]
+  }
+]

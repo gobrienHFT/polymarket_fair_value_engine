@@ -2,7 +2,7 @@
 
 ## Current Market Family
 
-The implemented market family is **BTC 5-minute up/down Polymarket markets**.
+The implemented end-to-end market family is **BTC 5-minute up/down Polymarket markets**.
 
 This is a deliberate first target:
 
@@ -11,7 +11,22 @@ This is a deliberate first target:
 - an external reference price exists
 - the market family is narrow enough to support honest end-to-end demos
 
-The repo is structured so other event markets can be added later, but the current productionized path is this BTC family only.
+The repo is structured so other event markets can be added later. The current productionized execution path is this BTC family only.
+
+## Football Offline Pricing Demo
+
+The sports layer now includes a narrow football demo that stays offline and inspectable.
+
+It does not attempt live football trading. Instead it:
+
+- loads bundled football fixtures plus bookmaker 1X2 odds snapshots
+- removes overround from each bookmaker snapshot
+- averages those fair probabilities into a simple bookmaker consensus
+- maps 1X2 fair probabilities into binary football markets such as `home_win`, `draw`, `home_or_draw`, and `either_team_wins`
+- compares fair value versus sample best bid / best ask / midpoint
+- writes deterministic CSV and JSON artifacts for review
+
+That makes the sports path materially more relevant to football prediction markets without pretending the repo already has live football execution.
 
 ## Fair Value Model
 
@@ -109,7 +124,7 @@ This path is better thought of as a guarded execution adapter than as a finished
 - live public data can be noisy or wide for short-dated binaries
 - the paper fill model is intentionally simplistic
 - live order-state tracking only covers orders placed by the current process
-- sports support remains an extension path, not a finished implementation
+- football is still offline pricing only; live football trading is not implemented
 
 ## Next Upgrades
 

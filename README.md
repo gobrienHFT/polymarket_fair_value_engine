@@ -1,8 +1,13 @@
 # Polymarket Fair Value Engine
 
-`polymarket_fair_value_engine` is a paper-trading-first research and execution framework for Polymarket binary markets.
+`polymarket_fair_value_engine` is a research and execution framework for Polymarket-style binary markets, with a paper-trading-first BTC path and an offline football pricing demo.
 
-The implemented scope is intentionally narrow: **BTC 5-minute up/down markets**. That keeps the repo explainable, testable, and honest. The codebase preserves extension points for sports and other event markets, but it does not claim that those paths are implemented pricers today.
+The implemented scope is intentionally narrow and explicit:
+
+- **BTC 5-minute up/down** is still the only end-to-end paper/live execution path
+- **Football** is now an offline fair-value, calibration, and opportunity-ranking demo
+
+That keeps the repo explainable, testable, and honest. It does not claim that live football trading is already implemented.
 
 ## Fastest Demo
 
@@ -24,6 +29,24 @@ pmfe report --run-id sample-demo
 
 Convenience wrappers are available at `scripts/demo.sh` and `scripts/demo.ps1`. They install the editable package, run `pytest`, run the sample backtest, run `pmfe report`, and print the output directory. The canonical interface remains `pmfe ...`.
 
+## Football Demo
+
+For the offline football pricing path:
+
+```bash
+pmfe football-demo --run-id football-demo
+```
+
+That command:
+
+- loads bundled bookmaker 1X2 sample data from `data/sample_football_markets.json`
+- normalizes fixtures, bookmaker snapshots, and Polymarket-style binary football markets
+- removes overround from the 1X2 prices and builds a simple bookmaker consensus
+- maps 1X2 fair probabilities into binary YES probabilities such as `home_win`, `draw`, `home_or_draw`, and `either_team_wins`
+- writes deterministic artifacts under `runs/<run_id>/`
+
+This is an offline pricing and calibration demo. It is not a live football trading implementation.
+
 ## Architecture
 
 ```text
@@ -32,10 +55,10 @@ Data -> Model -> Strategy -> Risk -> Order Manager -> Execution -> Reporting
 
 - `Data`: market discovery, order books, and reference prices
 - `Model`: baseline fair-value estimate for `P(YES)`
-- `Strategy`: passive YES / NO quote intents around fair value
+- `Strategy`: passive YES / NO quote intents around fair value, or offline candidate quotes around football fair value
 - `Risk`: market, gross, series, and open-order limits
 - `Order Manager`: reconcile desired quotes against current open orders
-- `Execution`: paper fills by replay/live market state or guarded live posting
+- `Execution`: paper fills by replay/live market state, or an offline stop at ranking/reporting for football
 - `Reporting`: CSV artifacts and JSON summaries under `runs/<run_id>/`
 
 ## What The Repo Actually Implements
@@ -54,8 +77,13 @@ Today the package can:
 - simulate paper fills and mark inventory to market
 - replay stored JSONL market states and export run artifacts
 - gate live execution behind explicit flags and config
+- load bundled football fixtures with bookmaker 1X2 odds and binary market snapshots
+- compute vig-adjusted football fair probabilities from bookmaker consensus
+- map football 1X2 fair value into binary YES probabilities for Polymarket-style markets
+- rank football markets by edge versus midpoint, best bid, and best ask
+- export offline football pricing artifacts for interview/demo walkthroughs
 
-The repo also includes extension scaffolding for sportsbook adapters, sports normalization, rating models, and websocket ingestion. Those are architecture hooks, not claims of implemented sports pricing.
+The repo still only implements BTC for end-to-end execution. Football stops at offline fair value, edge ranking, and candidate quote generation. That is deliberate.
 
 ## Replay And Output Artifacts
 
@@ -71,6 +99,15 @@ runs/<run_id>/
 ```
 
 `pmfe report --run-id <run_id>` reads the stored summary and prints the run location plus the artifact paths again.
+
+`pmfe football-demo` writes:
+
+```text
+runs/<run_id>/
+  summary.json
+  football_fair_values.csv
+  football_edges.csv
+```
 
 Paper fill behavior is intentionally simple:
 
@@ -90,6 +127,8 @@ The live path is present but deliberately guarded:
 - auth or config failures raise loudly
 - `cancel-all` remains the explicit kill-switch path
 
+Those guardrails apply to the BTC execution path. Live football execution is not implemented.
+
 ## Repository Layout
 
 ```text
@@ -104,7 +143,7 @@ src/polymarket_fair_value_engine/
   execution/             # paper + live execution paths
   analytics/             # exports + run summaries
   backtest/              # replay loader + simulator
-  sports/                # extension scaffolding
+  sports/                # offline football pricing + sports helpers
 
 legacy/
   polymarket_bot.py      # archived single-file prototype
@@ -118,12 +157,11 @@ scripts/
 
 One straightforward interview walkthrough is:
 
-1. Run `pmfe demo` or `pmfe backtest --sample --run-id interview-demo`.
-2. Show the JSON summary and the generated `runs/<run_id>/` directory.
-3. Open `summary.json`, `fills.csv`, and `pnl.csv` to show the replay outcome.
-4. Walk the pipeline from data ingestion to fair value, strategy, risk, order reconciliation, execution, and reporting.
-5. Point out that the live path is guarded and that the current implemented scope is BTC 5-minute up/down only.
-6. Mention that sports is an extension path in the package layout, not a completed public claim.
+1. Run `pmfe football-demo --run-id interview-football`.
+2. Inspect `summary.json`.
+3. Inspect `football_fair_values.csv` and `football_edges.csv`.
+4. Explain how bookmaker 1X2 odds are normalized, de-vigged, averaged into a consensus, and mapped into binary Polymarket probabilities.
+5. Explain how you would extend the offline pricing demo toward live football pricing and execution later, without claiming that path exists today.
 
 ## Install
 
@@ -146,4 +184,4 @@ python -m pip install -e .[dev,live]
 - the paper fill model is intentionally simple
 - live order management only knows about orders placed by the current running process
 - websocket ingestion is still scaffolding
-- sports support remains an extension path rather than an implemented public pricer
+- football is an offline pricing/calibration demo only, not a live trading path

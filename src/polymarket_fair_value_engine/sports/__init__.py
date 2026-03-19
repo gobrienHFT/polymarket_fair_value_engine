@@ -1,2 +1,1 @@
-"""Sports pricing extension scaffolds."""
-
+"""Sports pricing helpers and offline football demo support."""

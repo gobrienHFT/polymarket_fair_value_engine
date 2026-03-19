@@ -8,6 +8,17 @@ from typing import Any
 from polymarket_fair_value_engine.analytics.fills import export_dataclasses, write_rows
 
 
+ARTIFACT_FILENAMES = {
+    "summary.json": "summary_json",
+    "orders.csv": "orders_csv",
+    "fills.csv": "fills_csv",
+    "inventory.csv": "inventory_csv",
+    "pnl.csv": "pnl_csv",
+    "football_fair_values.csv": "football_fair_values_csv",
+    "football_edges.csv": "football_edges_csv",
+}
+
+
 def create_run_directory(root: Path, run_id: str | None = None) -> tuple[str, Path]:
     run_id = run_id or datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
     path = root / run_id
@@ -32,13 +43,12 @@ def write_run_report(
 
 
 def run_artifacts(output_dir: Path) -> dict[str, str]:
-    return {
-        "summary_json": str(output_dir / "summary.json"),
-        "orders_csv": str(output_dir / "orders.csv"),
-        "fills_csv": str(output_dir / "fills.csv"),
-        "inventory_csv": str(output_dir / "inventory.csv"),
-        "pnl_csv": str(output_dir / "pnl.csv"),
-    }
+    artifacts: dict[str, str] = {}
+    for filename, key in ARTIFACT_FILENAMES.items():
+        path = output_dir / filename
+        if path.exists():
+            artifacts[key] = str(path)
+    return artifacts
 
 
 def latest_run_directory(root: Path) -> Path | None:

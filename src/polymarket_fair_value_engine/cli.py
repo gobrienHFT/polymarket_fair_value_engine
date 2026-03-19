@@ -27,6 +27,7 @@ from polymarket_fair_value_engine.models.crypto_updown import CryptoUpDownFairVa
 from polymarket_fair_value_engine.risk.checks import guard_live_mode, kill_switch_engaged
 from polymarket_fair_value_engine.risk.inventory import InventoryLedger, InventoryPosition
 from polymarket_fair_value_engine.risk.limits import RiskManager
+from polymarket_fair_value_engine.sports.demo import run_football_demo
 from polymarket_fair_value_engine.strategy.passive_mm import PassiveMarketMaker
 from polymarket_fair_value_engine.types import ManagedOrder, MarketState, OrderStatus, StrategyDecision
 
@@ -40,6 +41,10 @@ def _repo_root() -> Path:
 
 def _bundled_sample_replay_path() -> Path:
     return _repo_root() / "data" / "sample_replay.jsonl"
+
+
+def _bundled_sample_football_path() -> Path:
+    return _repo_root() / "data" / "sample_football_markets.json"
 
 
 def _build_stack(
@@ -358,6 +363,16 @@ def _report_command(config: EngineConfig, run_id: str) -> int:
     return 0
 
 
+def _football_demo_command(config: EngineConfig, input_path: str | None = None, run_id: str | None = None) -> int:
+    _, _, summary = run_football_demo(
+        input_path=input_path or _bundled_sample_football_path(),
+        output_root=config.output.root,
+        run_id=run_id,
+    )
+    print(json.dumps(summary, indent=2))
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="pmfe")
     subparsers = parser.add_subparsers(dest="command", required=True)
@@ -381,6 +396,10 @@ def build_parser() -> argparse.ArgumentParser:
 
     demo = subparsers.add_parser("demo")
     demo.add_argument("--run-id", default=None)
+
+    football_demo = subparsers.add_parser("football-demo")
+    football_demo.add_argument("--input", default=None)
+    football_demo.add_argument("--run-id", default=None)
 
     cancel_all = subparsers.add_parser("cancel-all")
     cancel_all.add_argument("--live", action="store_true", default=False)
@@ -416,6 +435,8 @@ def main(argv: list[str] | None = None) -> int:
         return _backtest_command(config, input_path=args.input, sample=bool(args.sample), run_id=args.run_id)
     if args.command == "demo":
         return _demo_command(config, run_id=args.run_id)
+    if args.command == "football-demo":
+        return _football_demo_command(config, input_path=args.input, run_id=args.run_id)
     if args.command == "cancel-all":
         guard_live_mode(live=bool(args.live), ack_live_risk=bool(args.ack_live_risk), live_enabled=config.auth.live_enabled)
         if not args.live:

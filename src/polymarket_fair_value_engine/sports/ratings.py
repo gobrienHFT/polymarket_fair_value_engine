@@ -3,6 +3,8 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 
+from polymarket_fair_value_engine.sports.odds import OneXTwoProbabilities
+
 
 @dataclass(frozen=True)
 class TeamRating:
@@ -11,8 +13,7 @@ class TeamRating:
     defense: float
 
 
-class TeamRatingModel(ABC):
+class FootballRatingModel(ABC):
     @abstractmethod
-    def win_probability(self, home: TeamRating, away: TeamRating) -> float:
+    def one_x_two_probabilities(self, home: TeamRating, away: TeamRating) -> OneXTwoProbabilities:
         raise NotImplementedError
-
