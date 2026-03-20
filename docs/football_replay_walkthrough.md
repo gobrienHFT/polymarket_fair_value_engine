@@ -8,7 +8,7 @@ It does not describe live football trading, because live football trading is not
 
 ```bash
 python -m pip install -e .[dev]
-pmfe football-replay --sample --run-id verify-football-replay
+pmfe football-replay --sample --config configs/football_strategy_baseline.json --run-id verify-football-replay
 pmfe report --run-id verify-football-replay
 ```
 
@@ -133,13 +133,17 @@ That makes the direction of the edge explicit:
 The replay writes `football_markouts.csv` with explicit definitions:
 
 - `next_snapshot_mid_yes`: midpoint at the next replay frame
-- `next_snapshot_markout`: next midpoint minus current midpoint
-- `next_snapshot_edge_capture`: next midpoint move expressed in the chosen decision direction
-- `markout_2_steps`: midpoint change two frames forward versus the current midpoint
+- `raw_next_mid_change`: next midpoint minus current midpoint
+- `directional_next_capture`: next midpoint move expressed in the chosen decision direction
+- `raw_2step_mid_change`: midpoint change two frames forward versus the current midpoint
+- `directional_2step_capture`: two-step midpoint move expressed in the chosen decision direction
 - `max_favorable_move`: best later midpoint move in the chosen direction
 - `max_adverse_move`: worst later midpoint move in the chosen direction
 - `eventual_settlement_yes`: final binary settlement when the sample has a final result
-- `eventual_resolution_markout`: final settlement minus current midpoint
+- `raw_eventual_resolution_change`: final settlement minus current midpoint
+- `directional_eventual_capture`: final settlement move expressed in the chosen decision direction
+
+Legacy fields such as `next_snapshot_markout` are still present for backward compatibility, but the newer raw/directional split is the clearer way to explain the output.
 
 These are simple, inspectable evaluation outputs rather than claims of statistical significance.
 

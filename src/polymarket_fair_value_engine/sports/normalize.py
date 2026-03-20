@@ -153,8 +153,10 @@ class FootballFairValueResult:
     best_bid_yes: float | None
     best_ask_yes: float | None
     source_overround: float
+    source_disagreement: float
     source_name: str
     source_count: int
+    source_is_stale: bool
     quote_bid_yes: float | None
     quote_ask_yes: float | None
     buy_edge_vs_ask: float | None
@@ -184,6 +186,7 @@ class FootballReplayQuoteRow:
     home_red_cards: int
     away_red_cards: int
     state_change_tags: tuple[FootballStateChangeType, ...]
+    state_regime: str
     market_id: str
     market_slug: str
     market_question: str
@@ -195,8 +198,11 @@ class FootballReplayQuoteRow:
     best_bid_yes: float | None
     best_ask_yes: float | None
     source_overround: float
+    source_disagreement: float
     source_name: str
     source_count: int
+    source_is_stale: bool
+    source_quality: str
     quote_bid_yes: float | None
     quote_ask_yes: float | None
     buy_edge_vs_ask: float | None
@@ -223,13 +229,19 @@ class FootballMarkoutRow:
     fair_yes: float | None
     current_mid_yes: float | None
     next_snapshot_mid_yes: float | None
+    raw_next_mid_change: float | None
+    directional_next_capture: float | None
     next_snapshot_markout: float | None
     next_snapshot_edge_capture: float | None
     mid_yes_2_steps: float | None
+    raw_2step_mid_change: float | None
+    directional_2step_capture: float | None
     markout_2_steps: float | None
     max_favorable_move: float | None
     max_adverse_move: float | None
     eventual_settlement_yes: float | None
+    raw_eventual_resolution_change: float | None
+    directional_eventual_capture: float | None
     eventual_resolution_markout: float | None
 
 
@@ -238,6 +250,13 @@ class FootballCalibrationRow:
     bucket_type: str
     bucket_value: str
     observations: int
+    average_raw_next_mid_change: float | None
+    average_raw_2step_mid_change: float | None
+    average_directional_next_capture: float | None
+    average_directional_2step_capture: float | None
+    average_directional_eventual_capture: float | None
+    positive_capture_rate: float | None
+    average_max_adverse_move: float | None
     average_next_snapshot_markout: float | None
     average_markout_2_steps: float | None
     sign_hit_rate: float | None

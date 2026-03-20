@@ -123,14 +123,22 @@ def test_build_markout_rows_computes_markouts_and_settlement() -> None:
 
     buy_row = markouts[("liv-tot-20260412-01", "liv-tot-home-win")]
     assert buy_row.next_snapshot_mid_yes == 0.56
+    assert buy_row.raw_next_mid_change == 0.05
+    assert buy_row.directional_next_capture == 0.05
     assert buy_row.next_snapshot_markout == 0.05
     assert buy_row.next_snapshot_edge_capture == 0.05
+    assert buy_row.raw_2step_mid_change == 0.06
+    assert buy_row.directional_2step_capture == 0.06
     assert buy_row.markout_2_steps == 0.06
     assert buy_row.eventual_settlement_yes == 1.0
+    assert buy_row.raw_eventual_resolution_change == 0.49
+    assert buy_row.directional_eventual_capture == 0.49
     assert buy_row.eventual_resolution_markout == 0.49
 
     sell_row = markouts[("int-juv-20260413-07", "int-juv-away-win")]
     assert sell_row.next_snapshot_mid_yes == 0.96
+    assert sell_row.raw_next_mid_change == 0.05
+    assert sell_row.directional_next_capture == -0.05
     assert sell_row.next_snapshot_markout == 0.05
     assert sell_row.next_snapshot_edge_capture == -0.05
     assert sell_row.max_favorable_move == 0.0

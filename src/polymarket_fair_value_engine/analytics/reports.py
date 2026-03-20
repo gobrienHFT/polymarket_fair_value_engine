@@ -22,6 +22,12 @@ ARTIFACT_FILENAMES = {
     "football_state_changes.csv": "football_state_changes_csv",
     "football_no_trade_reasons.csv": "football_no_trade_reasons_csv",
     "football_report.md": "football_report_md",
+    "football_strategy_results.csv": "football_strategy_results_csv",
+    "football_strategy_slices.csv": "football_strategy_slices_csv",
+    "football_strategy_report.md": "football_strategy_report_md",
+    "football_strategy_best.json": "football_strategy_best_json",
+    "best_strategy/summary.json": "best_strategy_summary_json",
+    "best_strategy/football_report.md": "best_strategy_report_md",
 }
 
 

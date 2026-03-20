@@ -28,7 +28,9 @@ from polymarket_fair_value_engine.risk.checks import guard_live_mode, kill_switc
 from polymarket_fair_value_engine.risk.inventory import InventoryLedger, InventoryPosition
 from polymarket_fair_value_engine.risk.limits import RiskManager
 from polymarket_fair_value_engine.sports.demo import run_football_demo
+from polymarket_fair_value_engine.sports.pricing import DEFAULT_FOOTBALL_PRICING_CONFIG, load_named_football_pricing_config
 from polymarket_fair_value_engine.sports.replay import run_football_replay
+from polymarket_fair_value_engine.sports.sweep import load_football_sweep_config, run_football_sweep
 from polymarket_fair_value_engine.strategy.passive_mm import PassiveMarketMaker
 from polymarket_fair_value_engine.types import ManagedOrder, MarketState, OrderStatus, StrategyDecision
 
@@ -386,12 +388,45 @@ def _resolve_football_replay_input(input_path: str | None, sample: bool) -> Path
     return Path(input_path)
 
 
-def _football_replay_command(config: EngineConfig, input_path: str | None = None, sample: bool = False, run_id: str | None = None) -> int:
+def _football_replay_command(
+    config: EngineConfig,
+    input_path: str | None = None,
+    sample: bool = False,
+    run_id: str | None = None,
+    config_path: str | None = None,
+) -> int:
+    named_config = load_named_football_pricing_config(config_path) if config_path else None
     _, _, summary = run_football_replay(
         input_path=_resolve_football_replay_input(input_path, sample=sample),
         output_root=config.output.root,
         run_id=run_id,
         sample_mode=bool(sample),
+        config=named_config.pricing_config if named_config is not None else DEFAULT_FOOTBALL_PRICING_CONFIG,
+        config_name=named_config.name if named_config is not None else None,
+        config_description=named_config.description if named_config is not None else None,
+        config_path=named_config.path if named_config is not None else None,
+    )
+    print(json.dumps(summary, indent=2))
+    return 0
+
+
+def _football_sweep_command(
+    config: EngineConfig,
+    input_path: str | None = None,
+    sample: bool = False,
+    config_path: str | None = None,
+    run_id: str | None = None,
+) -> int:
+    if config_path is None:
+        raise RuntimeError("football-sweep requires --config.")
+    sweep_config = load_football_sweep_config(config_path)
+    _, _, summary = run_football_sweep(
+        input_path=_resolve_football_replay_input(input_path, sample=sample),
+        output_root=config.output.root,
+        sweep_config=sweep_config,
+        run_id=run_id,
+        sample_mode=bool(sample),
+        config_path=str(Path(config_path)),
     )
     print(json.dumps(summary, indent=2))
     return 0
@@ -429,7 +464,15 @@ def build_parser() -> argparse.ArgumentParser:
     football_replay_input = football_replay.add_mutually_exclusive_group(required=True)
     football_replay_input.add_argument("--input", default=None)
     football_replay_input.add_argument("--sample", action="store_true", default=False)
+    football_replay.add_argument("--config", default=None)
     football_replay.add_argument("--run-id", default=None)
+
+    football_sweep = subparsers.add_parser("football-sweep")
+    football_sweep_input = football_sweep.add_mutually_exclusive_group(required=True)
+    football_sweep_input.add_argument("--input", default=None)
+    football_sweep_input.add_argument("--sample", action="store_true", default=False)
+    football_sweep.add_argument("--config", required=True)
+    football_sweep.add_argument("--run-id", default=None)
 
     cancel_all = subparsers.add_parser("cancel-all")
     cancel_all.add_argument("--live", action="store_true", default=False)
@@ -468,7 +511,9 @@ def main(argv: list[str] | None = None) -> int:
     if args.command == "football-demo":
         return _football_demo_command(config, input_path=args.input, run_id=args.run_id)
     if args.command == "football-replay":
-        return _football_replay_command(config, input_path=args.input, sample=bool(args.sample), run_id=args.run_id)
+        return _football_replay_command(config, input_path=args.input, sample=bool(args.sample), run_id=args.run_id, config_path=args.config)
+    if args.command == "football-sweep":
+        return _football_sweep_command(config, input_path=args.input, sample=bool(args.sample), config_path=args.config, run_id=args.run_id)
     if args.command == "cancel-all":
         guard_live_mode(live=bool(args.live), ack_live_risk=bool(args.ack_live_risk), live_enabled=config.auth.live_enabled)
         if not args.live:

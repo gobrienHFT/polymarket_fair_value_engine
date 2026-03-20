@@ -3,6 +3,9 @@ from __future__ import annotations
 import math
 from dataclasses import dataclass
 from datetime import datetime
+import json
+from pathlib import Path
+from typing import Any, Mapping
 
 from polymarket_fair_value_engine.sports.normalize import BookmakerOneXTwoOddsSnapshot, FootballDecisionSide, FootballMatchState, FootballMatchStatus, FootballStateChangeType, PolymarketBinaryMarketDefinition
 from polymarket_fair_value_engine.sports.odds import OneXTwoProbabilities, binary_yes_probability, decimal_odds_to_implied_probabilities, overround, remove_overround_proportionally
@@ -16,14 +19,33 @@ class FootballPricingConfig:
     stale_source_data_seconds: int = 180
     wide_yes_spread_threshold: float = 0.12
     high_uncertainty_threshold: float = 0.08
+    high_disagreement_threshold: float = 0.08
     goal_cooldown_minutes: int = 3
     red_card_cooldown_minutes: int = 5
     goal_uncertainty_boost: float = 0.04
     red_card_uncertainty_boost: float = 0.05
     suspended_uncertainty_boost: float = 0.10
 
+    def __post_init__(self) -> None:
+        _validate_probability_like(self.quote_tick, "quote_tick", allow_zero=False)
+        _validate_probability_like(self.quote_base_half_spread, "quote_base_half_spread", allow_zero=False)
+        _validate_count(self.minimum_bookmaker_sources, "minimum_bookmaker_sources", minimum=1)
+        _validate_count(self.stale_source_data_seconds, "stale_source_data_seconds", minimum=0)
+        _validate_probability_like(self.wide_yes_spread_threshold, "wide_yes_spread_threshold", allow_zero=False)
+        _validate_probability_like(self.high_uncertainty_threshold, "high_uncertainty_threshold", allow_zero=False)
+        _validate_probability_like(self.high_disagreement_threshold, "high_disagreement_threshold", allow_zero=False)
+        _validate_count(self.goal_cooldown_minutes, "goal_cooldown_minutes", minimum=0)
+        _validate_count(self.red_card_cooldown_minutes, "red_card_cooldown_minutes", minimum=0)
+        _validate_probability_like(self.goal_uncertainty_boost, "goal_uncertainty_boost", allow_zero=True)
+        _validate_probability_like(self.red_card_uncertainty_boost, "red_card_uncertainty_boost", allow_zero=True)
+        _validate_probability_like(self.suspended_uncertainty_boost, "suspended_uncertainty_boost", allow_zero=True)
 
-DEFAULT_FOOTBALL_PRICING_CONFIG = FootballPricingConfig()
+@dataclass(frozen=True)
+class NamedFootballPricingConfig:
+    pricing_config: FootballPricingConfig
+    name: str | None = None
+    description: str | None = None
+    path: str | None = None
 
 
 @dataclass(frozen=True)
@@ -46,8 +68,10 @@ class FootballPricedBinaryMarket:
     best_bid_yes: float | None
     best_ask_yes: float | None
     source_overround: float
+    source_disagreement: float
     source_name: str
     source_count: int
+    source_is_stale: bool
     quote_bid_yes: float | None
     quote_ask_yes: float | None
     buy_edge_vs_ask: float | None
@@ -58,6 +82,110 @@ class FootballPricedBinaryMarket:
     edge_vs_best_ask: float | None
     edge_vs_best_bid: float | None
     no_trade_reason: str | None
+
+
+_INT_CONFIG_FIELDS = {
+    "minimum_bookmaker_sources",
+    "stale_source_data_seconds",
+    "goal_cooldown_minutes",
+    "red_card_cooldown_minutes",
+}
+_FLOAT_CONFIG_FIELDS = {
+    "quote_tick",
+    "quote_base_half_spread",
+    "wide_yes_spread_threshold",
+    "high_uncertainty_threshold",
+    "high_disagreement_threshold",
+    "goal_uncertainty_boost",
+    "red_card_uncertainty_boost",
+    "suspended_uncertainty_boost",
+}
+_CONFIG_FIELD_NAMES = _INT_CONFIG_FIELDS | _FLOAT_CONFIG_FIELDS
+
+
+def _validate_probability_like(value: float, field_name: str, *, allow_zero: bool) -> None:
+    lower_bound = 0.0 if allow_zero else 0.0
+    if value < lower_bound or (not allow_zero and value == 0.0) or value > 1.0:
+        comparator = "within [0, 1]" if allow_zero else "within (0, 1]"
+        raise ValueError(f"{field_name} must be {comparator}")
+
+
+def _validate_count(value: int, field_name: str, minimum: int) -> None:
+    if value < minimum:
+        raise ValueError(f"{field_name} must be >= {minimum}")
+
+
+def serialize_football_pricing_config(config: FootballPricingConfig) -> dict[str, object]:
+    return {
+        "quote_tick": config.quote_tick,
+        "quote_base_half_spread": config.quote_base_half_spread,
+        "minimum_bookmaker_sources": config.minimum_bookmaker_sources,
+        "stale_source_data_seconds": config.stale_source_data_seconds,
+        "wide_yes_spread_threshold": config.wide_yes_spread_threshold,
+        "high_uncertainty_threshold": config.high_uncertainty_threshold,
+        "high_disagreement_threshold": config.high_disagreement_threshold,
+        "goal_cooldown_minutes": config.goal_cooldown_minutes,
+        "red_card_cooldown_minutes": config.red_card_cooldown_minutes,
+        "goal_uncertainty_boost": config.goal_uncertainty_boost,
+        "red_card_uncertainty_boost": config.red_card_uncertainty_boost,
+        "suspended_uncertainty_boost": config.suspended_uncertainty_boost,
+    }
+
+
+def football_pricing_config_from_mapping(payload: Mapping[str, Any]) -> FootballPricingConfig:
+    unknown_fields = sorted(key for key in payload.keys() if key not in _CONFIG_FIELD_NAMES)
+    if unknown_fields:
+        raise ValueError(f"Unknown football pricing config fields: {', '.join(unknown_fields)}")
+
+    kwargs: dict[str, Any] = {}
+    for key, value in payload.items():
+        if isinstance(value, bool):
+            raise ValueError(f"{key} must be numeric, not boolean")
+        if key in _INT_CONFIG_FIELDS:
+            if not isinstance(value, int):
+                raise ValueError(f"{key} must be an integer")
+            kwargs[key] = int(value)
+        else:
+            if not isinstance(value, (int, float)):
+                raise ValueError(f"{key} must be numeric")
+            kwargs[key] = float(value)
+    return FootballPricingConfig(**kwargs)
+
+
+def load_named_football_pricing_config(path: str | Path) -> NamedFootballPricingConfig:
+    payload = json.loads(Path(path).read_text(encoding="utf-8"))
+    if not isinstance(payload, dict):
+        raise ValueError("Football pricing config file must contain a JSON object")
+
+    if "pricing_config" in payload:
+        unexpected_fields = sorted(key for key in payload.keys() if key not in {"name", "description", "pricing_config"})
+        if unexpected_fields:
+            raise ValueError(f"Unknown football pricing config wrapper fields: {', '.join(unexpected_fields)}")
+        pricing_payload = payload["pricing_config"]
+        if not isinstance(pricing_payload, dict):
+            raise ValueError("pricing_config must be a JSON object")
+        config = football_pricing_config_from_mapping(pricing_payload)
+        name = payload.get("name")
+        description = payload.get("description")
+    else:
+        config = football_pricing_config_from_mapping(payload)
+        name = None
+        description = None
+
+    if name is not None and not isinstance(name, str):
+        raise ValueError("name must be a string when provided")
+    if description is not None and not isinstance(description, str):
+        raise ValueError("description must be a string when provided")
+
+    return NamedFootballPricingConfig(
+        pricing_config=config,
+        name=name,
+        description=description,
+        path=str(Path(path)),
+    )
+
+
+DEFAULT_FOOTBALL_PRICING_CONFIG = FootballPricingConfig()
 
 
 def _clip_probability(value: float) -> float:
@@ -310,8 +438,10 @@ def price_binary_market(
         best_bid_yes=market.best_bid_yes,
         best_ask_yes=market.best_ask_yes,
         source_overround=round(consensus.source_overround, 6),
+        source_disagreement=round(consensus.disagreement, 6),
         source_name=consensus.source_name,
         source_count=consensus.source_count,
+        source_is_stale=consensus.is_stale,
         quote_bid_yes=quote_bid_yes,
         quote_ask_yes=quote_ask_yes,
         buy_edge_vs_ask=buy_edge_vs_ask,

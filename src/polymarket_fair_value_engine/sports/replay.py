@@ -2,14 +2,25 @@ from __future__ import annotations
 
 import json
 from collections import defaultdict
-from datetime import datetime
 from pathlib import Path
 
 from polymarket_fair_value_engine.analytics.fills import export_dataclasses, write_rows
 from polymarket_fair_value_engine.analytics.reports import create_run_directory
-from polymarket_fair_value_engine.sports.normalize import FootballCalibrationRow, FootballDecisionSide, FootballMarkoutRow, FootballReplayFrame, FootballReplayQuoteRow, FootballStateChange, FootballStateChangeType, FootballMatchStatus, load_football_replay_frames
+from polymarket_fair_value_engine.sports.normalize import FootballCalibrationRow, FootballDecisionSide, FootballMarkoutRow, FootballMatchStatus, FootballReplayFrame, FootballReplayQuoteRow, FootballStateChange, FootballStateChangeType, load_football_replay_frames
 from polymarket_fair_value_engine.sports.odds import FootballBinaryMarketType
-from polymarket_fair_value_engine.sports.pricing import DEFAULT_FOOTBALL_PRICING_CONFIG, FootballPricingConfig, price_binary_market
+from polymarket_fair_value_engine.sports.pricing import DEFAULT_FOOTBALL_PRICING_CONFIG, FootballPricingConfig, price_binary_market, serialize_football_pricing_config
+
+
+_GOAL_CHANGE_TYPES = {
+    FootballStateChangeType.GOAL_HOME,
+    FootballStateChangeType.GOAL_AWAY,
+    FootballStateChangeType.EQUALIZER,
+    FootballStateChangeType.LEAD_CHANGE,
+}
+_RED_CARD_CHANGE_TYPES = {
+    FootballStateChangeType.RED_CARD_HOME,
+    FootballStateChangeType.RED_CARD_AWAY,
+}
 
 
 def _leader(home_goals: int, away_goals: int) -> str | None:
@@ -171,19 +182,45 @@ def _active_state_changes(
         if change.timestamp_utc > frame.timestamp_utc:
             continue
         age_seconds = (frame.timestamp_utc - change.timestamp_utc).total_seconds()
-        if change.change_type in {
-            FootballStateChangeType.GOAL_HOME,
-            FootballStateChangeType.GOAL_AWAY,
-            FootballStateChangeType.EQUALIZER,
-            FootballStateChangeType.LEAD_CHANGE,
-        } and age_seconds <= config.goal_cooldown_minutes * 60:
+        if change.change_type in _GOAL_CHANGE_TYPES and age_seconds <= config.goal_cooldown_minutes * 60:
             active.append(change.change_type)
-        if change.change_type in {
-            FootballStateChangeType.RED_CARD_HOME,
-            FootballStateChangeType.RED_CARD_AWAY,
-        } and age_seconds <= config.red_card_cooldown_minutes * 60:
+        if change.change_type in _RED_CARD_CHANGE_TYPES and age_seconds <= config.red_card_cooldown_minutes * 60:
             active.append(change.change_type)
     return tuple(dict.fromkeys(active))
+
+
+def match_phase_label(match_status: FootballMatchStatus) -> str:
+    return "pregame" if match_status is FootballMatchStatus.PREGAME else "inplay"
+
+
+def state_regime_label(
+    match_status: FootballMatchStatus,
+    state_change_tags: tuple[FootballStateChangeType, ...],
+) -> str:
+    if match_status is FootballMatchStatus.FINISHED:
+        return "finished"
+    if match_status is FootballMatchStatus.SUSPENDED:
+        return "suspended"
+    if any(tag in _RED_CARD_CHANGE_TYPES for tag in state_change_tags):
+        return "recent_red_card"
+    if any(tag in _GOAL_CHANGE_TYPES for tag in state_change_tags):
+        return "recent_goal"
+    return "stable"
+
+
+def source_quality_label(
+    source_count: int,
+    source_is_stale: bool,
+    source_disagreement: float,
+    config: FootballPricingConfig,
+) -> str:
+    if source_is_stale:
+        return "stale"
+    if source_count <= 1:
+        return "one_source"
+    if source_disagreement >= config.high_disagreement_threshold:
+        return "high_disagreement"
+    return "normal"
 
 
 def price_replay_frames(
@@ -196,6 +233,7 @@ def price_replay_frames(
 
     for frame in sorted(frames, key=lambda item: (item.timestamp_utc, item.fixture.event_id, item.frame_id)):
         active_tags = _active_state_changes(frame, changes_by_event, config)
+        state_regime = state_regime_label(frame.match_state.status, active_tags)
         for market in frame.markets:
             priced = price_binary_market(
                 market=market,
@@ -222,6 +260,7 @@ def price_replay_frames(
                     home_red_cards=frame.match_state.home_red_cards,
                     away_red_cards=frame.match_state.away_red_cards,
                     state_change_tags=active_tags,
+                    state_regime=state_regime,
                     market_id=market.market_id,
                     market_slug=market.market_slug,
                     market_question=market.market_question,
@@ -233,8 +272,16 @@ def price_replay_frames(
                     best_bid_yes=priced.best_bid_yes,
                     best_ask_yes=priced.best_ask_yes,
                     source_overround=priced.source_overround,
+                    source_disagreement=priced.source_disagreement,
                     source_name=priced.source_name,
                     source_count=priced.source_count,
+                    source_is_stale=priced.source_is_stale,
+                    source_quality=source_quality_label(
+                        source_count=priced.source_count,
+                        source_is_stale=priced.source_is_stale,
+                        source_disagreement=priced.source_disagreement,
+                        config=config,
+                    ),
                     quote_bid_yes=priced.quote_bid_yes,
                     quote_ask_yes=priced.quote_ask_yes,
                     buy_edge_vs_ask=priced.buy_edge_vs_ask,
@@ -303,23 +350,27 @@ def build_markout_rows(
             mid_2_steps = next_row_2.market_mid_yes if next_row_2 is not None else None
             sign = _decision_sign(row.decision_side)
 
-            next_snapshot_markout = None
+            raw_next_mid_change = None
             if current_mid is not None and next_mid is not None:
-                next_snapshot_markout = round(next_mid - current_mid, 6)
+                raw_next_mid_change = round(next_mid - current_mid, 6)
 
-            next_snapshot_edge_capture = None
-            if sign != 0 and next_snapshot_markout is not None:
-                next_snapshot_edge_capture = round(sign * next_snapshot_markout, 6)
+            directional_next_capture = None
+            if sign != 0 and raw_next_mid_change is not None:
+                directional_next_capture = round(sign * raw_next_mid_change, 6)
 
-            markout_2_steps = None
+            raw_2step_mid_change = None
             if current_mid is not None and mid_2_steps is not None:
-                markout_2_steps = round(mid_2_steps - current_mid, 6)
+                raw_2step_mid_change = round(mid_2_steps - current_mid, 6)
+
+            directional_2step_capture = None
+            if sign != 0 and raw_2step_mid_change is not None:
+                directional_2step_capture = round(sign * raw_2step_mid_change, 6)
 
             max_favorable_move = None
             max_adverse_move = None
             if sign != 0 and current_mid is not None:
                 directional_moves = [
-                    round(sign * ((future.market_mid_yes or current_mid) - current_mid), 6)
+                    round(sign * (future.market_mid_yes - current_mid), 6)
                     for future in future_rows
                     if future.market_mid_yes is not None
                 ]
@@ -329,7 +380,8 @@ def build_markout_rows(
 
             final_frame = final_states.get(row.event_id)
             eventual_settlement = None
-            eventual_resolution_markout = None
+            raw_eventual_resolution_change = None
+            directional_eventual_capture = None
             if final_frame is not None:
                 eventual_settlement = _settlement_yes(
                     final_frame.match_state.home_goals,
@@ -337,7 +389,9 @@ def build_markout_rows(
                     row.market_type,
                 )
                 if eventual_settlement is not None and current_mid is not None:
-                    eventual_resolution_markout = round(eventual_settlement - current_mid, 6)
+                    raw_eventual_resolution_change = round(eventual_settlement - current_mid, 6)
+                    if sign != 0:
+                        directional_eventual_capture = round(sign * raw_eventual_resolution_change, 6)
 
             markouts.append(
                 FootballMarkoutRow(
@@ -353,14 +407,20 @@ def build_markout_rows(
                     fair_yes=row.fair_yes,
                     current_mid_yes=current_mid,
                     next_snapshot_mid_yes=next_mid,
-                    next_snapshot_markout=next_snapshot_markout,
-                    next_snapshot_edge_capture=next_snapshot_edge_capture,
+                    raw_next_mid_change=raw_next_mid_change,
+                    directional_next_capture=directional_next_capture,
+                    next_snapshot_markout=raw_next_mid_change,
+                    next_snapshot_edge_capture=directional_next_capture,
                     mid_yes_2_steps=mid_2_steps,
-                    markout_2_steps=markout_2_steps,
+                    raw_2step_mid_change=raw_2step_mid_change,
+                    directional_2step_capture=directional_2step_capture,
+                    markout_2_steps=raw_2step_mid_change,
                     max_favorable_move=max_favorable_move,
                     max_adverse_move=max_adverse_move,
                     eventual_settlement_yes=eventual_settlement,
-                    eventual_resolution_markout=eventual_resolution_markout,
+                    raw_eventual_resolution_change=raw_eventual_resolution_change,
+                    directional_eventual_capture=directional_eventual_capture,
+                    eventual_resolution_markout=raw_eventual_resolution_change,
                 )
             )
     return tuple(markouts)
@@ -376,6 +436,20 @@ def _edge_bucket(max_actionable_edge: float) -> str:
     return "0.05+"
 
 
+def _average(values: list[float | None]) -> float | None:
+    filtered = [value for value in values if value is not None]
+    if not filtered:
+        return None
+    return round(sum(filtered) / len(filtered), 6)
+
+
+def _positive_rate(values: list[float | None]) -> float | None:
+    filtered = [value for value in values if value is not None]
+    if not filtered:
+        return None
+    return round(sum(1 for value in filtered if value > 0.0) / len(filtered), 6)
+
+
 def build_calibration_rows(
     quote_rows: tuple[FootballReplayQuoteRow, ...],
     markout_rows: tuple[FootballMarkoutRow, ...],
@@ -389,25 +463,32 @@ def build_calibration_rows(
             continue
         calibration_groups[("edge_bucket", _edge_bucket(quote.max_actionable_edge))].append(markout)
         calibration_groups[("market_type", quote.market_type)].append(markout)
-        phase = "pregame" if quote.match_status is FootballMatchStatus.PREGAME else "inplay"
-        calibration_groups[("match_phase", phase)].append(markout)
+        calibration_groups[("match_phase", match_phase_label(quote.match_status))].append(markout)
 
     rows: list[FootballCalibrationRow] = []
     for (bucket_type, bucket_value), grouped_rows in sorted(calibration_groups.items()):
-        next_markouts = [row.next_snapshot_markout for row in grouped_rows if row.next_snapshot_markout is not None]
-        markout_2_steps = [row.markout_2_steps for row in grouped_rows if row.markout_2_steps is not None]
-        edge_captures = [row.next_snapshot_edge_capture for row in grouped_rows if row.next_snapshot_edge_capture is not None]
-        sign_hit_rate = None
-        if edge_captures:
-            sign_hit_rate = round(sum(1 for value in edge_captures if value > 0.0) / len(edge_captures), 6)
+        raw_next = [row.raw_next_mid_change for row in grouped_rows]
+        raw_2step = [row.raw_2step_mid_change for row in grouped_rows]
+        directional_next = [row.directional_next_capture for row in grouped_rows]
+        directional_2step = [row.directional_2step_capture for row in grouped_rows]
+        directional_eventual = [row.directional_eventual_capture for row in grouped_rows]
+        adverse_moves = [row.max_adverse_move for row in grouped_rows]
+        positive_capture_rate = _positive_rate(directional_next)
         rows.append(
             FootballCalibrationRow(
                 bucket_type=bucket_type,
                 bucket_value=bucket_value,
                 observations=len(grouped_rows),
-                average_next_snapshot_markout=round(sum(next_markouts) / len(next_markouts), 6) if next_markouts else None,
-                average_markout_2_steps=round(sum(markout_2_steps) / len(markout_2_steps), 6) if markout_2_steps else None,
-                sign_hit_rate=sign_hit_rate,
+                average_raw_next_mid_change=_average(raw_next),
+                average_raw_2step_mid_change=_average(raw_2step),
+                average_directional_next_capture=_average(directional_next),
+                average_directional_2step_capture=_average(directional_2step),
+                average_directional_eventual_capture=_average(directional_eventual),
+                positive_capture_rate=positive_capture_rate,
+                average_max_adverse_move=_average(adverse_moves),
+                average_next_snapshot_markout=_average(raw_next),
+                average_markout_2_steps=_average(raw_2step),
+                sign_hit_rate=positive_capture_rate,
             )
         )
     return tuple(rows)
@@ -426,10 +507,13 @@ def build_no_trade_rows(quote_rows: tuple[FootballReplayQuoteRow, ...]) -> list[
 
 def _report_markout_definition() -> list[str]:
     return [
-        "- `next_snapshot_markout`: next midpoint minus current midpoint.",
-        "- `next_snapshot_edge_capture`: next midpoint move expressed in the chosen decision direction.",
-        "- `markout_2_steps`: midpoint change two frames forward versus the current midpoint.",
-        "- `eventual_resolution_markout`: final binary settlement minus the current midpoint.",
+        "- `raw_next_mid_change`: next midpoint minus current midpoint.",
+        "- `directional_next_capture`: the next midpoint move expressed in the chosen decision direction.",
+        "- `raw_2step_mid_change`: midpoint change two frames forward versus the current midpoint.",
+        "- `directional_2step_capture`: the 2-step midpoint move expressed in the chosen decision direction.",
+        "- `raw_eventual_resolution_change`: final settlement minus the current midpoint.",
+        "- `directional_eventual_capture`: final settlement move expressed in the chosen decision direction.",
+        "- Legacy fields such as `next_snapshot_markout` and `eventual_resolution_markout` are preserved as aliases for the raw metrics.",
     ]
 
 
@@ -458,8 +542,9 @@ def write_football_report(
         f"- Priced market snapshots: `{summary['priced_snapshots']}`",
         f"- Quoteable market snapshots: `{summary['quoteable_snapshots']}`",
         f"- Positive-edge market snapshots: `{summary['positive_edge_snapshots']}`",
-        f"- Average next-snapshot markout: `{summary['average_next_snapshot_markout']}`",
-        f"- Average 2-step markout: `{summary['average_markout_2_steps']}`",
+        f"- Average raw next-mid change: `{summary['average_next_snapshot_markout']}`",
+        f"- Average directional next capture: `{summary['average_directional_next_capture']}`",
+        f"- Positive capture rate: `{summary['positive_capture_rate']}`",
         "",
         "## Markout Definitions",
         *_report_markout_definition(),
@@ -481,7 +566,7 @@ def write_football_report(
     if calibration_rows:
         for row in calibration_rows:
             lines.append(
-                f"- `{row.bucket_type}` `{row.bucket_value}`: n={row.observations}, avg_next={row.average_next_snapshot_markout}, avg_2_step={row.average_markout_2_steps}, hit_rate={row.sign_hit_rate}"
+                f"- `{row.bucket_type}` `{row.bucket_value}`: n={row.observations}, avg_raw_next={row.average_raw_next_mid_change}, avg_dir_next={row.average_directional_next_capture}, hit_rate={row.positive_capture_rate}"
             )
     else:
         lines.append("- No calibration rows available.")
@@ -499,10 +584,71 @@ def write_football_report(
             "## Limitations",
             "- Replay frames are bundled offline sample data.",
             "- In-play fair value still comes directly from bundled bookmaker 1X2 updates rather than an independent in-play model.",
+            "- Directional capture metrics are about quote-decision quality, not about simulated fill realism.",
             "- The sample is small, so calibration and markout statistics are illustrative rather than statistically strong.",
         ]
     )
     output_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+
+
+def _replay_summary(
+    *,
+    run_id: str,
+    output_dir: Path,
+    frames: tuple[FootballReplayFrame, ...],
+    quote_rows: tuple[FootballReplayQuoteRow, ...],
+    markout_rows: tuple[FootballMarkoutRow, ...],
+    artifacts: dict[str, str],
+    sample_mode: bool,
+    config: FootballPricingConfig,
+    config_name: str | None,
+    config_description: str | None,
+    config_path: str | None,
+) -> dict[str, object]:
+    quoteable_rows = [row for row in quote_rows if row.no_trade_reason is None]
+    positive_edge_rows = [row for row in quote_rows if row.max_actionable_edge > 0.0]
+    raw_next = [
+        row.raw_next_mid_change
+        for row in markout_rows
+        if row.raw_next_mid_change is not None and row.decision_side is not FootballDecisionSide.NO_TRADE
+    ]
+    raw_2step = [
+        row.raw_2step_mid_change
+        for row in markout_rows
+        if row.raw_2step_mid_change is not None and row.decision_side is not FootballDecisionSide.NO_TRADE
+    ]
+    directional_next = [row.directional_next_capture for row in markout_rows if row.directional_next_capture is not None]
+    directional_2step = [row.directional_2step_capture for row in markout_rows if row.directional_2step_capture is not None]
+    directional_eventual = [row.directional_eventual_capture for row in markout_rows if row.directional_eventual_capture is not None]
+    positive_markouts = [value for value in raw_next if value > 0.0]
+    negative_markouts = [value for value in raw_next if value < 0.0]
+    mid_edge_rows = [abs(row.edge_vs_mid) for row in quote_rows if row.edge_vs_mid is not None]
+
+    return {
+        "run_id": run_id,
+        "mode": "football-replay",
+        "fixtures": len({frame.fixture.event_id for frame in frames}),
+        "snapshots": len(frames),
+        "priced_snapshots": len(quote_rows),
+        "quoteable_snapshots": len(quoteable_rows),
+        "positive_edge_snapshots": len(positive_edge_rows),
+        "average_absolute_edge": round(sum(mid_edge_rows) / max(1, len(mid_edge_rows)), 6),
+        "average_next_snapshot_markout": round(sum(raw_next) / len(raw_next), 6) if raw_next else 0.0,
+        "average_markout_2_steps": round(sum(raw_2step) / len(raw_2step), 6) if raw_2step else 0.0,
+        "average_directional_next_capture": round(sum(directional_next) / len(directional_next), 6) if directional_next else 0.0,
+        "average_directional_2step_capture": round(sum(directional_2step) / len(directional_2step), 6) if directional_2step else 0.0,
+        "average_directional_eventual_capture": round(sum(directional_eventual) / len(directional_eventual), 6) if directional_eventual else 0.0,
+        "positive_capture_rate": round(sum(1 for value in directional_next if value > 0.0) / len(directional_next), 6) if directional_next else 0.0,
+        "max_positive_markout": round(max(positive_markouts), 6) if positive_markouts else 0.0,
+        "max_negative_markout": round(min(negative_markouts), 6) if negative_markouts else 0.0,
+        "output_dir": str(output_dir),
+        "artifacts": artifacts,
+        "sample_data_is_synthetic": sample_mode,
+        "pricing_config_name": config_name,
+        "pricing_config_description": config_description,
+        "pricing_config_path": config_path,
+        "pricing_config": serialize_football_pricing_config(config),
+    }
 
 
 def run_football_replay(
@@ -511,6 +657,9 @@ def run_football_replay(
     run_id: str | None = None,
     sample_mode: bool = False,
     config: FootballPricingConfig = DEFAULT_FOOTBALL_PRICING_CONFIG,
+    config_name: str | None = None,
+    config_description: str | None = None,
+    config_path: str | None = None,
 ) -> tuple[str, Path, dict[str, object]]:
     frames = load_football_replay_frames(input_path)
     actual_run_id, output_dir = create_run_directory(output_root, run_id=run_id)
@@ -535,40 +684,19 @@ def run_football_replay(
         "football_no_trade_reasons_csv": str(output_dir / "football_no_trade_reasons.csv"),
         "football_report_md": str(output_dir / "football_report.md"),
     }
-
-    quoteable_rows = [row for row in quote_rows if row.no_trade_reason is None]
-    positive_edge_rows = [row for row in quote_rows if row.max_actionable_edge > 0.0]
-    next_markouts = [
-        row.next_snapshot_markout
-        for row in markout_rows
-        if row.next_snapshot_markout is not None and row.decision_side is not FootballDecisionSide.NO_TRADE
-    ]
-    markout_2_steps = [
-        row.markout_2_steps
-        for row in markout_rows
-        if row.markout_2_steps is not None and row.decision_side is not FootballDecisionSide.NO_TRADE
-    ]
-    positive_markouts = [value for value in next_markouts if value > 0.0]
-    negative_markouts = [value for value in next_markouts if value < 0.0]
-    mid_edge_rows = [abs(row.edge_vs_mid) for row in quote_rows if row.edge_vs_mid is not None]
-
-    summary = {
-        "run_id": actual_run_id,
-        "mode": "football-replay",
-        "fixtures": len({frame.fixture.event_id for frame in frames}),
-        "snapshots": len(frames),
-        "priced_snapshots": len(quote_rows),
-        "quoteable_snapshots": len(quoteable_rows),
-        "positive_edge_snapshots": len(positive_edge_rows),
-        "average_absolute_edge": round(sum(mid_edge_rows) / max(1, len(mid_edge_rows)), 6),
-        "average_next_snapshot_markout": round(sum(next_markouts) / len(next_markouts), 6) if next_markouts else 0.0,
-        "average_markout_2_steps": round(sum(markout_2_steps) / len(markout_2_steps), 6) if markout_2_steps else 0.0,
-        "max_positive_markout": round(max(positive_markouts), 6) if positive_markouts else 0.0,
-        "max_negative_markout": round(min(negative_markouts), 6) if negative_markouts else 0.0,
-        "output_dir": str(output_dir),
-        "artifacts": artifacts,
-        "sample_data_is_synthetic": sample_mode,
-    }
+    summary = _replay_summary(
+        run_id=actual_run_id,
+        output_dir=output_dir,
+        frames=frames,
+        quote_rows=quote_rows,
+        markout_rows=markout_rows,
+        artifacts=artifacts,
+        sample_mode=sample_mode,
+        config=config,
+        config_name=config_name,
+        config_description=config_description,
+        config_path=config_path,
+    )
     with (output_dir / "summary.json").open("w", encoding="utf-8") as handle:
         json.dump(summary, handle, indent=2, default=str)
 

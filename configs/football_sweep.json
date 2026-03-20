@@ -1,0 +1,85 @@
+{
+  "strategies": [
+    {
+      "name": "baseline",
+      "description": "Current default config",
+      "pricing_config": {
+        "quote_tick": 0.01,
+        "quote_base_half_spread": 0.02,
+        "minimum_bookmaker_sources": 2,
+        "stale_source_data_seconds": 180,
+        "wide_yes_spread_threshold": 0.12,
+        "high_uncertainty_threshold": 0.08,
+        "high_disagreement_threshold": 0.08,
+        "goal_cooldown_minutes": 3,
+        "red_card_cooldown_minutes": 5,
+        "goal_uncertainty_boost": 0.04,
+        "red_card_uncertainty_boost": 0.05,
+        "suspended_uncertainty_boost": 0.1
+      }
+    },
+    {
+      "name": "tighter_quotes",
+      "description": "Smaller base half-spread and stricter disagreement gating",
+      "pricing_config": {
+        "quote_tick": 0.01,
+        "quote_base_half_spread": 0.015,
+        "minimum_bookmaker_sources": 2,
+        "stale_source_data_seconds": 150,
+        "wide_yes_spread_threshold": 0.1,
+        "high_uncertainty_threshold": 0.06,
+        "high_disagreement_threshold": 0.06,
+        "goal_cooldown_minutes": 3,
+        "red_card_cooldown_minutes": 5,
+        "goal_uncertainty_boost": 0.05,
+        "red_card_uncertainty_boost": 0.06,
+        "suspended_uncertainty_boost": 0.1
+      }
+    },
+    {
+      "name": "more_conservative",
+      "description": "Longer cooldowns and stricter stale/uncertainty gating",
+      "pricing_config": {
+        "quote_tick": 0.01,
+        "quote_base_half_spread": 0.025,
+        "minimum_bookmaker_sources": 2,
+        "stale_source_data_seconds": 120,
+        "wide_yes_spread_threshold": 0.1,
+        "high_uncertainty_threshold": 0.06,
+        "high_disagreement_threshold": 0.06,
+        "goal_cooldown_minutes": 5,
+        "red_card_cooldown_minutes": 7,
+        "goal_uncertainty_boost": 0.05,
+        "red_card_uncertainty_boost": 0.07,
+        "suspended_uncertainty_boost": 0.12
+      }
+    },
+    {
+      "name": "more_aggressive",
+      "description": "Shorter cooldowns and looser source/spread gating",
+      "pricing_config": {
+        "quote_tick": 0.01,
+        "quote_base_half_spread": 0.015,
+        "minimum_bookmaker_sources": 1,
+        "stale_source_data_seconds": 300,
+        "wide_yes_spread_threshold": 0.16,
+        "high_uncertainty_threshold": 0.12,
+        "high_disagreement_threshold": 0.12,
+        "goal_cooldown_minutes": 1,
+        "red_card_cooldown_minutes": 2,
+        "goal_uncertainty_boost": 0.03,
+        "red_card_uncertainty_boost": 0.04,
+        "suspended_uncertainty_boost": 0.08
+      }
+    }
+  ],
+  "selection": {
+    "min_quoteable_snapshots": 8,
+    "primary_metric": "average_directional_next_capture",
+    "tie_breakers": [
+      "average_directional_2step_capture",
+      "positive_capture_rate",
+      "-average_max_adverse_move"
+    ]
+  }
+}
