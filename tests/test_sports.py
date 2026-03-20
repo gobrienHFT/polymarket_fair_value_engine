@@ -114,6 +114,9 @@ def test_cli_football_demo_writes_artifacts_and_report(tmp_path, monkeypatch, ca
     assert len(rows) == 12
     assert rows[0]["market_type"]
     assert rows[0]["fair_yes"]
+    assert "buy_edge_vs_ask" in rows[0]
+    assert "sell_edge_vs_bid" in rows[0]
+    assert "max_actionable_edge" in rows[0]
     assert rows[0]["no_trade_reason"] in {"", "fair_inside_spread", "wide_yes_spread", "missing_yes_book"}
 
     assert cli.main(["report", "--run-id", "football-smoke"]) == 0

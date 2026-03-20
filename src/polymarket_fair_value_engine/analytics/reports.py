@@ -16,6 +16,12 @@ ARTIFACT_FILENAMES = {
     "pnl.csv": "pnl_csv",
     "football_fair_values.csv": "football_fair_values_csv",
     "football_edges.csv": "football_edges_csv",
+    "football_replay_quotes.csv": "football_replay_quotes_csv",
+    "football_markouts.csv": "football_markouts_csv",
+    "football_calibration.csv": "football_calibration_csv",
+    "football_state_changes.csv": "football_state_changes_csv",
+    "football_no_trade_reasons.csv": "football_no_trade_reasons_csv",
+    "football_report.md": "football_report_md",
 }
 
 

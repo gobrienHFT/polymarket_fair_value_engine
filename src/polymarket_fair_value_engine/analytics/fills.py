@@ -19,6 +19,8 @@ def _serialize(value: Any) -> Any:
         return {key: _serialize(val) for key, val in value.items()}
     if isinstance(value, list):
         return [_serialize(item) for item in value]
+    if isinstance(value, tuple):
+        return [_serialize(item) for item in value]
     return value
 
 
@@ -42,4 +44,3 @@ def write_rows(path: Path, rows: list[dict[str, Any]]) -> None:
 def export_dataclasses(path: Path, items: list[Any]) -> None:
     rows = [_serialize(item) for item in items]
     write_rows(path, rows if isinstance(rows, list) else [])
-

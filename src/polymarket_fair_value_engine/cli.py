@@ -28,6 +28,7 @@ from polymarket_fair_value_engine.risk.checks import guard_live_mode, kill_switc
 from polymarket_fair_value_engine.risk.inventory import InventoryLedger, InventoryPosition
 from polymarket_fair_value_engine.risk.limits import RiskManager
 from polymarket_fair_value_engine.sports.demo import run_football_demo
+from polymarket_fair_value_engine.sports.replay import run_football_replay
 from polymarket_fair_value_engine.strategy.passive_mm import PassiveMarketMaker
 from polymarket_fair_value_engine.types import ManagedOrder, MarketState, OrderStatus, StrategyDecision
 
@@ -45,6 +46,10 @@ def _bundled_sample_replay_path() -> Path:
 
 def _bundled_sample_football_path() -> Path:
     return _repo_root() / "data" / "sample_football_markets.json"
+
+
+def _bundled_sample_football_replay_path() -> Path:
+    return _repo_root() / "data" / "sample_football_replay.jsonl"
 
 
 def _build_stack(
@@ -373,6 +378,25 @@ def _football_demo_command(config: EngineConfig, input_path: str | None = None, 
     return 0
 
 
+def _resolve_football_replay_input(input_path: str | None, sample: bool) -> Path:
+    if sample:
+        return _bundled_sample_football_replay_path()
+    if input_path is None:
+        raise RuntimeError("football-replay requires either --input or --sample.")
+    return Path(input_path)
+
+
+def _football_replay_command(config: EngineConfig, input_path: str | None = None, sample: bool = False, run_id: str | None = None) -> int:
+    _, _, summary = run_football_replay(
+        input_path=_resolve_football_replay_input(input_path, sample=sample),
+        output_root=config.output.root,
+        run_id=run_id,
+        sample_mode=bool(sample),
+    )
+    print(json.dumps(summary, indent=2))
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="pmfe")
     subparsers = parser.add_subparsers(dest="command", required=True)
@@ -400,6 +424,12 @@ def build_parser() -> argparse.ArgumentParser:
     football_demo = subparsers.add_parser("football-demo")
     football_demo.add_argument("--input", default=None)
     football_demo.add_argument("--run-id", default=None)
+
+    football_replay = subparsers.add_parser("football-replay")
+    football_replay_input = football_replay.add_mutually_exclusive_group(required=True)
+    football_replay_input.add_argument("--input", default=None)
+    football_replay_input.add_argument("--sample", action="store_true", default=False)
+    football_replay.add_argument("--run-id", default=None)
 
     cancel_all = subparsers.add_parser("cancel-all")
     cancel_all.add_argument("--live", action="store_true", default=False)
@@ -437,6 +467,8 @@ def main(argv: list[str] | None = None) -> int:
         return _demo_command(config, run_id=args.run_id)
     if args.command == "football-demo":
         return _football_demo_command(config, input_path=args.input, run_id=args.run_id)
+    if args.command == "football-replay":
+        return _football_replay_command(config, input_path=args.input, sample=bool(args.sample), run_id=args.run_id)
     if args.command == "cancel-all":
         guard_live_mode(live=bool(args.live), ack_live_risk=bool(args.ack_live_risk), live_enabled=config.auth.live_enabled)
         if not args.live:
