@@ -4,6 +4,8 @@ This walkthrough explains the offline football strategy sweep only.
 
 It does not describe live football trading, because live football trading is not implemented in this repo.
 
+For zero-click inspection on GitHub, start with [docs/sample_outputs/football_sweep_reference/README.md](sample_outputs/football_sweep_reference/README.md). That committed pack is generated from the bundled replay sample plus the committed sweep config.
+
 ## Run It
 
 ```bash
@@ -11,8 +13,6 @@ python -m pip install -e .[dev]
 pmfe football-sweep --sample --config configs/football_sweep.json --run-id verify-football-sweep
 pmfe report --run-id verify-football-sweep
 ```
-
-For zero-click inspection on GitHub, open [docs/sample_outputs/football_sweep_reference/README.md](sample_outputs/football_sweep_reference/README.md). That committed pack is generated from the bundled replay sample plus the committed sweep config.
 
 ## 1. Why The Sweep Exists
 

@@ -39,6 +39,7 @@ def test_readme_links_sample_output_index_and_packs() -> None:
     assert "docs/sample_outputs/football_demo_reference/README.md" in readme
     assert "docs/sample_outputs/football_replay_reference/README.md" in readme
     assert "docs/sample_outputs/football_sweep_reference/README.md" in readme
+    assert "runs/review-football" not in readme
 
 
 def test_sample_output_index_links_all_football_reference_packs() -> None:

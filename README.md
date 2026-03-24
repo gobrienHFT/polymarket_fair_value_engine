@@ -1,15 +1,72 @@
 # Polymarket Fair Value Engine
 
-`polymarket_fair_value_engine` is a research and execution framework for Polymarket-style binary markets, with a paper-trading-first BTC path and an offline football pricing/replay/sweep workflow.
+`polymarket_fair_value_engine` is a research and execution framework for Polymarket-style binary markets, with an offline football pricing/replay/sweep research path and a secondary BTC execution sandbox.
 
 The implemented scope is intentionally narrow and explicit:
 
+- **Football** is an offline fair-value, replay, calibration, and strategy-comparison workflow built from bundled sample inputs
 - **BTC 5-minute up/down** is still the only end-to-end paper/live execution path
-- **Football** is now an offline fair-value, replay, calibration, and strategy-comparison workflow
 
 That keeps the repo explainable, testable, and honest. It does not claim that live football trading is already implemented.
 
-## Quickstart
+## Football Research Path
+
+The football front door is an offline pricing/replay/sweep research workflow built from bundled sample data. It does not claim live football trading, and its replay outputs do not claim queue-position realism.
+
+Committed zero-click football reference packs:
+
+- Index: [docs/sample_outputs/README.md](docs/sample_outputs/README.md)
+- Snapshot reference: [docs/sample_outputs/football_demo_reference/README.md](docs/sample_outputs/football_demo_reference/README.md)
+- Replay reference: [docs/sample_outputs/football_replay_reference/README.md](docs/sample_outputs/football_replay_reference/README.md)
+- Strategy sweep reference: [docs/sample_outputs/football_sweep_reference/README.md](docs/sample_outputs/football_sweep_reference/README.md)
+
+Regenerate those committed packs from the bundled inputs with:
+
+```bash
+python scripts/refresh_sample_outputs.py
+```
+
+The underlying CLI paths remain:
+
+```bash
+pmfe football-demo --input data/sample_football_markets.json --run-id football-demo-reference
+pmfe football-replay --sample --config configs/football_strategy_baseline.json --run-id football-replay-reference
+pmfe football-sweep --sample --config configs/football_sweep.json --run-id football-sweep-reference
+```
+
+Those paths:
+
+- price the bundled football snapshot sample from `data/sample_football_markets.json`
+- replay the bundled football frame sample from `data/sample_football_replay.jsonl`
+- compare committed pricing/no-trade configurations from `configs/football_sweep.json`
+
+A tighter explanation of the replay flow lives in `docs/football_replay_walkthrough.md`.
+The strategy comparison layer is documented in `docs/football_strategy_sweep_walkthrough.md`.
+
+## Football Reviewer Path
+
+For a sports-trading review, start with the committed football artifacts rather than generated `runs/<run_id>/` directories.
+
+### 60-Second Path
+
+1. [docs/sample_outputs/football_demo_reference/README.md](docs/sample_outputs/football_demo_reference/README.md)
+2. [docs/sample_outputs/football_demo_reference/football_edges.csv](docs/sample_outputs/football_demo_reference/football_edges.csv)
+3. [docs/sample_outputs/football_replay_reference/football_report.md](docs/sample_outputs/football_replay_reference/football_report.md)
+
+### 5-Minute Path
+
+1. [docs/sample_outputs/README.md](docs/sample_outputs/README.md)
+2. [docs/sample_outputs/football_demo_reference/README.md](docs/sample_outputs/football_demo_reference/README.md)
+3. [docs/sample_outputs/football_replay_reference/README.md](docs/sample_outputs/football_replay_reference/README.md)
+4. [docs/sample_outputs/football_replay_reference/football_report.md](docs/sample_outputs/football_replay_reference/football_report.md)
+5. [docs/sample_outputs/football_sweep_reference/README.md](docs/sample_outputs/football_sweep_reference/README.md)
+6. [docs/sample_outputs/football_sweep_reference/football_strategy_report.md](docs/sample_outputs/football_sweep_reference/football_strategy_report.md)
+7. [docs/sample_outputs/football_sweep_reference/football_strategy_best.json](docs/sample_outputs/football_sweep_reference/football_strategy_best.json)
+8. Only then regenerate the packs with `pmfe football-demo --input data/sample_football_markets.json --run-id football-demo-reference`, `pmfe football-replay --sample --config configs/football_strategy_baseline.json --run-id football-replay-reference`, and `pmfe football-sweep --sample --config configs/football_sweep.json --run-id football-sweep-reference`.
+
+## BTC Execution Sandbox
+
+The BTC path remains the secondary execution sandbox and the only end-to-end paper/live implementation in the repo.
 
 Fresh clone:
 
@@ -18,9 +75,9 @@ python -m pip install -e .[dev]
 pmfe demo
 ```
 
-That one command runs fully offline against the bundled replay sample in `data/sample_replay.jsonl`, writes artifacts under `runs/<run_id>/`, and prints a JSON summary with the output directory and artifact paths.
+That one command runs fully offline against the bundled BTC replay sample in `data/sample_replay.jsonl`, writes artifacts under `runs/<run_id>/`, and prints a JSON summary with the output directory and artifact paths.
 
-The alternate explicit form is:
+The alternate explicit BTC form is:
 
 ```bash
 pmfe backtest --sample --run-id sample-demo
@@ -28,65 +85,6 @@ pmfe report --run-id sample-demo
 ```
 
 Convenience wrappers are available at `scripts/demo.sh` and `scripts/demo.ps1`. They install the editable package, run `pytest`, run the sample backtest, run `pmfe report`, and print the output directory. The canonical interface remains `pmfe ...`.
-
-## Football Research Paths
-
-For the quick static football pricing snapshot:
-
-```bash
-pmfe football-demo --run-id football-demo
-```
-
-That command:
-
-- loads bundled bookmaker 1X2 sample data from `data/sample_football_markets.json`
-- normalizes fixtures, bookmaker snapshots, and Polymarket-style binary football markets
-- removes overround from the 1X2 prices and builds a simple bookmaker consensus
-- maps 1X2 fair probabilities into binary YES probabilities such as `home_win`, `draw`, `home_or_draw`, and `either_team_wins`
-- computes directional edges such as `buy_edge_vs_ask`, `sell_edge_vs_bid`, and `max_actionable_edge`
-- writes deterministic artifacts under `runs/<run_id>/`
-
-For the replayable football pricing/evaluation path:
-
-```bash
-pmfe football-replay --sample --config configs/football_strategy_baseline.json --run-id football-replay
-pmfe report --run-id football-replay
-```
-
-That command:
-
-- loads bundled synthetic replay frames from `data/sample_football_replay.jsonl`
-- re-prices each frame from the bundled bookmaker 1X2 snapshots
-- maps the consensus 1X2 fair value into binary YES probabilities for each football market
-- applies explicit no-trade rules for missing books, wide spreads, stale sources, recent goals/red cards, and suspended/finished match states
-- writes replay quotes, markouts, calibration summaries, state-change rows, and a markdown report under `runs/<run_id>/`
-- can optionally load a JSON pricing config override for research runs
-
-For the football strategy-comparison path:
-
-```bash
-pmfe football-sweep --sample --config configs/football_sweep.json --run-id football-sweep
-pmfe report --run-id football-sweep
-```
-
-That command:
-
-- runs multiple named pricing/no-trade configurations against the same replay sample
-- ranks them on directional capture metrics rather than raw midpoint drift
-- writes a strategy leaderboard, regime slices, a short markdown report, and a nested detailed replay for the selected best strategy
-
-Football remains an offline pricing/evaluation path. It is not a live football trading implementation.
-
-Committed zero-click football reference packs live under [docs/sample_outputs/README.md](docs/sample_outputs/README.md):
-
-- Snapshot reference: [docs/sample_outputs/football_demo_reference/README.md](docs/sample_outputs/football_demo_reference/README.md)
-- Replay reference: [docs/sample_outputs/football_replay_reference/README.md](docs/sample_outputs/football_replay_reference/README.md)
-- Strategy sweep reference: [docs/sample_outputs/football_sweep_reference/README.md](docs/sample_outputs/football_sweep_reference/README.md)
-
-Those committed packs are generated from the bundled sample inputs with `python scripts/refresh_sample_outputs.py`.
-
-A tighter explanation of the replay flow lives in `docs/football_replay_walkthrough.md`.
-The strategy comparison layer is documented in `docs/football_strategy_sweep_walkthrough.md`.
 
 ## Architecture
 
@@ -234,30 +232,6 @@ scripts/
   demo.sh
   demo.ps1
 ```
-
-## Reviewer Path
-
-For a fast repo review, use this order:
-
-### 60-Second Path
-
-1. Run `pmfe demo` to show the BTC quickstart path and confirm the end-to-end execution stack.
-2. Run `pmfe football-demo --run-id review-football-demo` to show the static football pricing snapshot.
-3. Open `runs/review-football-demo/summary.json` and `runs/review-football-demo/football_edges.csv`.
-
-If you are only browsing on GitHub, start with [docs/sample_outputs/README.md](docs/sample_outputs/README.md) and then open the committed football snapshot, replay, and sweep packs.
-
-### 5-Minute Path
-
-1. Run `pmfe demo` for the BTC quickstart path.
-2. Run `pmfe football-demo --run-id review-football-demo` for the football snapshot path.
-3. Run `pmfe football-replay --sample --config configs/football_strategy_baseline.json --run-id review-football-replay`.
-4. Run `pmfe football-sweep --sample --config configs/football_sweep.json --run-id review-football-sweep`.
-5. Inspect `runs/review-football-replay/summary.json` and `runs/review-football-replay/football_report.md`.
-6. Inspect `runs/review-football-sweep/football_strategy_results.csv`, `runs/review-football-sweep/football_strategy_slices.csv`, `runs/review-football-sweep/football_strategy_report.md`, and `runs/review-football-sweep/best_strategy/`.
-7. Walk the outputs in this order: BTC quickstart, football snapshot, football replay, football sweep, then the generated run artifacts.
-8. Explain how bookmaker 1X2 odds are de-vigged, mapped into binary Polymarket probabilities, turned into directional quote decisions, and then compared across multiple strategy settings.
-9. Explain how the replay/sweep path could later be extended toward live football pricing/execution without claiming that path exists today.
 
 ## Install
 

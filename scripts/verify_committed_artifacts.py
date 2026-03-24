@@ -127,6 +127,8 @@ def _verify_front_door_links() -> list[str]:
     for link in expected_readme_links:
         if link not in readme:
             issues.append(f"Missing sample-output link in README.md: {link}")
+    if "runs/review-football" in readme:
+        issues.append("README.md still routes the primary football reviewer path through runs/review-football-* outputs")
 
     index = _read_text(SAMPLE_OUTPUTS_INDEX)
     for heading in (
