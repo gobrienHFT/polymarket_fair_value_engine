@@ -124,6 +124,20 @@ def _verify_pack_files() -> list[str]:
 def _verify_front_door_links() -> list[str]:
     issues: list[str] = []
     readme = _read_text(README)
+    football_research_index = readme.find("## Football Research Path")
+    football_reviewer_index = readme.find("## Football Reviewer Path")
+    football_notes_index = readme.find("## Football Research Notes")
+    btc_index = readme.find("## BTC Execution Sandbox")
+    if "## Fastest Demo" in readme:
+        issues.append("README.md still contains the old Fastest Demo heading")
+    if min(football_research_index, football_reviewer_index, football_notes_index, btc_index) == -1:
+        issues.append("README.md is missing one or more football-first front-door sections")
+    elif not (football_research_index < football_reviewer_index < football_notes_index < btc_index):
+        issues.append("README.md front-door sections are not ordered football-first before BTC")
+    demo_index = readme.find("pmfe demo")
+    if demo_index != -1 and btc_index != -1 and demo_index < btc_index:
+        issues.append("README.md mentions `pmfe demo` before the BTC Execution Sandbox section")
+
     expected_readme_links = [
         "docs/football_decision_casebook.md",
         "docs/football_strategy_configuration_note.md",
@@ -191,6 +205,17 @@ def _verify_no_temp_paths() -> list[str]:
         *(pack["dir"] / "README.md" for pack in PACKS.values()),
     ]
     for path in markdown_files:
+        text = _read_text(path)
+        for marker in TEMP_PATH_MARKERS:
+            if marker in text:
+                issues.append(f"Temporary path marker '{marker}' leaked into {_repo_relative(path)}")
+
+    committed_text_artifacts = [
+        path
+        for path in SAMPLE_OUTPUTS_ROOT.rglob("*")
+        if path.is_file() and path.suffix.lower() in {".md", ".json", ".csv"}
+    ]
+    for path in committed_text_artifacts:
         text = _read_text(path)
         for marker in TEMP_PATH_MARKERS:
             if marker in text:

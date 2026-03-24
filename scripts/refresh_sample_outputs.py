@@ -106,6 +106,10 @@ def _write_summary(path: Path, payload: dict[str, Any]) -> None:
     path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
 
 
+def _write_json(path: Path, payload: Any) -> None:
+    path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+
+
 def _refresh_football_demo(temp_root: Path) -> dict[str, str]:
     _, output_dir, summary = run_football_demo(
         input_path=FOOTBALL_DEMO_INPUT,
@@ -179,6 +183,12 @@ def _refresh_football_sweep(temp_root: Path) -> dict[str, str]:
         replacements,
     )
     _write_summary(FOOTBALL_SWEEP_PACK / "summary.json", sanitized_summary)
+    best_strategy_json_path = output_dir / "football_strategy_best.json"
+    best_strategy_payload = json.loads(best_strategy_json_path.read_text(encoding="utf-8"))
+    _write_json(
+        FOOTBALL_SWEEP_PACK / "football_strategy_best.json",
+        _sanitize_paths(best_strategy_payload, replacements),
+    )
     best_strategy_summary_path = FOOTBALL_SWEEP_PACK / "best_strategy" / "summary.json"
     best_strategy_summary = json.loads((best_strategy_output_dir / "summary.json").read_text(encoding="utf-8"))
     _write_summary(best_strategy_summary_path, _sanitize_paths(best_strategy_summary, replacements))

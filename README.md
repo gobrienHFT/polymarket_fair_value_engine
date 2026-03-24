@@ -11,14 +11,9 @@ That keeps the repo explainable, testable, and honest. It does not claim that li
 
 ## Football Research Path
 
-The football front door is an offline pricing/replay/sweep research workflow built from bundled sample data. It does not claim live football trading, and its replay outputs do not claim queue-position realism.
-
-Committed zero-click football reference packs:
+The football front door is an offline research workflow built from bundled sample data. It de-vigs bookmaker 1X2 odds, maps that fair value into binary football markets, evaluates quote and no-trade decisions on a replay sample, and compares named strategy configurations under fixed inputs. It does not claim live football trading, and its replay outputs do not claim queue-position realism.
 
 - Index: [docs/sample_outputs/README.md](docs/sample_outputs/README.md)
-- Research note: [docs/football_trading_research_note.md](docs/football_trading_research_note.md)
-- Decision casebook: [docs/football_decision_casebook.md](docs/football_decision_casebook.md)
-- Strategy config note: [docs/football_strategy_configuration_note.md](docs/football_strategy_configuration_note.md)
 - Snapshot reference: [docs/sample_outputs/football_demo_reference/README.md](docs/sample_outputs/football_demo_reference/README.md)
 - Replay reference: [docs/sample_outputs/football_replay_reference/README.md](docs/sample_outputs/football_replay_reference/README.md)
 - Strategy sweep reference: [docs/sample_outputs/football_sweep_reference/README.md](docs/sample_outputs/football_sweep_reference/README.md)
@@ -50,8 +45,6 @@ The strategy comparison layer is documented in `docs/football_strategy_sweep_wal
 
 For a sports-trading review, start with the committed football artifacts rather than generated `runs/<run_id>/` directories.
 
-Concrete examples: [docs/football_decision_casebook.md](docs/football_decision_casebook.md)
-
 ### 60-Second Path
 
 1. [docs/sample_outputs/football_demo_reference/README.md](docs/sample_outputs/football_demo_reference/README.md)
@@ -69,13 +62,15 @@ Concrete examples: [docs/football_decision_casebook.md](docs/football_decision_c
 6. [docs/sample_outputs/football_sweep_reference/football_strategy_report.md](docs/sample_outputs/football_sweep_reference/football_strategy_report.md)
 7. [docs/sample_outputs/football_sweep_reference/football_strategy_best.json](docs/sample_outputs/football_sweep_reference/football_strategy_best.json)
 8. [docs/football_trading_research_note.md](docs/football_trading_research_note.md)
-9. Only then regenerate the packs with `pmfe football-demo --input data/sample_football_markets.json --run-id football-demo-reference`, `pmfe football-replay --sample --config configs/football_strategy_baseline.json --run-id football-replay-reference`, and `pmfe football-sweep --sample --config configs/football_sweep.json --run-id football-sweep-reference`.
+9. [docs/football_decision_casebook.md](docs/football_decision_casebook.md)
+10. [docs/football_strategy_configuration_note.md](docs/football_strategy_configuration_note.md)
+11. Only then regenerate the packs with `pmfe football-demo --input data/sample_football_markets.json --run-id football-demo-reference`, `pmfe football-replay --sample --config configs/football_strategy_baseline.json --run-id football-replay-reference`, and `pmfe football-sweep --sample --config configs/football_sweep.json --run-id football-sweep-reference`.
 
-## Football Research Note
+## Football Research Notes
 
-[docs/football_trading_research_note.md](docs/football_trading_research_note.md) is the short narrative layer over the committed football snapshot, replay, and sweep packs. It explains fair-value construction, no-trade discipline, replay evaluation, strategy comparison, and limits without relying on local `runs/<run_id>/` outputs.
-
-For concrete market and decision examples from the same committed packs, open [docs/football_decision_casebook.md](docs/football_decision_casebook.md).
+- [docs/football_trading_research_note.md](docs/football_trading_research_note.md)
+- [docs/football_decision_casebook.md](docs/football_decision_casebook.md)
+- [docs/football_strategy_configuration_note.md](docs/football_strategy_configuration_note.md)
 
 ## BTC Execution Sandbox
 

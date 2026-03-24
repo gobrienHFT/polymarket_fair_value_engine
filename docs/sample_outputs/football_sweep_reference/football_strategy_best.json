@@ -22,5 +22,5 @@
     "red_card_uncertainty_boost": 0.04,
     "suspended_uncertainty_boost": 0.08
   },
-  "best_strategy_output_dir": "C:\\Users\\PC\\AppData\\Local\\Temp\\pmfe_sample_outputs__s0fghhm\\runs\\football-sweep-reference\\best_strategy"
+  "best_strategy_output_dir": "docs/sample_outputs/football_sweep_reference/best_strategy"
 }

@@ -38,6 +38,11 @@ def test_verify_committed_artifacts_script_runs_cleanly() -> None:
 def test_readme_links_sample_output_index_and_packs() -> None:
     readme = README.read_text(encoding="utf-8")
 
+    assert "## Fastest Demo" not in readme
+    assert readme.index("## Football Research Path") < readme.index("## Football Reviewer Path")
+    assert readme.index("## Football Reviewer Path") < readme.index("## Football Research Notes")
+    assert readme.index("## Football Research Notes") < readme.index("## BTC Execution Sandbox")
+    assert readme.index("## BTC Execution Sandbox") < readme.index("pmfe demo")
     assert "docs/football_decision_casebook.md" in readme
     assert "docs/football_strategy_configuration_note.md" in readme
     assert "docs/football_trading_research_note.md" in readme
