@@ -45,6 +45,8 @@ The strategy comparison layer is documented in `docs/football_strategy_sweep_wal
 
 For a sports-trading review, start with the committed football artifacts rather than generated `runs/<run_id>/` directories.
 
+Post-trade analysis: [docs/football_post_trade_analysis_note.md](docs/football_post_trade_analysis_note.md)
+
 ### 60-Second Path
 
 1. [docs/sample_outputs/football_demo_reference/README.md](docs/sample_outputs/football_demo_reference/README.md)
@@ -71,6 +73,7 @@ For a sports-trading review, start with the committed football artifacts rather 
 - [docs/football_trading_research_note.md](docs/football_trading_research_note.md)
 - [docs/football_decision_casebook.md](docs/football_decision_casebook.md)
 - [docs/football_strategy_configuration_note.md](docs/football_strategy_configuration_note.md)
+- [docs/football_post_trade_analysis_note.md](docs/football_post_trade_analysis_note.md)
 
 ## BTC Execution Sandbox
 

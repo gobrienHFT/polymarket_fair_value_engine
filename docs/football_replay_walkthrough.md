@@ -7,6 +7,7 @@ It does not describe live football trading, because live football trading is not
 For zero-click inspection on GitHub, start with [docs/sample_outputs/football_replay_reference/README.md](sample_outputs/football_replay_reference/README.md). That committed pack is generated from the bundled replay sample.
 For a short cross-pack summary, see [docs/football_trading_research_note.md](football_trading_research_note.md).
 For concrete examples drawn from the committed football packs, see [docs/football_decision_casebook.md](football_decision_casebook.md).
+For post-trade replay evaluation and calibration commentary, see [docs/football_post_trade_analysis_note.md](football_post_trade_analysis_note.md).
 
 ## Run It
 
