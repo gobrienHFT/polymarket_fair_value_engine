@@ -31,6 +31,7 @@ The football front door is an offline research workflow built from bundled sampl
 
 For a sports-trading review, start with the committed football artifacts rather than generated `runs/<run_id>/` directories.
 
+Dashboard: [docs/football_research_dashboard.md](docs/football_research_dashboard.md)
 Post-trade analysis: [docs/football_post_trade_analysis_note.md](docs/football_post_trade_analysis_note.md)
 Match-state reactions: [docs/football_match_state_reaction_note.md](docs/football_match_state_reaction_note.md)
 
@@ -57,6 +58,7 @@ Match-state reactions: [docs/football_match_state_reaction_note.md](docs/footbal
 
 ## Football Research Notes
 
+- [docs/football_research_dashboard.md](docs/football_research_dashboard.md)
 - [docs/football_trading_research_note.md](docs/football_trading_research_note.md)
 - [docs/football_decision_casebook.md](docs/football_decision_casebook.md)
 - [docs/football_strategy_configuration_note.md](docs/football_strategy_configuration_note.md)

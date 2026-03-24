@@ -11,6 +11,7 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 VERIFY_SCRIPT = REPO_ROOT / "scripts" / "verify_committed_artifacts.py"
 README = REPO_ROOT / "README.md"
 FOOTBALL_CASEBOOK = REPO_ROOT / "docs" / "football_decision_casebook.md"
+FOOTBALL_RESEARCH_DASHBOARD = REPO_ROOT / "docs" / "football_research_dashboard.md"
 FOOTBALL_MATCH_STATE_REACTION_NOTE = REPO_ROOT / "docs" / "football_match_state_reaction_note.md"
 FOOTBALL_POST_TRADE_ANALYSIS_NOTE = REPO_ROOT / "docs" / "football_post_trade_analysis_note.md"
 FOOTBALL_STRATEGY_CONFIGURATION_NOTE = REPO_ROOT / "docs" / "football_strategy_configuration_note.md"
@@ -49,6 +50,7 @@ def test_readme_links_sample_output_index_and_packs() -> None:
     assert readme.index("## BTC Execution Sandbox") < readme.index("pmfe demo")
     assert readme.index("## Football Reviewer Path") < readme.index("python scripts/refresh_sample_outputs.py")
     assert "docs/football_decision_casebook.md" in readme
+    assert "docs/football_research_dashboard.md" in readme
     assert "docs/football_match_state_reaction_note.md" in readme
     assert "docs/football_post_trade_analysis_note.md" in readme
     assert "docs/football_strategy_configuration_note.md" in readme
@@ -64,6 +66,7 @@ def test_sample_output_index_links_all_football_reference_packs() -> None:
     index = SAMPLE_OUTPUTS_INDEX.read_text(encoding="utf-8")
 
     assert "../football_decision_casebook.md" in index
+    assert "../football_research_dashboard.md" in index
     assert "../football_match_state_reaction_note.md" in index
     assert "../football_post_trade_analysis_note.md" in index
     assert "../football_strategy_configuration_note.md" in index
@@ -93,6 +96,10 @@ def test_research_note_exists() -> None:
 
 def test_decision_casebook_exists() -> None:
     assert FOOTBALL_CASEBOOK.exists()
+
+
+def test_research_dashboard_exists() -> None:
+    assert FOOTBALL_RESEARCH_DASHBOARD.exists()
 
 
 def test_match_state_reaction_note_exists() -> None:
