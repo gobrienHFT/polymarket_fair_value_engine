@@ -9,11 +9,11 @@ This is a deliberate first target:
 - contracts are binary and easy to normalize
 - expiry is short, so time-to-resolution matters in a visible way
 - an external reference price exists
-- the market family is narrow enough to support honest end-to-end demos
+- the market family is narrow enough to support an honest end-to-end execution workflow
 
 The repo is structured so other event markets can be added later. The current productionized execution path is this BTC family only.
 
-## Football Offline Pricing, Replay, And Sweep Demo
+## Football Offline Pricing, Replay, And Sweep Workflow
 
 The sports layer now includes a narrow football path that stays offline and inspectable.
 
@@ -98,7 +98,7 @@ Projected exposure is accumulated across already-approved quotes in the same pas
 
 ## Replay And Paper Execution
 
-Replay exists to make the stack deterministic and demoable without live dependencies.
+Replay exists to make the stack deterministic and inspectable without live dependencies.
 
 The paper engine intentionally uses simple fill rules:
 

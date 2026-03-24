@@ -1,15 +1,15 @@
 # Polymarket Fair Value Engine
 
-`polymarket_fair_value_engine` is a research and execution framework for Polymarket-style binary markets, with a paper-trading-first BTC path and an offline football pricing/replay/sweep demo.
+`polymarket_fair_value_engine` is a research and execution framework for Polymarket-style binary markets, with a paper-trading-first BTC path and an offline football pricing/replay/sweep workflow.
 
 The implemented scope is intentionally narrow and explicit:
 
 - **BTC 5-minute up/down** is still the only end-to-end paper/live execution path
-- **Football** is now an offline fair-value, replay, calibration, and strategy-comparison demo
+- **Football** is now an offline fair-value, replay, calibration, and strategy-comparison workflow
 
 That keeps the repo explainable, testable, and honest. It does not claim that live football trading is already implemented.
 
-## Fastest Demo
+## Quickstart
 
 Fresh clone:
 
@@ -29,7 +29,7 @@ pmfe report --run-id sample-demo
 
 Convenience wrappers are available at `scripts/demo.sh` and `scripts/demo.ps1`. They install the editable package, run `pytest`, run the sample backtest, run `pmfe report`, and print the output directory. The canonical interface remains `pmfe ...`.
 
-## Football Demo Paths
+## Football Research Paths
 
 For the quick static football pricing snapshot:
 
@@ -117,7 +117,7 @@ Today the package can:
 - replay bundled football frames with explicit match state, state changes, and no-trade rules
 - compute raw midpoint drift and directional capture metrics from the replay sample
 - compare multiple football strategy configurations with deterministic winner selection and regime breakdowns
-- export offline football pricing, replay, and strategy-sweep artifacts for interview/demo walkthroughs
+- export offline football pricing, replay, and strategy-sweep artifacts for inspection and review
 
 The repo still only implements BTC for end-to-end execution. Football stops at offline fair value formation, quote decisions, replay evaluation, and strategy comparison. That is deliberate.
 
@@ -225,17 +225,27 @@ scripts/
   demo.ps1
 ```
 
-## What To Demo In Interview
+## Reviewer Path
 
-One straightforward interview walkthrough is:
+For a fast repo review, use this order:
 
-1. Run `pmfe football-demo --run-id interview-football-demo` to show the static pricing snapshot.
-2. Run `pmfe football-replay --sample --config configs/football_strategy_baseline.json --run-id interview-football-replay`.
-3. Run `pmfe football-sweep --sample --config configs/football_sweep.json --run-id interview-football-sweep`.
-4. Inspect `summary.json` and `football_report.md` in `runs/interview-football-replay/`.
-5. Inspect `football_strategy_results.csv`, `football_strategy_slices.csv`, and `football_strategy_report.md` in `runs/interview-football-sweep/`.
-6. Explain how bookmaker 1X2 odds are de-vigged, mapped into binary Polymarket probabilities, turned into directional quote decisions, and then compared across multiple strategy settings.
-7. Explain how you would extend the replay/sweep path toward live football pricing/execution later, without claiming that path exists today.
+### 60-Second Path
+
+1. Run `pmfe demo` to show the BTC quickstart path and confirm the end-to-end execution stack.
+2. Run `pmfe football-demo --run-id review-football-demo` to show the static football pricing snapshot.
+3. Open `runs/review-football-demo/summary.json` and `runs/review-football-demo/football_edges.csv`.
+
+### 5-Minute Path
+
+1. Run `pmfe demo` for the BTC quickstart path.
+2. Run `pmfe football-demo --run-id review-football-demo` for the football snapshot path.
+3. Run `pmfe football-replay --sample --config configs/football_strategy_baseline.json --run-id review-football-replay`.
+4. Run `pmfe football-sweep --sample --config configs/football_sweep.json --run-id review-football-sweep`.
+5. Inspect `runs/review-football-replay/summary.json` and `runs/review-football-replay/football_report.md`.
+6. Inspect `runs/review-football-sweep/football_strategy_results.csv`, `runs/review-football-sweep/football_strategy_slices.csv`, `runs/review-football-sweep/football_strategy_report.md`, and `runs/review-football-sweep/best_strategy/`.
+7. Walk the outputs in this order: BTC quickstart, football snapshot, football replay, football sweep, then the generated run artifacts.
+8. Explain how bookmaker 1X2 odds are de-vigged, mapped into binary Polymarket probabilities, turned into directional quote decisions, and then compared across multiple strategy settings.
+9. Explain how the replay/sweep path could later be extended toward live football pricing/execution without claiming that path exists today.
 
 ## Install
 
@@ -258,5 +268,5 @@ python -m pip install -e .[dev,live]
 - the paper fill model is intentionally simple
 - live order management only knows about orders placed by the current running process
 - websocket ingestion is still scaffolding
-- football is an offline pricing/replay/strategy-comparison demo only, not a live trading path
+- football is an offline pricing/replay/strategy-comparison workflow only, not a live trading path
 - the football sweep is an evaluation/tooling exercise on synthetic data, not production validation

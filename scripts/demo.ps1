@@ -1,5 +1,5 @@
 param(
-    [string]$RunId = "interview-demo"
+    [string]$RunId = "sample-demo"
 )
 
 $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path

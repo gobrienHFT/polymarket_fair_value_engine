@@ -51,7 +51,7 @@ That produces a fairer 1X2 probability triplet:
 
 ## 3. 1X2 To Binary Market Mapping
 
-The football demo/replay supports these binary market mappings:
+The football snapshot/replay path supports these binary market mappings:
 
 - `home_win`
 - `away_win`
@@ -166,7 +166,7 @@ The replay also writes `football_calibration.csv` with small aggregated summarie
 - the replay sample is small and synthetic
 - fair value still comes from bookmaker snapshots, not an independent in-play football model
 - there is no live football market discovery, live football execution, or live football order management here
-- markouts are useful for interview discussion, but not strong enough to support broad claims
+- markouts are useful for repo review and inspection, but not strong enough to support broad claims
 
 ## 10. How This Could Extend Later
 
