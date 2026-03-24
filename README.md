@@ -17,6 +17,7 @@ Committed zero-click football reference packs:
 
 - Index: [docs/sample_outputs/README.md](docs/sample_outputs/README.md)
 - Research note: [docs/football_trading_research_note.md](docs/football_trading_research_note.md)
+- Decision casebook: [docs/football_decision_casebook.md](docs/football_decision_casebook.md)
 - Snapshot reference: [docs/sample_outputs/football_demo_reference/README.md](docs/sample_outputs/football_demo_reference/README.md)
 - Replay reference: [docs/sample_outputs/football_replay_reference/README.md](docs/sample_outputs/football_replay_reference/README.md)
 - Strategy sweep reference: [docs/sample_outputs/football_sweep_reference/README.md](docs/sample_outputs/football_sweep_reference/README.md)
@@ -48,6 +49,8 @@ The strategy comparison layer is documented in `docs/football_strategy_sweep_wal
 
 For a sports-trading review, start with the committed football artifacts rather than generated `runs/<run_id>/` directories.
 
+Concrete examples: [docs/football_decision_casebook.md](docs/football_decision_casebook.md)
+
 ### 60-Second Path
 
 1. [docs/sample_outputs/football_demo_reference/README.md](docs/sample_outputs/football_demo_reference/README.md)
@@ -70,6 +73,8 @@ For a sports-trading review, start with the committed football artifacts rather 
 ## Football Research Note
 
 [docs/football_trading_research_note.md](docs/football_trading_research_note.md) is the short narrative layer over the committed football snapshot, replay, and sweep packs. It explains fair-value construction, no-trade discipline, replay evaluation, strategy comparison, and limits without relying on local `runs/<run_id>/` outputs.
+
+For concrete market and decision examples from the same committed packs, open [docs/football_decision_casebook.md](docs/football_decision_casebook.md).
 
 ## BTC Execution Sandbox
 

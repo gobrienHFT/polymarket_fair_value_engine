@@ -10,6 +10,7 @@ from scripts.verify_committed_artifacts import collect_artifact_issues
 REPO_ROOT = Path(__file__).resolve().parents[1]
 VERIFY_SCRIPT = REPO_ROOT / "scripts" / "verify_committed_artifacts.py"
 README = REPO_ROOT / "README.md"
+FOOTBALL_CASEBOOK = REPO_ROOT / "docs" / "football_decision_casebook.md"
 FOOTBALL_RESEARCH_NOTE = REPO_ROOT / "docs" / "football_trading_research_note.md"
 SAMPLE_OUTPUTS_INDEX = REPO_ROOT / "docs" / "sample_outputs" / "README.md"
 FOOTBALL_REPLAY_WALKTHROUGH = REPO_ROOT / "docs" / "football_replay_walkthrough.md"
@@ -36,6 +37,7 @@ def test_verify_committed_artifacts_script_runs_cleanly() -> None:
 def test_readme_links_sample_output_index_and_packs() -> None:
     readme = README.read_text(encoding="utf-8")
 
+    assert "docs/football_decision_casebook.md" in readme
     assert "docs/football_trading_research_note.md" in readme
     assert "docs/sample_outputs/README.md" in readme
     assert "docs/sample_outputs/football_demo_reference/README.md" in readme
@@ -47,6 +49,7 @@ def test_readme_links_sample_output_index_and_packs() -> None:
 def test_sample_output_index_links_all_football_reference_packs() -> None:
     index = SAMPLE_OUTPUTS_INDEX.read_text(encoding="utf-8")
 
+    assert "../football_decision_casebook.md" in index
     assert "../football_trading_research_note.md" in index
     assert "## Football Snapshot Reference" in index
     assert "## Football Replay Reference" in index
@@ -68,3 +71,7 @@ def test_walkthrough_docs_link_replay_and_sweep_reference_packs() -> None:
 
 def test_research_note_exists() -> None:
     assert FOOTBALL_RESEARCH_NOTE.exists()
+
+
+def test_decision_casebook_exists() -> None:
+    assert FOOTBALL_CASEBOOK.exists()

@@ -4,6 +4,8 @@
 
 This note summarizes the repo's offline football pricing, replay, and strategy-sweep workflow using only the committed reference packs under `docs/sample_outputs/`. The workflow is generated from bundled sample inputs and is intended for inspection of pricing, restraint, and evaluation mechanics rather than any claim of live football execution or production validation.
 
+For concrete market-by-market examples from the same committed packs, see [docs/football_decision_casebook.md](football_decision_casebook.md).
+
 ## Fair Value Construction
 
 The starting point is bookmaker 1X2 odds for each fixture. The engine converts decimal odds into implied probabilities, measures the bookmaker overround, and removes that overround with proportional normalization. That produces a de-vigged triplet for home, draw, and away outcomes. Multiple bookmaker snapshots are then averaged into a simple consensus fair view rather than treated as separate models.

@@ -8,6 +8,7 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 README = REPO_ROOT / "README.md"
+FOOTBALL_CASEBOOK = REPO_ROOT / "docs" / "football_decision_casebook.md"
 FOOTBALL_RESEARCH_NOTE = REPO_ROOT / "docs" / "football_trading_research_note.md"
 SAMPLE_OUTPUTS_ROOT = REPO_ROOT / "docs" / "sample_outputs"
 SAMPLE_OUTPUTS_INDEX = SAMPLE_OUTPUTS_ROOT / "README.md"
@@ -87,6 +88,7 @@ def _verify_markdown_links() -> list[str]:
     issues: list[str] = []
     audit_files = [
         README,
+        FOOTBALL_CASEBOOK,
         FOOTBALL_RESEARCH_NOTE,
         SAMPLE_OUTPUTS_INDEX,
         FOOTBALL_REPLAY_WALKTHROUGH,
@@ -121,6 +123,7 @@ def _verify_front_door_links() -> list[str]:
     issues: list[str] = []
     readme = _read_text(README)
     expected_readme_links = [
+        "docs/football_decision_casebook.md",
         "docs/football_trading_research_note.md",
         "docs/sample_outputs/README.md",
         "docs/sample_outputs/football_demo_reference/README.md",
@@ -142,6 +145,7 @@ def _verify_front_door_links() -> list[str]:
         if heading not in index:
             issues.append(f"Missing sample-output index heading: {heading}")
     for link in (
+        "../football_decision_casebook.md",
         "../football_trading_research_note.md",
         "football_demo_reference/README.md",
         "football_replay_reference/README.md",
@@ -150,6 +154,8 @@ def _verify_front_door_links() -> list[str]:
         if link not in index:
             issues.append(f"Missing pack link in docs/sample_outputs/README.md: {link}")
 
+    if not FOOTBALL_CASEBOOK.exists():
+        issues.append("Missing docs/football_decision_casebook.md")
     if not FOOTBALL_RESEARCH_NOTE.exists():
         issues.append("Missing docs/football_trading_research_note.md")
 
@@ -170,6 +176,7 @@ def _verify_front_door_links() -> list[str]:
 def _verify_no_temp_paths() -> list[str]:
     issues: list[str] = []
     markdown_files = [
+        FOOTBALL_CASEBOOK,
         FOOTBALL_RESEARCH_NOTE,
         SAMPLE_OUTPUTS_INDEX,
         *(pack["dir"] / "README.md" for pack in PACKS.values()),
