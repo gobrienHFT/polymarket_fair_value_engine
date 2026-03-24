@@ -5,6 +5,7 @@ Committed football reference packs are generated from the bundled sample inputs 
 - Refresh command: `python scripts/refresh_sample_outputs.py`
 - Companion note: [docs/football_trading_research_note.md](../football_trading_research_note.md)
 - Decision casebook: [docs/football_decision_casebook.md](../football_decision_casebook.md)
+- Strategy config note: [docs/football_strategy_configuration_note.md](../football_strategy_configuration_note.md)
 
 ## Football Snapshot Reference
 

@@ -18,6 +18,7 @@ Committed zero-click football reference packs:
 - Index: [docs/sample_outputs/README.md](docs/sample_outputs/README.md)
 - Research note: [docs/football_trading_research_note.md](docs/football_trading_research_note.md)
 - Decision casebook: [docs/football_decision_casebook.md](docs/football_decision_casebook.md)
+- Strategy config note: [docs/football_strategy_configuration_note.md](docs/football_strategy_configuration_note.md)
 - Snapshot reference: [docs/sample_outputs/football_demo_reference/README.md](docs/sample_outputs/football_demo_reference/README.md)
 - Replay reference: [docs/sample_outputs/football_replay_reference/README.md](docs/sample_outputs/football_replay_reference/README.md)
 - Strategy sweep reference: [docs/sample_outputs/football_sweep_reference/README.md](docs/sample_outputs/football_sweep_reference/README.md)
