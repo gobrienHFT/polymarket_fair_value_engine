@@ -131,16 +131,32 @@ def _verify_front_door_links() -> list[str]:
     football_research_index = readme.find("## Football Research Path")
     football_reviewer_index = readme.find("## Football Reviewer Path")
     football_notes_index = readme.find("## Football Research Notes")
+    football_regeneration_index = readme.find("## Regeneration Commands")
     btc_index = readme.find("## BTC Execution Sandbox")
     if "## Fastest Demo" in readme:
         issues.append("README.md still contains the old Fastest Demo heading")
-    if min(football_research_index, football_reviewer_index, football_notes_index, btc_index) == -1:
+    if min(football_research_index, football_reviewer_index, football_notes_index, football_regeneration_index, btc_index) == -1:
         issues.append("README.md is missing one or more football-first front-door sections")
-    elif not (football_research_index < football_reviewer_index < football_notes_index < btc_index):
+    elif not (
+        football_research_index
+        < football_reviewer_index
+        < football_notes_index
+        < football_regeneration_index
+        < btc_index
+    ):
         issues.append("README.md front-door sections are not ordered football-first before BTC")
+    if "| At a glance | Committed value |" not in readme:
+        issues.append("README.md is missing the football at-a-glance summary table")
     demo_index = readme.find("pmfe demo")
     if demo_index != -1 and btc_index != -1 and demo_index < btc_index:
         issues.append("README.md mentions `pmfe demo` before the BTC Execution Sandbox section")
+    refresh_index = readme.find("python scripts/refresh_sample_outputs.py")
+    if (
+        refresh_index != -1
+        and football_reviewer_index != -1
+        and refresh_index < football_reviewer_index
+    ):
+        issues.append("README.md still places football regeneration commands before the Football Reviewer Path")
 
     expected_readme_links = [
         "docs/football_decision_casebook.md",

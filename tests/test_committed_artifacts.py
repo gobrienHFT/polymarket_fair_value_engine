@@ -43,8 +43,11 @@ def test_readme_links_sample_output_index_and_packs() -> None:
     assert "## Fastest Demo" not in readme
     assert readme.index("## Football Research Path") < readme.index("## Football Reviewer Path")
     assert readme.index("## Football Reviewer Path") < readme.index("## Football Research Notes")
-    assert readme.index("## Football Research Notes") < readme.index("## BTC Execution Sandbox")
+    assert readme.index("## Football Research Notes") < readme.index("## Regeneration Commands")
+    assert readme.index("## Regeneration Commands") < readme.index("## BTC Execution Sandbox")
+    assert "| At a glance | Committed value |" in readme
     assert readme.index("## BTC Execution Sandbox") < readme.index("pmfe demo")
+    assert readme.index("## Football Reviewer Path") < readme.index("python scripts/refresh_sample_outputs.py")
     assert "docs/football_decision_casebook.md" in readme
     assert "docs/football_match_state_reaction_note.md" in readme
     assert "docs/football_post_trade_analysis_note.md" in readme

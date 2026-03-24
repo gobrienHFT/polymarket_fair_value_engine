@@ -13,33 +13,19 @@ That keeps the repo explainable, testable, and honest. It does not claim that li
 
 The football front door is an offline research workflow built from bundled sample data. It de-vigs bookmaker 1X2 odds, maps that fair value into binary football markets, evaluates quote and no-trade decisions on a replay sample, and compares named strategy configurations under fixed inputs. It does not claim live football trading, and its replay outputs do not claim queue-position realism.
 
+| At a glance | Committed value |
+| --- | --- |
+| Fixtures in snapshot sample | 4 |
+| Markets priced in snapshot sample | 12 |
+| Positive edge markets in snapshot sample | 5 |
+| Priced replay snapshots | 64 |
+| Quoteable replay snapshots under baseline | 17 |
+| Sweep winner | `more_aggressive` |
+
 - Index: [docs/sample_outputs/README.md](docs/sample_outputs/README.md)
 - Snapshot reference: [docs/sample_outputs/football_demo_reference/README.md](docs/sample_outputs/football_demo_reference/README.md)
 - Replay reference: [docs/sample_outputs/football_replay_reference/README.md](docs/sample_outputs/football_replay_reference/README.md)
 - Strategy sweep reference: [docs/sample_outputs/football_sweep_reference/README.md](docs/sample_outputs/football_sweep_reference/README.md)
-
-Regenerate those committed packs from the bundled inputs with:
-
-```bash
-python scripts/refresh_sample_outputs.py
-```
-
-The underlying CLI paths remain:
-
-```bash
-pmfe football-demo --input data/sample_football_markets.json --run-id football-demo-reference
-pmfe football-replay --sample --config configs/football_strategy_baseline.json --run-id football-replay-reference
-pmfe football-sweep --sample --config configs/football_sweep.json --run-id football-sweep-reference
-```
-
-Those paths:
-
-- price the bundled football snapshot sample from `data/sample_football_markets.json`
-- replay the bundled football frame sample from `data/sample_football_replay.jsonl`
-- compare committed pricing/no-trade configurations from `configs/football_sweep.json`
-
-A tighter explanation of the replay flow lives in `docs/football_replay_walkthrough.md`.
-The strategy comparison layer is documented in `docs/football_strategy_sweep_walkthrough.md`.
 
 ## Football Reviewer Path
 
@@ -76,6 +62,33 @@ Match-state reactions: [docs/football_match_state_reaction_note.md](docs/footbal
 - [docs/football_strategy_configuration_note.md](docs/football_strategy_configuration_note.md)
 - [docs/football_post_trade_analysis_note.md](docs/football_post_trade_analysis_note.md)
 - [docs/football_match_state_reaction_note.md](docs/football_match_state_reaction_note.md)
+
+## Regeneration Commands
+
+The committed football packs above are generated from bundled sample inputs. Football remains offline-only, BTC remains the only end-to-end paper/live path, and football replay fills still do not claim queue-position realism.
+
+Regenerate those committed packs with:
+
+```bash
+python scripts/refresh_sample_outputs.py
+```
+
+The underlying CLI paths remain:
+
+```bash
+pmfe football-demo --input data/sample_football_markets.json --run-id football-demo-reference
+pmfe football-replay --sample --config configs/football_strategy_baseline.json --run-id football-replay-reference
+pmfe football-sweep --sample --config configs/football_sweep.json --run-id football-sweep-reference
+```
+
+Those paths:
+
+- price the bundled football snapshot sample from `data/sample_football_markets.json`
+- replay the bundled football frame sample from `data/sample_football_replay.jsonl`
+- compare committed pricing/no-trade configurations from `configs/football_sweep.json`
+
+A tighter explanation of the replay flow lives in `docs/football_replay_walkthrough.md`.
+The strategy comparison layer is documented in `docs/football_strategy_sweep_walkthrough.md`.
 
 ## BTC Execution Sandbox
 
