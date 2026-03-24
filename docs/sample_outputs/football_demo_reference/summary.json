@@ -1,0 +1,16 @@
+{
+  "run_id": "football-demo-reference",
+  "mode": "football-demo",
+  "fixtures": 4,
+  "markets": 12,
+  "priced_markets": 12,
+  "positive_edge_markets": 5,
+  "average_absolute_edge": 0.018539,
+  "max_positive_edge": 0.03526,
+  "output_dir": "docs/sample_outputs/football_demo_reference",
+  "artifacts": {
+    "summary_json": "docs/sample_outputs/football_demo_reference/summary.json",
+    "football_fair_values_csv": "docs/sample_outputs/football_demo_reference/football_fair_values.csv",
+    "football_edges_csv": "docs/sample_outputs/football_demo_reference/football_edges.csv"
+  }
+}

@@ -1,0 +1,207 @@
+from __future__ import annotations
+
+import json
+import re
+import sys
+from pathlib import Path
+
+
+REPO_ROOT = Path(__file__).resolve().parents[1]
+README = REPO_ROOT / "README.md"
+SAMPLE_OUTPUTS_ROOT = REPO_ROOT / "docs" / "sample_outputs"
+SAMPLE_OUTPUTS_INDEX = SAMPLE_OUTPUTS_ROOT / "README.md"
+FOOTBALL_REPLAY_WALKTHROUGH = REPO_ROOT / "docs" / "football_replay_walkthrough.md"
+FOOTBALL_SWEEP_WALKTHROUGH = REPO_ROOT / "docs" / "football_strategy_sweep_walkthrough.md"
+
+PACKS = {
+    "football_demo_reference": {
+        "dir": SAMPLE_OUTPUTS_ROOT / "football_demo_reference",
+        "required_files": (
+            "README.md",
+            "summary.json",
+            "football_fair_values.csv",
+            "football_edges.csv",
+        ),
+    },
+    "football_replay_reference": {
+        "dir": SAMPLE_OUTPUTS_ROOT / "football_replay_reference",
+        "required_files": (
+            "README.md",
+            "summary.json",
+            "football_replay_quotes.csv",
+            "football_markouts.csv",
+            "football_calibration.csv",
+            "football_state_changes.csv",
+            "football_no_trade_reasons.csv",
+            "football_report.md",
+        ),
+    },
+    "football_sweep_reference": {
+        "dir": SAMPLE_OUTPUTS_ROOT / "football_sweep_reference",
+        "required_files": (
+            "README.md",
+            "summary.json",
+            "football_strategy_results.csv",
+            "football_strategy_slices.csv",
+            "football_strategy_report.md",
+            "football_strategy_best.json",
+            "best_strategy/summary.json",
+            "best_strategy/football_replay_quotes.csv",
+            "best_strategy/football_markouts.csv",
+            "best_strategy/football_calibration.csv",
+            "best_strategy/football_state_changes.csv",
+            "best_strategy/football_no_trade_reasons.csv",
+            "best_strategy/football_report.md",
+        ),
+    },
+}
+
+MARKDOWN_LINK_PATTERN = re.compile(r"!?\[[^\]]+\]\(([^)]+)\)")
+TEMP_PATH_MARKERS = ("AppData", "\\Temp\\", "/tmp/", "C:\\Users\\", "C:/Users/")
+SUMMARY_PATH_MARKERS = TEMP_PATH_MARKERS + ("runs\\", "runs/")
+
+
+def _read_text(path: Path) -> str:
+    return path.read_text(encoding="utf-8")
+
+
+def _repo_relative(path: Path) -> str:
+    return path.resolve().relative_to(REPO_ROOT.resolve()).as_posix()
+
+
+def _iter_repo_relative_links(path: Path) -> list[str]:
+    links: list[str] = []
+    for link in MARKDOWN_LINK_PATTERN.findall(_read_text(path)):
+        if "://" in link or link.startswith("#"):
+            continue
+        links.append(link)
+    return links
+
+
+def _resolve_repo_relative_link(path: Path, link: str) -> Path:
+    return (path.parent / link.split("#", 1)[0]).resolve()
+
+
+def _verify_markdown_links() -> list[str]:
+    issues: list[str] = []
+    audit_files = [
+        README,
+        SAMPLE_OUTPUTS_INDEX,
+        FOOTBALL_REPLAY_WALKTHROUGH,
+        FOOTBALL_SWEEP_WALKTHROUGH,
+        *(pack["dir"] / "README.md" for pack in PACKS.values()),
+    ]
+    for path in audit_files:
+        if not path.exists():
+            issues.append(f"Missing markdown file for audit: {_repo_relative(path)}")
+            continue
+        for link in _iter_repo_relative_links(path):
+            target = _resolve_repo_relative_link(path, link)
+            if not target.exists():
+                issues.append(f"Broken markdown link in {_repo_relative(path)}: {link}")
+    return issues
+
+
+def _verify_pack_files() -> list[str]:
+    issues: list[str] = []
+    for pack_name, pack in PACKS.items():
+        pack_dir = pack["dir"]
+        if not pack_dir.exists():
+            issues.append(f"Missing sample-output pack directory: {_repo_relative(pack_dir)}")
+            continue
+        for relative_path in pack["required_files"]:
+            if not (pack_dir / relative_path).exists():
+                issues.append(f"Missing committed sample-output file: {_repo_relative(pack_dir / relative_path)}")
+    return issues
+
+
+def _verify_front_door_links() -> list[str]:
+    issues: list[str] = []
+    readme = _read_text(README)
+    expected_readme_links = [
+        "docs/sample_outputs/README.md",
+        "docs/sample_outputs/football_demo_reference/README.md",
+        "docs/sample_outputs/football_replay_reference/README.md",
+        "docs/sample_outputs/football_sweep_reference/README.md",
+    ]
+    for link in expected_readme_links:
+        if link not in readme:
+            issues.append(f"Missing sample-output link in README.md: {link}")
+
+    index = _read_text(SAMPLE_OUTPUTS_INDEX)
+    for heading in (
+        "## Football Snapshot Reference",
+        "## Football Replay Reference",
+        "## Football Strategy Sweep Reference",
+    ):
+        if heading not in index:
+            issues.append(f"Missing sample-output index heading: {heading}")
+    for link in (
+        "football_demo_reference/README.md",
+        "football_replay_reference/README.md",
+        "football_sweep_reference/README.md",
+    ):
+        if link not in index:
+            issues.append(f"Missing pack link in docs/sample_outputs/README.md: {link}")
+
+    replay_doc = _read_text(FOOTBALL_REPLAY_WALKTHROUGH)
+    if "docs/sample_outputs/football_replay_reference/README.md" not in replay_doc:
+        issues.append("Missing replay reference link in docs/football_replay_walkthrough.md")
+
+    sweep_doc = _read_text(FOOTBALL_SWEEP_WALKTHROUGH)
+    if "docs/sample_outputs/football_sweep_reference/README.md" not in sweep_doc:
+        issues.append("Missing sweep reference link in docs/football_strategy_sweep_walkthrough.md")
+    return issues
+
+
+def _verify_no_temp_paths() -> list[str]:
+    issues: list[str] = []
+    markdown_files = [
+        SAMPLE_OUTPUTS_INDEX,
+        *(pack["dir"] / "README.md" for pack in PACKS.values()),
+    ]
+    for path in markdown_files:
+        text = _read_text(path)
+        for marker in TEMP_PATH_MARKERS:
+            if marker in text:
+                issues.append(f"Temporary path marker '{marker}' leaked into {_repo_relative(path)}")
+
+    summary_files = [
+        pack["dir"] / "summary.json" for pack in PACKS.values()
+    ] + [PACKS["football_sweep_reference"]["dir"] / "best_strategy" / "summary.json"]
+    for path in summary_files:
+        if not path.exists():
+            continue
+        text = _read_text(path)
+        for marker in SUMMARY_PATH_MARKERS:
+            if marker in text:
+                issues.append(f"Non-committed path marker '{marker}' leaked into {_repo_relative(path)}")
+        summary = json.loads(text)
+        output_dir = str(summary.get("output_dir", ""))
+        if "docs/sample_outputs/" not in output_dir:
+            issues.append(f"Committed summary output_dir is not repo-relative in {_repo_relative(path)}")
+    return issues
+
+
+def collect_artifact_issues() -> list[str]:
+    issues: list[str] = []
+    issues.extend(_verify_pack_files())
+    issues.extend(_verify_front_door_links())
+    issues.extend(_verify_no_temp_paths())
+    issues.extend(_verify_markdown_links())
+    return issues
+
+
+def main() -> int:
+    issues = collect_artifact_issues()
+    if issues:
+        print("Committed artifact verification failed:", file=sys.stderr)
+        for issue in issues:
+            print(f"- {issue}", file=sys.stderr)
+        return 1
+    print("Committed artifact verification passed.")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

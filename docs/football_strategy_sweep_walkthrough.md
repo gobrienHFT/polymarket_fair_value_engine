@@ -12,6 +12,8 @@ pmfe football-sweep --sample --config configs/football_sweep.json --run-id verif
 pmfe report --run-id verify-football-sweep
 ```
 
+For zero-click inspection on GitHub, open [docs/sample_outputs/football_sweep_reference/README.md](sample_outputs/football_sweep_reference/README.md). That committed pack is generated from the bundled replay sample plus the committed sweep config.
+
 ## 1. Why The Sweep Exists
 
 The replay engine already answers two useful questions:

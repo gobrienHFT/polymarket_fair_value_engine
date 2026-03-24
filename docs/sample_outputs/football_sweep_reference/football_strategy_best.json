@@ -1,0 +1,26 @@
+{
+  "winner": "more_aggressive",
+  "reason": "Required at least 8 quoteable snapshots. Winner `more_aggressive` ranked first on `average_directional_next_capture` with tie-breakers `average_directional_2step_capture, positive_capture_rate, -average_max_adverse_move`.",
+  "eligible_strategy_names": [
+    "more_aggressive",
+    "baseline",
+    "more_conservative",
+    "tighter_quotes"
+  ],
+  "disqualified_strategy_names": [],
+  "winning_pricing_config": {
+    "quote_tick": 0.01,
+    "quote_base_half_spread": 0.015,
+    "minimum_bookmaker_sources": 1,
+    "stale_source_data_seconds": 300,
+    "wide_yes_spread_threshold": 0.16,
+    "high_uncertainty_threshold": 0.12,
+    "high_disagreement_threshold": 0.12,
+    "goal_cooldown_minutes": 1,
+    "red_card_cooldown_minutes": 2,
+    "goal_uncertainty_boost": 0.03,
+    "red_card_uncertainty_boost": 0.04,
+    "suspended_uncertainty_boost": 0.08
+  },
+  "best_strategy_output_dir": "C:\\Users\\PC\\AppData\\Local\\Temp\\pmfe_sample_outputs__s0fghhm\\runs\\football-sweep-reference\\best_strategy"
+}

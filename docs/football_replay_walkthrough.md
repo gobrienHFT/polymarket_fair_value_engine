@@ -14,6 +14,8 @@ pmfe report --run-id verify-football-replay
 
 Artifacts are written under `runs/<run_id>/`.
 
+For zero-click inspection on GitHub, open [docs/sample_outputs/football_replay_reference/README.md](sample_outputs/football_replay_reference/README.md). That committed pack is generated from the bundled replay sample.
+
 ## 1. Input Replay Frame Structure
 
 The bundled sample lives in `data/sample_football_replay.jsonl`.

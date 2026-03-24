@@ -77,6 +77,14 @@ That command:
 
 Football remains an offline pricing/evaluation path. It is not a live football trading implementation.
 
+Committed zero-click football reference packs live under [docs/sample_outputs/README.md](docs/sample_outputs/README.md):
+
+- Snapshot reference: [docs/sample_outputs/football_demo_reference/README.md](docs/sample_outputs/football_demo_reference/README.md)
+- Replay reference: [docs/sample_outputs/football_replay_reference/README.md](docs/sample_outputs/football_replay_reference/README.md)
+- Strategy sweep reference: [docs/sample_outputs/football_sweep_reference/README.md](docs/sample_outputs/football_sweep_reference/README.md)
+
+Those committed packs are generated from the bundled sample inputs with `python scripts/refresh_sample_outputs.py`.
+
 A tighter explanation of the replay flow lives in `docs/football_replay_walkthrough.md`.
 The strategy comparison layer is documented in `docs/football_strategy_sweep_walkthrough.md`.
 
@@ -177,6 +185,8 @@ runs/<run_id>/
     football_report.md
 ```
 
+Committed sample-output packs for those football paths live under [docs/sample_outputs/README.md](docs/sample_outputs/README.md) and are generated from the bundled sample inputs.
+
 Paper fill behavior is intentionally simple:
 
 - `PMFE_TOUCH_FILL_ONLY=1`: fill only when the quoted price touches or crosses the best quote
@@ -234,6 +244,8 @@ For a fast repo review, use this order:
 1. Run `pmfe demo` to show the BTC quickstart path and confirm the end-to-end execution stack.
 2. Run `pmfe football-demo --run-id review-football-demo` to show the static football pricing snapshot.
 3. Open `runs/review-football-demo/summary.json` and `runs/review-football-demo/football_edges.csv`.
+
+If you are only browsing on GitHub, start with [docs/sample_outputs/README.md](docs/sample_outputs/README.md) and then open the committed football snapshot, replay, and sweep packs.
 
 ### 5-Minute Path
 

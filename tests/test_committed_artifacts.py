@@ -1,0 +1,60 @@
+from __future__ import annotations
+
+import subprocess
+import sys
+from pathlib import Path
+
+from scripts.verify_committed_artifacts import collect_artifact_issues
+
+
+REPO_ROOT = Path(__file__).resolve().parents[1]
+VERIFY_SCRIPT = REPO_ROOT / "scripts" / "verify_committed_artifacts.py"
+README = REPO_ROOT / "README.md"
+SAMPLE_OUTPUTS_INDEX = REPO_ROOT / "docs" / "sample_outputs" / "README.md"
+FOOTBALL_REPLAY_WALKTHROUGH = REPO_ROOT / "docs" / "football_replay_walkthrough.md"
+FOOTBALL_SWEEP_WALKTHROUGH = REPO_ROOT / "docs" / "football_strategy_sweep_walkthrough.md"
+
+
+def test_committed_artifacts_have_no_integrity_issues() -> None:
+    issues = collect_artifact_issues()
+    assert not issues, "\n".join(f"- {issue}" for issue in issues)
+
+
+def test_verify_committed_artifacts_script_runs_cleanly() -> None:
+    result = subprocess.run(
+        [sys.executable, str(VERIFY_SCRIPT)],
+        cwd=REPO_ROOT,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert result.returncode == 0, result.stderr or result.stdout
+    assert "Committed artifact verification passed." in result.stdout
+
+
+def test_readme_links_sample_output_index_and_packs() -> None:
+    readme = README.read_text(encoding="utf-8")
+
+    assert "docs/sample_outputs/README.md" in readme
+    assert "docs/sample_outputs/football_demo_reference/README.md" in readme
+    assert "docs/sample_outputs/football_replay_reference/README.md" in readme
+    assert "docs/sample_outputs/football_sweep_reference/README.md" in readme
+
+
+def test_sample_output_index_links_all_football_reference_packs() -> None:
+    index = SAMPLE_OUTPUTS_INDEX.read_text(encoding="utf-8")
+
+    assert "## Football Snapshot Reference" in index
+    assert "## Football Replay Reference" in index
+    assert "## Football Strategy Sweep Reference" in index
+    assert "football_demo_reference/README.md" in index
+    assert "football_replay_reference/README.md" in index
+    assert "football_sweep_reference/README.md" in index
+
+
+def test_walkthrough_docs_link_replay_and_sweep_reference_packs() -> None:
+    replay_doc = FOOTBALL_REPLAY_WALKTHROUGH.read_text(encoding="utf-8")
+    sweep_doc = FOOTBALL_SWEEP_WALKTHROUGH.read_text(encoding="utf-8")
+
+    assert "docs/sample_outputs/football_replay_reference/README.md" in replay_doc
+    assert "docs/sample_outputs/football_sweep_reference/README.md" in sweep_doc

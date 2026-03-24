@@ -1,0 +1,10 @@
+no_trade_reason,count
+cooldown_after_goal,16
+cooldown_after_red_card,2
+fair_inside_spread,11
+finished_match_state,8
+high_uncertainty,2
+missing_yes_book,1
+stale_source_data,2
+suspended_match_state,2
+wide_yes_spread,1

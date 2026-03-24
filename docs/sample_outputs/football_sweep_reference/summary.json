@@ -1,0 +1,99 @@
+{
+  "run_id": "football-sweep-reference",
+  "mode": "football-sweep",
+  "strategies_compared": 4,
+  "fixtures": 4,
+  "snapshots": 32,
+  "winning_strategy": "more_aggressive",
+  "selection_reason": "Required at least 8 quoteable snapshots. Winner `more_aggressive` ranked first on `average_directional_next_capture` with tie-breakers `average_directional_2step_capture, positive_capture_rate, -average_max_adverse_move`.",
+  "best_strategy_output_dir": "docs/sample_outputs/football_sweep_reference/best_strategy",
+  "selection": {
+    "min_quoteable_snapshots": 8,
+    "primary_metric": "average_directional_next_capture",
+    "tie_breakers": [
+      "average_directional_2step_capture",
+      "positive_capture_rate",
+      "-average_max_adverse_move"
+    ]
+  },
+  "config_path": "configs/football_sweep.json",
+  "sample_data_is_synthetic": true,
+  "artifacts": {
+    "summary_json": "docs/sample_outputs/football_sweep_reference/summary.json",
+    "football_strategy_results_csv": "docs/sample_outputs/football_sweep_reference/football_strategy_results.csv",
+    "football_strategy_slices_csv": "docs/sample_outputs/football_sweep_reference/football_strategy_slices.csv",
+    "football_strategy_report_md": "docs/sample_outputs/football_sweep_reference/football_strategy_report.md",
+    "football_strategy_best_json": "docs/sample_outputs/football_sweep_reference/football_strategy_best.json",
+    "best_strategy_summary_json": "docs/sample_outputs/football_sweep_reference/best_strategy/summary.json"
+  },
+  "output_dir": "docs/sample_outputs/football_sweep_reference",
+  "top_strategies": [
+    {
+      "strategy_name": "more_aggressive",
+      "quoteable_snapshots": 19,
+      "average_directional_next_capture": 0.095556,
+      "average_directional_2step_capture": 0.088824,
+      "positive_capture_rate": 0.722222
+    },
+    {
+      "strategy_name": "baseline",
+      "quoteable_snapshots": 17,
+      "average_directional_next_capture": 0.05625,
+      "average_directional_2step_capture": 0.028667,
+      "positive_capture_rate": 0.6875
+    },
+    {
+      "strategy_name": "more_conservative",
+      "quoteable_snapshots": 17,
+      "average_directional_next_capture": 0.05625,
+      "average_directional_2step_capture": 0.028667,
+      "positive_capture_rate": 0.6875
+    }
+  ],
+  "best_strategy_replay_summary": {
+    "run_id": "best_strategy",
+    "mode": "football-replay",
+    "fixtures": 4,
+    "snapshots": 32,
+    "priced_snapshots": 64,
+    "quoteable_snapshots": 19,
+    "positive_edge_snapshots": 27,
+    "average_absolute_edge": 0.017143,
+    "average_next_snapshot_markout": 0.036667,
+    "average_markout_2_steps": -0.021765,
+    "average_directional_next_capture": 0.095556,
+    "average_directional_2step_capture": 0.088824,
+    "average_directional_eventual_capture": 0.129474,
+    "positive_capture_rate": 0.722222,
+    "max_positive_markout": 0.41,
+    "max_negative_markout": -0.41,
+    "output_dir": "docs/sample_outputs/football_sweep_reference/best_strategy",
+    "artifacts": {
+      "summary_json": "docs/sample_outputs/football_sweep_reference/best_strategy/summary.json",
+      "football_replay_quotes_csv": "docs/sample_outputs/football_sweep_reference/best_strategy/football_replay_quotes.csv",
+      "football_markouts_csv": "docs/sample_outputs/football_sweep_reference/best_strategy/football_markouts.csv",
+      "football_calibration_csv": "docs/sample_outputs/football_sweep_reference/best_strategy/football_calibration.csv",
+      "football_state_changes_csv": "docs/sample_outputs/football_sweep_reference/best_strategy/football_state_changes.csv",
+      "football_no_trade_reasons_csv": "docs/sample_outputs/football_sweep_reference/best_strategy/football_no_trade_reasons.csv",
+      "football_report_md": "docs/sample_outputs/football_sweep_reference/best_strategy/football_report.md"
+    },
+    "sample_data_is_synthetic": true,
+    "pricing_config_name": "more_aggressive",
+    "pricing_config_description": "Shorter cooldowns and looser source/spread gating",
+    "pricing_config_path": "configs/football_sweep.json",
+    "pricing_config": {
+      "quote_tick": 0.01,
+      "quote_base_half_spread": 0.015,
+      "minimum_bookmaker_sources": 1,
+      "stale_source_data_seconds": 300,
+      "wide_yes_spread_threshold": 0.16,
+      "high_uncertainty_threshold": 0.12,
+      "high_disagreement_threshold": 0.12,
+      "goal_cooldown_minutes": 1,
+      "red_card_cooldown_minutes": 2,
+      "goal_uncertainty_boost": 0.03,
+      "red_card_uncertainty_boost": 0.04,
+      "suspended_uncertainty_boost": 0.08
+    }
+  }
+}
