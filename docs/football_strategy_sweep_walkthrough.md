@@ -5,6 +5,7 @@ This walkthrough explains the offline football strategy sweep only.
 It does not describe live football trading, because live football trading is not implemented in this repo.
 
 For zero-click inspection on GitHub, start with [docs/sample_outputs/football_sweep_reference/README.md](sample_outputs/football_sweep_reference/README.md). That committed pack is generated from the bundled replay sample plus the committed sweep config.
+For a short cross-pack summary, see [docs/football_trading_research_note.md](football_trading_research_note.md).
 
 ## Run It
 

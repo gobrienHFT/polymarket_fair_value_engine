@@ -3,6 +3,7 @@
 Committed football reference packs are generated from the bundled sample inputs so the offline football path can be inspected on GitHub without writing new `runs/<run_id>/` directories.
 
 - Refresh command: `python scripts/refresh_sample_outputs.py`
+- Companion note: [docs/football_trading_research_note.md](../football_trading_research_note.md)
 
 ## Football Snapshot Reference
 

@@ -5,6 +5,7 @@ This walkthrough is for the offline football replay path only.
 It does not describe live football trading, because live football trading is not implemented in this repo.
 
 For zero-click inspection on GitHub, start with [docs/sample_outputs/football_replay_reference/README.md](sample_outputs/football_replay_reference/README.md). That committed pack is generated from the bundled replay sample.
+For a short cross-pack summary, see [docs/football_trading_research_note.md](football_trading_research_note.md).
 
 ## Run It
 

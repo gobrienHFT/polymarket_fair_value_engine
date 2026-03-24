@@ -16,6 +16,7 @@ The football front door is an offline pricing/replay/sweep research workflow bui
 Committed zero-click football reference packs:
 
 - Index: [docs/sample_outputs/README.md](docs/sample_outputs/README.md)
+- Research note: [docs/football_trading_research_note.md](docs/football_trading_research_note.md)
 - Snapshot reference: [docs/sample_outputs/football_demo_reference/README.md](docs/sample_outputs/football_demo_reference/README.md)
 - Replay reference: [docs/sample_outputs/football_replay_reference/README.md](docs/sample_outputs/football_replay_reference/README.md)
 - Strategy sweep reference: [docs/sample_outputs/football_sweep_reference/README.md](docs/sample_outputs/football_sweep_reference/README.md)
@@ -46,6 +47,8 @@ The strategy comparison layer is documented in `docs/football_strategy_sweep_wal
 ## Football Reviewer Path
 
 For a sports-trading review, start with the committed football artifacts rather than generated `runs/<run_id>/` directories.
+
+Short note: [docs/football_trading_research_note.md](docs/football_trading_research_note.md)
 
 ### 60-Second Path
 
