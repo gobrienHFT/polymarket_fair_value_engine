@@ -48,13 +48,12 @@ The strategy comparison layer is documented in `docs/football_strategy_sweep_wal
 
 For a sports-trading review, start with the committed football artifacts rather than generated `runs/<run_id>/` directories.
 
-Short note: [docs/football_trading_research_note.md](docs/football_trading_research_note.md)
-
 ### 60-Second Path
 
 1. [docs/sample_outputs/football_demo_reference/README.md](docs/sample_outputs/football_demo_reference/README.md)
 2. [docs/sample_outputs/football_demo_reference/football_edges.csv](docs/sample_outputs/football_demo_reference/football_edges.csv)
-3. [docs/sample_outputs/football_replay_reference/football_report.md](docs/sample_outputs/football_replay_reference/football_report.md)
+3. [docs/football_trading_research_note.md](docs/football_trading_research_note.md)
+4. [docs/sample_outputs/football_replay_reference/football_report.md](docs/sample_outputs/football_replay_reference/football_report.md)
 
 ### 5-Minute Path
 
@@ -65,7 +64,12 @@ Short note: [docs/football_trading_research_note.md](docs/football_trading_resea
 5. [docs/sample_outputs/football_sweep_reference/README.md](docs/sample_outputs/football_sweep_reference/README.md)
 6. [docs/sample_outputs/football_sweep_reference/football_strategy_report.md](docs/sample_outputs/football_sweep_reference/football_strategy_report.md)
 7. [docs/sample_outputs/football_sweep_reference/football_strategy_best.json](docs/sample_outputs/football_sweep_reference/football_strategy_best.json)
-8. Only then regenerate the packs with `pmfe football-demo --input data/sample_football_markets.json --run-id football-demo-reference`, `pmfe football-replay --sample --config configs/football_strategy_baseline.json --run-id football-replay-reference`, and `pmfe football-sweep --sample --config configs/football_sweep.json --run-id football-sweep-reference`.
+8. [docs/football_trading_research_note.md](docs/football_trading_research_note.md)
+9. Only then regenerate the packs with `pmfe football-demo --input data/sample_football_markets.json --run-id football-demo-reference`, `pmfe football-replay --sample --config configs/football_strategy_baseline.json --run-id football-replay-reference`, and `pmfe football-sweep --sample --config configs/football_sweep.json --run-id football-sweep-reference`.
+
+## Football Research Note
+
+[docs/football_trading_research_note.md](docs/football_trading_research_note.md) is the short narrative layer over the committed football snapshot, replay, and sweep packs. It explains fair-value construction, no-trade discipline, replay evaluation, strategy comparison, and limits without relying on local `runs/<run_id>/` outputs.
 
 ## BTC Execution Sandbox
 
