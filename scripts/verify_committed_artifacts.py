@@ -9,6 +9,7 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parents[1]
 README = REPO_ROOT / "README.md"
 FOOTBALL_CASEBOOK = REPO_ROOT / "docs" / "football_decision_casebook.md"
+FOOTBALL_MATCH_STATE_REACTION_NOTE = REPO_ROOT / "docs" / "football_match_state_reaction_note.md"
 FOOTBALL_POST_TRADE_ANALYSIS_NOTE = REPO_ROOT / "docs" / "football_post_trade_analysis_note.md"
 FOOTBALL_STRATEGY_CONFIGURATION_NOTE = REPO_ROOT / "docs" / "football_strategy_configuration_note.md"
 FOOTBALL_RESEARCH_NOTE = REPO_ROOT / "docs" / "football_trading_research_note.md"
@@ -91,6 +92,7 @@ def _verify_markdown_links() -> list[str]:
     audit_files = [
         README,
         FOOTBALL_CASEBOOK,
+        FOOTBALL_MATCH_STATE_REACTION_NOTE,
         FOOTBALL_POST_TRADE_ANALYSIS_NOTE,
         FOOTBALL_STRATEGY_CONFIGURATION_NOTE,
         FOOTBALL_RESEARCH_NOTE,
@@ -142,6 +144,7 @@ def _verify_front_door_links() -> list[str]:
 
     expected_readme_links = [
         "docs/football_decision_casebook.md",
+        "docs/football_match_state_reaction_note.md",
         "docs/football_post_trade_analysis_note.md",
         "docs/football_strategy_configuration_note.md",
         "docs/football_trading_research_note.md",
@@ -166,6 +169,7 @@ def _verify_front_door_links() -> list[str]:
             issues.append(f"Missing sample-output index heading: {heading}")
     for link in (
         "../football_decision_casebook.md",
+        "../football_match_state_reaction_note.md",
         "../football_post_trade_analysis_note.md",
         "../football_strategy_configuration_note.md",
         "../football_trading_research_note.md",
@@ -178,6 +182,8 @@ def _verify_front_door_links() -> list[str]:
 
     if not FOOTBALL_CASEBOOK.exists():
         issues.append("Missing docs/football_decision_casebook.md")
+    if not FOOTBALL_MATCH_STATE_REACTION_NOTE.exists():
+        issues.append("Missing docs/football_match_state_reaction_note.md")
     if not FOOTBALL_POST_TRADE_ANALYSIS_NOTE.exists():
         issues.append("Missing docs/football_post_trade_analysis_note.md")
     if not FOOTBALL_STRATEGY_CONFIGURATION_NOTE.exists():
@@ -205,6 +211,7 @@ def _verify_no_temp_paths() -> list[str]:
     issues: list[str] = []
     markdown_files = [
         FOOTBALL_CASEBOOK,
+        FOOTBALL_MATCH_STATE_REACTION_NOTE,
         FOOTBALL_POST_TRADE_ANALYSIS_NOTE,
         FOOTBALL_STRATEGY_CONFIGURATION_NOTE,
         FOOTBALL_RESEARCH_NOTE,

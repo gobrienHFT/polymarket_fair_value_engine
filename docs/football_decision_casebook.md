@@ -4,6 +4,8 @@
 
 This note is a concrete, example-based companion to the committed football sample-output packs under `docs/sample_outputs/`. It uses only those checked-in snapshot, replay, and sweep artifacts to show how the repo moves from bookmaker fair value to trading action, restraint, evaluation, and parameter comparison.
 
+For match-state shock and reaction-risk commentary from the same committed replay pack, see [docs/football_match_state_reaction_note.md](football_match_state_reaction_note.md).
+
 ## Example 1: Fair Value To Actionable Edge
 
 The clearest snapshot example is `real-madrid-vs-barcelona-home-or-draw` from the committed football snapshot reference. The fixture is Real Madrid vs Barcelona, and the market asks whether Real Madrid avoids defeat. The committed row in `football_edges.csv` gives `fair_yes = 0.67526`, `market_mid_yes = 0.625`, `best_bid_yes = 0.61`, and `best_ask_yes = 0.64`. That produces `buy_edge_vs_ask = 0.03526`, `edge_vs_mid = 0.05026`, and `max_actionable_edge = 0.03526`, so the decision side is `buy_yes`.

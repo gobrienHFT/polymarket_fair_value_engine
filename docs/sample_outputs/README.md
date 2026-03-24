@@ -7,6 +7,7 @@ Committed football reference packs are generated from the bundled sample inputs 
 - Decision casebook: [docs/football_decision_casebook.md](../football_decision_casebook.md)
 - Strategy config note: [docs/football_strategy_configuration_note.md](../football_strategy_configuration_note.md)
 - Post-trade analysis note: [docs/football_post_trade_analysis_note.md](../football_post_trade_analysis_note.md)
+- Match-state reaction note: [docs/football_match_state_reaction_note.md](../football_match_state_reaction_note.md)
 
 ## Football Snapshot Reference
 

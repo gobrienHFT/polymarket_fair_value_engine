@@ -8,6 +8,7 @@ For zero-click inspection on GitHub, start with [docs/sample_outputs/football_re
 For a short cross-pack summary, see [docs/football_trading_research_note.md](football_trading_research_note.md).
 For concrete examples drawn from the committed football packs, see [docs/football_decision_casebook.md](football_decision_casebook.md).
 For post-trade replay evaluation and calibration commentary, see [docs/football_post_trade_analysis_note.md](football_post_trade_analysis_note.md).
+For match-state shock and cooldown commentary, see [docs/football_match_state_reaction_note.md](football_match_state_reaction_note.md).
 
 ## Run It
 

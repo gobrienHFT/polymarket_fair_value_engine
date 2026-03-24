@@ -6,6 +6,7 @@ This note summarizes the repo's offline football pricing, replay, and strategy-s
 
 For concrete market-by-market examples from the same committed packs, see [docs/football_decision_casebook.md](football_decision_casebook.md).
 For post-trade replay evaluation and calibration commentary, see [docs/football_post_trade_analysis_note.md](football_post_trade_analysis_note.md).
+For match-state shock and reaction-risk commentary, see [docs/football_match_state_reaction_note.md](football_match_state_reaction_note.md).
 
 ## Fair Value Construction
 
