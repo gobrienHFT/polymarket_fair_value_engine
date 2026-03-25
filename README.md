@@ -13,7 +13,7 @@ That keeps the repo explainable, testable, and honest. It does not claim that li
 
 The football front door is an offline research workflow built from bundled sample data. It de-vigs bookmaker 1X2 odds, maps that fair value into binary football markets, evaluates quote and no-trade decisions on a replay sample, and compares named strategy configurations under fixed inputs. It does not claim live football trading, and its replay outputs do not claim queue-position realism.
 
-| At a glance | Committed value |
+| Metric | Committed value |
 | --- | --- |
 | Fixtures in snapshot sample | 4 |
 | Markets priced in snapshot sample | 12 |
@@ -73,11 +73,6 @@ Regenerate those committed packs with:
 
 ```bash
 python scripts/refresh_sample_outputs.py
-```
-
-The underlying CLI paths remain:
-
-```bash
 pmfe football-demo --input data/sample_football_markets.json --run-id football-demo-reference
 pmfe football-replay --sample --config configs/football_strategy_baseline.json --run-id football-replay-reference
 pmfe football-sweep --sample --config configs/football_sweep.json --run-id football-sweep-reference
