@@ -54,7 +54,7 @@ For a sports-trading review, start with the committed football artifacts rather 
 8. [docs/football_trading_research_note.md](docs/football_trading_research_note.md)
 9. [docs/football_decision_casebook.md](docs/football_decision_casebook.md)
 10. [docs/football_strategy_configuration_note.md](docs/football_strategy_configuration_note.md)
-11. Only then regenerate the packs with `pmfe football-demo --input data/sample_football_markets.json --run-id football-demo-reference`, `pmfe football-replay --sample --config configs/football_strategy_baseline.json --run-id football-replay-reference`, and `pmfe football-sweep --sample --config configs/football_sweep.json --run-id football-sweep-reference`.
+11. Then regenerate the packs with the commands in [Regeneration Commands](#regeneration-commands).
 
 ## Football Research Notes
 
