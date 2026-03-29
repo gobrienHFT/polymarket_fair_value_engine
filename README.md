@@ -7,8 +7,6 @@ The implemented scope is intentionally narrow and explicit:
 - **Football** is an offline fair-value, replay, calibration, and strategy-comparison workflow built from bundled sample inputs
 - **BTC 5-minute up/down** is still the only end-to-end paper/live execution path
 
-That keeps the repo explainable, testable, and honest. It does not claim that live football trading is already implemented.
-
 ## Football Research Path
 
 The football front door is an offline research workflow built from bundled sample data. It de-vigs bookmaker 1X2 odds, maps that fair value into binary football markets, evaluates quote and no-trade decisions on a replay sample, and compares named strategy configurations under fixed inputs. It does not claim live football trading, and its replay outputs do not claim queue-position realism.
