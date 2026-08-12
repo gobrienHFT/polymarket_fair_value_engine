@@ -27,5 +27,8 @@ def is_state_stale(state: MarketState, stale_data_seconds: int, now: datetime | 
 def has_sane_binary_books(state: MarketState) -> bool:
     yes_mid = state.yes_mid
     spread = state.spread
-    return yes_mid is not None and 0.0 < yes_mid < 1.0 and spread is not None and spread >= 0.0
-
+    if yes_mid is None or not 0.0 < yes_mid < 1.0:
+        return False
+    if state.yes_bid is None or state.yes_ask is None or spread is None:
+        return False
+    return state.yes_bid <= state.yes_ask and spread >= 0.0

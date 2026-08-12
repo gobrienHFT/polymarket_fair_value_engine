@@ -4,7 +4,9 @@ from datetime import datetime, timedelta, timezone
 
 from polymarket_fair_value_engine.data.clob_rest import _parse_levels
 from polymarket_fair_value_engine.markets.discovery import MarketDiscoveryService
+from polymarket_fair_value_engine.markets.filters import has_sane_binary_books
 from polymarket_fair_value_engine.markets.normalize import normalize_gamma_market
+from polymarket_fair_value_engine.types import BookLevel, MarketFamily, MarketState, NormalizedMarket, TokenOrderBook
 
 
 class StubGammaClient:
@@ -73,3 +75,31 @@ def test_clob_level_parser_skips_malformed_or_non_binary_levels() -> None:
     )
 
     assert [(level.price, level.size) for level in levels] == [(0.40, 2.0), (0.55, 3.0)]
+
+
+def test_crossed_yes_book_is_not_sane() -> None:
+    now = datetime(2026, 1, 1, tzinfo=timezone.utc)
+    market = NormalizedMarket(
+        market_id="m1",
+        slug="btc-updown-5m-1",
+        question="Will Bitcoin be up?",
+        series="btc-updown-5m",
+        family=MarketFamily.CRYPTO_UPDOWN,
+        asset="BTC",
+        end_ts=now + timedelta(minutes=5),
+        yes_token_id="yes-1",
+        no_token_id="no-1",
+    )
+    state = MarketState(
+        market=market,
+        yes_book=TokenOrderBook(
+            token_id="yes-1",
+            bids=(BookLevel(price=0.60, size=1.0),),
+            asks=(BookLevel(price=0.50, size=1.0),),
+            timestamp=now,
+        ),
+        no_book=None,
+        observed_at=now,
+    )
+
+    assert not has_sane_binary_books(state)
