@@ -10,6 +10,8 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
+from requests import RequestException
+
 from polymarket_fair_value_engine.analytics.pnl import mark_yes_price
 from polymarket_fair_value_engine.analytics.reports import RunDecisionStats, create_run_directory, load_summary, run_artifacts, write_run_report
 from polymarket_fair_value_engine.backtest.replay import load_replay_file
@@ -551,7 +553,7 @@ def _dispatch(argv: list[str] | None = None) -> int:
 def main(argv: list[str] | None = None) -> int:
     try:
         return _dispatch(argv)
-    except (FileNotFoundError, OSError, RuntimeError, ValueError) as exc:
+    except (FileNotFoundError, OSError, RequestException, RuntimeError, ValueError) as exc:
         print(
             json.dumps(
                 {

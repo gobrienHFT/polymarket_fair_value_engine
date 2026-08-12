@@ -3,6 +3,8 @@ from __future__ import annotations
 import json
 from datetime import datetime, timedelta, timezone
 
+from requests import RequestException
+
 from polymarket_fair_value_engine import cli
 from polymarket_fair_value_engine.config import AuthConfig, EndpointConfig, EngineConfig, MarketConfig, ModelConfig, OutputConfig, PaperConfig, RiskConfig, StrategyConfig
 from polymarket_fair_value_engine.data.external_prices import CoinbasePriceClient
@@ -203,6 +205,19 @@ def test_cli_reports_invalid_environment_config_as_structured_error(monkeypatch,
 
     assert error["error"] == "ValueError"
     assert "PMFE_LIVE_ENABLED must be boolean" in error["message"]
+
+
+def test_cli_reports_request_failures_as_structured_error(monkeypatch, capsys) -> None:
+    def raise_request_error(_argv=None):
+        raise RequestException("network unavailable")
+
+    monkeypatch.setattr(cli, "_dispatch", raise_request_error)
+
+    assert cli.main([]) == 2
+    error = json.loads(capsys.readouterr().err)
+
+    assert error["error"] == "RequestException"
+    assert error["message"] == "network unavailable"
 
 
 def test_cli_scan_smoke(monkeypatch, tmp_path, capsys) -> None:

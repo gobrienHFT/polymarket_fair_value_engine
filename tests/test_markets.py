@@ -40,6 +40,35 @@ def test_normalize_gamma_market_parses_btc_updown_contract() -> None:
     assert market.no_token_id == "no-token"
 
 
+def test_normalize_gamma_market_skips_malformed_external_fields() -> None:
+    raw = _raw_market("btc-updown-5m-bad", datetime(2026, 1, 1, 12, 5, tzinfo=timezone.utc))
+
+    raw["outcomePrices"] = ["not-a-number", "0.48"]
+    assert normalize_gamma_market(raw) is None
+
+    raw = _raw_market("btc-updown-5m-bad-price", datetime(2026, 1, 1, 12, 5, tzinfo=timezone.utc))
+    raw["outcomePrices"] = ["nan", "0.48"]
+    assert normalize_gamma_market(raw) is None
+
+    raw = _raw_market("btc-updown-5m-out-of-range", datetime(2026, 1, 1, 12, 5, tzinfo=timezone.utc))
+    raw["outcomePrices"] = [1.2, 0.48]
+    assert normalize_gamma_market(raw) is None
+
+    raw = _raw_market("btc-updown-5m-bad-id", datetime(2026, 1, 1, 12, 5, tzinfo=timezone.utc))
+    raw["clobTokenIds"] = ["same-token", "same-token"]
+    assert normalize_gamma_market(raw) is None
+
+    raw = _raw_market("btc-updown-5m-bad-date", datetime(2026, 1, 1, 12, 5, tzinfo=timezone.utc))
+    raw["endDate"] = "not-a-datetime"
+    assert normalize_gamma_market(raw) is None
+
+    raw = _raw_market("btc-updown-5m-naive-date", datetime(2026, 1, 1, 12, 5, tzinfo=timezone.utc))
+    raw["endDate"] = "2026-01-01T12:05:00"
+    assert normalize_gamma_market(raw) is None
+
+    assert normalize_gamma_market([]) is None  # type: ignore[arg-type]
+
+
 def test_market_discovery_filters_to_active_expiry_window() -> None:
     now = datetime(2026, 1, 1, 12, 0, tzinfo=timezone.utc)
     target_slug = "btc-updown-5m-1767268800"
