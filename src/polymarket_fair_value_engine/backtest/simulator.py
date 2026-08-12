@@ -5,7 +5,7 @@ from pathlib import Path
 from typing import Any
 
 from polymarket_fair_value_engine.analytics.pnl import mark_yes_price
-from polymarket_fair_value_engine.analytics.reports import create_run_directory, write_run_report
+from polymarket_fair_value_engine.analytics.reports import RunDecisionStats, create_run_directory, write_run_report
 from polymarket_fair_value_engine.execution.order_manager import OrderManager
 from polymarket_fair_value_engine.execution.paper import PaperExecutionEngine
 from polymarket_fair_value_engine.markets.filters import has_sane_binary_books, in_no_trade_window, is_state_stale
@@ -41,12 +41,22 @@ class ReplaySimulator:
         latest_marks: dict[str, float] = {}
         market_series_map = {state.market.market_id: state.market.series for state in states}
         inventory_rows: list[dict[str, Any]] = []
+        run_stats = RunDecisionStats()
 
         for state in states:
+            run_stats.observe()
             stale = is_state_stale(state, stale_data_seconds=self.stale_data_seconds, now=state.observed_at)
             current_state = replace(state, stale=stale)
             current_orders = self.execution_engine.open_orders_for_market(current_state.market.market_id)
-            if stale or in_no_trade_window(current_state.market, current_state.observed_at, self.no_trade_window_seconds) or not has_sane_binary_books(current_state):
+            skip_reason: str | None = None
+            if stale:
+                skip_reason = "stale_data"
+            elif in_no_trade_window(current_state.market, current_state.observed_at, self.no_trade_window_seconds):
+                skip_reason = "no_trade_window"
+            elif not has_sane_binary_books(current_state):
+                skip_reason = "unsane_binary_book"
+            if skip_reason is not None:
+                run_stats.record_skip(skip_reason)
                 self.execution_engine.apply_actions(
                     self.order_manager.reconcile((), current_orders, current_state.observed_at),
                     current_state.observed_at,
@@ -67,6 +77,11 @@ class ReplaySimulator:
                 mark_yes=mark_yes_price(current_state, fair_value),
                 market_series_map=market_series_map,
                 open_orders=self.execution_engine.open_orders,
+            )
+            run_stats.record_priced(
+                generated=len(decision.quotes),
+                approved=len(filtered.approved_quotes),
+                rejected_reasons=filtered.rejected_reasons,
             )
             safe_decision = StrategyDecision(
                 market_id=decision.market_id,
@@ -100,8 +115,10 @@ class ReplaySimulator:
         final_pnl = self.execution_engine.pnl_history[-1].total_pnl if self.execution_engine.pnl_history else 0.0
         summary = {
             "run_id": run_id,
+            **run_stats.as_dict(),
             "orders": len(self.execution_engine.order_history),
             "fills": len(self.execution_engine.fill_history),
+            "open_orders_final": len(self.execution_engine.open_orders),
             "final_total_pnl": final_pnl,
             "final_cash": self.execution_engine.inventory.cash,
             "markets_seen": len({state.market.market_id for state in states}),
@@ -115,4 +132,3 @@ class ReplaySimulator:
             summary=summary,
         )
         return run_id, output_dir, summary
-

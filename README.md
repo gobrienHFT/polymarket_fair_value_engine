@@ -163,6 +163,8 @@ runs/<run_id>/
 
 `pmfe report --run-id <run_id>` reads the stored summary and prints the run location plus the artifact paths again.
 
+BTC replay and paper summaries also expose the decision path: observations priced or skipped, reason-coded skip counts, generated/approved/rejected quotes, risk rejection categories, final open orders, and the stop reason. This keeps an outcome trace alongside the order, fill, inventory, and PnL artifacts.
+
 `pmfe football-demo` writes:
 
 ```text

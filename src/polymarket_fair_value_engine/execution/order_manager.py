@@ -17,8 +17,29 @@ class OrderManager:
         now: datetime,
     ) -> list[OrderAction]:
         actions: list[OrderAction] = []
-        existing_by_reason = {order.reason: order for order in open_orders if order.status is OrderStatus.OPEN}
-        desired_by_reason = {quote.reason: quote for quote in desired_quotes}
+        existing_by_reason: dict[str, ManagedOrder] = {}
+        duplicate_orders: list[ManagedOrder] = []
+        for order in open_orders:
+            if order.status is not OrderStatus.OPEN:
+                continue
+            if order.reason in existing_by_reason:
+                duplicate_orders.append(order)
+                continue
+            existing_by_reason[order.reason] = order
+        desired_by_reason: dict[str, QuoteIntent] = {}
+        for quote in desired_quotes:
+            if quote.reason in desired_by_reason:
+                raise ValueError(f"Duplicate desired quote reason: {quote.reason}")
+            desired_by_reason[quote.reason] = quote
+
+        for order in duplicate_orders:
+            actions.append(
+                OrderAction(
+                    action="cancel",
+                    existing_order_id=order.order_id,
+                    reason=f"{order.reason}:duplicate_open_order",
+                )
+            )
 
         for reason, order in existing_by_reason.items():
             if reason not in desired_by_reason:
@@ -42,4 +63,3 @@ class OrderManager:
         if abs(existing.price - desired.price) >= self.config.reprice_threshold:
             return True
         return abs(existing.size - desired.size) >= self.config.size_tick
-

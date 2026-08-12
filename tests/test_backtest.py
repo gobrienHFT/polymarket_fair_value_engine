@@ -128,6 +128,10 @@ def test_replay_simulator_generates_outputs(tmp_path) -> None:
     assert run_id
     assert summary["orders"] >= 1
     assert summary["fills"] >= 1
+    assert summary["observations"] == 1
+    assert summary["priced_observations"] == 1
+    assert summary["skipped_observations"] == 0
+    assert summary["quotes_generated"] >= summary["quotes_approved"] >= 1
     assert (output_dir / "orders.csv").exists()
     assert (output_dir / "fills.csv").exists()
     assert (output_dir / "summary.json").exists()

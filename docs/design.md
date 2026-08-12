@@ -116,6 +116,8 @@ For football specifically, replay is used differently from the BTC execution pat
 - evaluation focuses on no-trade logic, raw midpoint drift, directional capture metrics, and simple calibration summaries
 - the replay report explains state changes, markout definitions, and limitations in plain language
 
+Run summaries are also operational evidence rather than just a final PnL number. BTC replay and paper runs record observation counts, skip reasons, quote funnel counts, risk rejection categories, final open orders, and an explicit stop reason. The detailed CSV artifacts remain the source of truth for order, fill, inventory, and PnL inspection.
+
 The strategy sweep extends that replay path without pretending to be a live trading stack:
 
 - each strategy is just a named pricing/no-trade configuration

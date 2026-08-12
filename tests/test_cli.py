@@ -195,6 +195,16 @@ def test_cli_backtest_sample_flag_uses_bundled_replay(tmp_path, monkeypatch, cap
     assert payload["input"].endswith("data\\sample_replay.jsonl") or payload["input"].endswith("data/sample_replay.jsonl")
 
 
+def test_cli_reports_invalid_environment_config_as_structured_error(monkeypatch, capsys) -> None:
+    monkeypatch.setenv("PMFE_LIVE_ENABLED", "not-a-boolean")
+
+    assert cli.main(["demo", "--run-id", "invalid-config"]) == 2
+    error = json.loads(capsys.readouterr().err)
+
+    assert error["error"] == "ValueError"
+    assert "PMFE_LIVE_ENABLED must be boolean" in error["message"]
+
+
 def test_cli_scan_smoke(monkeypatch, tmp_path, capsys) -> None:
     config = _config(tmp_path)
     monkeypatch.setattr(cli, "load_config", lambda: config)

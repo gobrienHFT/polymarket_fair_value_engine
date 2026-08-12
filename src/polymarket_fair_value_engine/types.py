@@ -30,6 +30,26 @@ class OrderStatus(str, Enum):
     REJECTED = "REJECTED"
 
 
+def _require_text(value: str, field_name: str) -> None:
+    if not isinstance(value, str) or not value.strip():
+        raise ValueError(f"{field_name} must be non-empty")
+
+
+def _require_finite(value: float, field_name: str, *, minimum: float | None = None, maximum: float | None = None) -> None:
+    if isinstance(value, bool) or not isinstance(value, (int, float)) or not isfinite(float(value)):
+        raise ValueError(f"{field_name} must be finite")
+    numeric = float(value)
+    if minimum is not None and numeric < minimum:
+        raise ValueError(f"{field_name} must be >= {minimum}")
+    if maximum is not None and numeric > maximum:
+        raise ValueError(f"{field_name} must be <= {maximum}")
+
+
+def _require_timezone(value: datetime, field_name: str) -> None:
+    if value.tzinfo is None or value.utcoffset() is None:
+        raise ValueError(f"{field_name} must be timezone-aware")
+
+
 @dataclass(frozen=True)
 class BookLevel:
     price: float
@@ -95,6 +115,25 @@ class NormalizedMarket:
     last_no_price: float | None = None
     metadata: dict[str, Any] = field(default_factory=dict)
 
+    def __post_init__(self) -> None:
+        _require_text(self.market_id, "market_id")
+        _require_text(self.slug, "slug")
+        _require_text(self.question, "question")
+        _require_text(self.series, "series")
+        _require_text(self.yes_token_id, "yes_token_id")
+        _require_text(self.no_token_id, "no_token_id")
+        _require_timezone(self.end_ts, "end_ts")
+        if self.start_ts is not None:
+            _require_timezone(self.start_ts, "start_ts")
+            if self.start_ts > self.end_ts:
+                raise ValueError("start_ts must not be after end_ts")
+        _require_finite(self.tick_size, "tick_size", minimum=1e-12, maximum=1.0)
+        _require_finite(self.size_tick, "size_tick", minimum=1e-12)
+        if self.last_yes_price is not None:
+            _require_finite(self.last_yes_price, "last_yes_price", minimum=0.0, maximum=1.0)
+        if self.last_no_price is not None:
+            _require_finite(self.last_no_price, "last_no_price", minimum=0.0, maximum=1.0)
+
     def seconds_to_expiry(self, now: datetime) -> float:
         return max(0.0, (self.end_ts - now).total_seconds())
 
@@ -107,6 +146,11 @@ class MarketState:
     observed_at: datetime
     reference_price: float | None = None
     stale: bool = False
+
+    def __post_init__(self) -> None:
+        _require_timezone(self.observed_at, "observed_at")
+        if self.reference_price is not None:
+            _require_finite(self.reference_price, "reference_price", minimum=0.0)
 
     @property
     def yes_bid(self) -> float | None:
@@ -154,6 +198,16 @@ class FairValueEstimate:
     market_mid: float | None
     diagnostics: dict[str, Any] = field(default_factory=dict)
 
+    def __post_init__(self) -> None:
+        _require_text(self.market_id, "market_id")
+        _require_finite(self.p_yes, "p_yes", minimum=0.0, maximum=1.0)
+        _require_finite(self.p_no, "p_no", minimum=0.0, maximum=1.0)
+        if abs((self.p_yes + self.p_no) - 1.0) > 1e-6:
+            raise ValueError("p_yes and p_no must sum to 1")
+        _require_finite(self.uncertainty, "uncertainty", minimum=0.0)
+        if self.market_mid is not None:
+            _require_finite(self.market_mid, "market_mid", minimum=0.0, maximum=1.0)
+
 
 @dataclass(frozen=True)
 class QuoteIntent:
@@ -167,6 +221,17 @@ class QuoteIntent:
     reference_mid: float | None
     created_at: datetime
     reason: str
+
+    def __post_init__(self) -> None:
+        _require_text(self.market_id, "market_id")
+        _require_text(self.token_id, "token_id")
+        _require_text(self.reason, "reason")
+        _require_finite(self.price, "price", minimum=0.0, maximum=1.0)
+        _require_finite(self.size, "size", minimum=1e-12)
+        _require_finite(self.fair_value, "fair_value", minimum=0.0, maximum=1.0)
+        if self.reference_mid is not None:
+            _require_finite(self.reference_mid, "reference_mid", minimum=0.0, maximum=1.0)
+        _require_timezone(self.created_at, "created_at")
 
 
 @dataclass(frozen=True)

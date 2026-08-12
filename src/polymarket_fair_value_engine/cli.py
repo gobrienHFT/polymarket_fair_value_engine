@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import json
 import logging
+import sys
 import time
 from dataclasses import replace
 from datetime import datetime, timezone
@@ -10,7 +11,7 @@ from pathlib import Path
 from typing import Any
 
 from polymarket_fair_value_engine.analytics.pnl import mark_yes_price
-from polymarket_fair_value_engine.analytics.reports import create_run_directory, load_summary, run_artifacts, write_run_report
+from polymarket_fair_value_engine.analytics.reports import RunDecisionStats, create_run_directory, load_summary, run_artifacts, write_run_report
 from polymarket_fair_value_engine.backtest.replay import load_replay_file
 from polymarket_fair_value_engine.backtest.simulator import ReplaySimulator
 from polymarket_fair_value_engine.config import EngineConfig, load_config
@@ -162,19 +163,31 @@ def _paper_quote_command(config: EngineConfig, series: str, iterations: int, run
     latest_marks: dict[str, float] = {}
     market_series_map: dict[str, str] = {}
     inventory_rows: list[dict[str, Any]] = []
+    run_stats = RunDecisionStats()
+    stop_reason = "completed"
 
     for iteration in range(iterations):
         if kill_switch_engaged():
             LOGGER.warning("Kill switch engaged; stopping paper quote loop")
+            stop_reason = "kill_switch"
             break
 
         for state in _discover_states(config, series, discovery, clob_client):
+            run_stats.observe()
             market_series_map[state.market.market_id] = state.market.series
             stale = is_state_stale(state, stale_data_seconds=config.risk.stale_data_seconds, now=state.observed_at)
             current_state = replace(state, stale=stale)
             current_orders = execution_engine.open_orders_for_market(current_state.market.market_id)
 
-            if stale or in_no_trade_window(current_state.market, current_state.observed_at, config.market.no_trade_window_seconds) or not has_sane_binary_books(current_state):
+            skip_reason: str | None = None
+            if stale:
+                skip_reason = "stale_data"
+            elif in_no_trade_window(current_state.market, current_state.observed_at, config.market.no_trade_window_seconds):
+                skip_reason = "no_trade_window"
+            elif not has_sane_binary_books(current_state):
+                skip_reason = "unsane_binary_book"
+            if skip_reason is not None:
+                run_stats.record_skip(skip_reason)
                 execution_engine.apply_actions(
                     order_manager.reconcile((), current_orders, current_state.observed_at),
                     current_state.observed_at,
@@ -195,6 +208,11 @@ def _paper_quote_command(config: EngineConfig, series: str, iterations: int, run
                 mark_yes=mark_yes_price(current_state, fair_value),
                 market_series_map=market_series_map,
                 open_orders=execution_engine.open_orders,
+            )
+            run_stats.record_priced(
+                generated=len(decision.quotes),
+                approved=len(filtered.approved_quotes),
+                rejected_reasons=filtered.rejected_reasons,
             )
             safe_decision = StrategyDecision(
                 market_id=decision.market_id,
@@ -242,8 +260,11 @@ def _paper_quote_command(config: EngineConfig, series: str, iterations: int, run
         "run_id": run_id,
         "mode": "paper",
         "series": series,
+        **run_stats.as_dict(),
+        "stop_reason": stop_reason,
         "orders": len(execution_engine.order_history),
         "fills": len(execution_engine.fill_history),
+        "open_orders_final": len(execution_engine.open_orders),
         "final_total_pnl": execution_engine.pnl_history[-1].total_pnl if execution_engine.pnl_history else 0.0,
         "final_cash": execution_engine.inventory.cash,
     }
@@ -484,7 +505,7 @@ def build_parser() -> argparse.ArgumentParser:
     return parser
 
 
-def main(argv: list[str] | None = None) -> int:
+def _dispatch(argv: list[str] | None = None) -> int:
     parser = build_parser()
     args = parser.parse_args(argv)
     config = load_config()
@@ -525,3 +546,19 @@ def main(argv: list[str] | None = None) -> int:
         return _report_command(config, args.run_id)
     parser.error(f"Unknown command: {args.command}")
     return 2
+
+
+def main(argv: list[str] | None = None) -> int:
+    try:
+        return _dispatch(argv)
+    except (FileNotFoundError, OSError, RuntimeError, ValueError) as exc:
+        print(
+            json.dumps(
+                {
+                    "error": type(exc).__name__,
+                    "message": str(exc),
+                }
+            ),
+            file=sys.stderr,
+        )
+        return 2

@@ -26,11 +26,12 @@ def _parse_iso(value: str) -> datetime:
 def normalize_gamma_market(raw: dict[str, Any], tick_size: float = 0.01, size_tick: float = 0.1) -> NormalizedMarket | None:
     slug = str(raw.get("slug", "")).strip()
     question = str(raw.get("question", "")).strip()
+    market_id = str(raw.get("conditionId", raw.get("condition_id", raw.get("id", slug)))).strip()
     outcomes = [str(item).strip().lower() for item in _to_list(raw.get("outcomes"))]
     token_ids = [str(item) for item in _to_list(raw.get("clobTokenIds"))]
     prices = [float(item) for item in _to_list(raw.get("outcomePrices"))]
 
-    if len(outcomes) < 2 or len(token_ids) < 2:
+    if not market_id or not slug or not question or len(outcomes) < 2 or len(token_ids) < 2:
         return None
     if "up" not in outcomes or "down" not in outcomes:
         return None
@@ -46,7 +47,7 @@ def normalize_gamma_market(raw: dict[str, Any], tick_size: float = 0.01, size_ti
     series = slug.rsplit("-", 1)[0] if "-" in slug else slug
 
     return NormalizedMarket(
-        market_id=str(raw.get("conditionId", raw.get("condition_id", raw.get("id", slug)))),
+        market_id=market_id,
         slug=slug,
         question=question,
         series=series,
@@ -61,4 +62,3 @@ def normalize_gamma_market(raw: dict[str, Any], tick_size: float = 0.01, size_ti
         size_tick=size_tick,
         metadata={"outcomes": outcomes},
     )
-

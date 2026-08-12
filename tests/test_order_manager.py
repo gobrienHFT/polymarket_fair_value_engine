@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from datetime import datetime, timedelta, timezone
 
+import pytest
+
 from polymarket_fair_value_engine.config import StrategyConfig
 from polymarket_fair_value_engine.execution.order_manager import OrderManager
 from polymarket_fair_value_engine.types import ManagedOrder, OrderSide, OrderStatus, QuoteIntent, TokenSide
@@ -106,3 +108,61 @@ def test_order_manager_keeps_quotes_inside_reprice_threshold() -> None:
 
     assert manager.reconcile((desired_bid,), [existing_bid], now) == []
 
+
+def test_order_manager_cancels_duplicate_open_order_reasons() -> None:
+    now = datetime.now(timezone.utc)
+    manager = OrderManager(_strategy_config())
+    first = ManagedOrder(
+        order_id="o1",
+        market_id="m1",
+        token_id="yes-1",
+        token_side=TokenSide.YES,
+        side=OrderSide.BUY,
+        price=0.45,
+        size=10.0,
+        remaining_size=10.0,
+        status=OrderStatus.OPEN,
+        created_at=now,
+        updated_at=now,
+        reason="same_reason",
+    )
+    duplicate = ManagedOrder(
+        order_id="o2",
+        market_id="m1",
+        token_id="yes-1",
+        token_side=TokenSide.YES,
+        side=OrderSide.BUY,
+        price=0.46,
+        size=10.0,
+        remaining_size=10.0,
+        status=OrderStatus.OPEN,
+        created_at=now,
+        updated_at=now,
+        reason="same_reason",
+    )
+
+    actions = manager.reconcile((), [first, duplicate], now)
+
+    assert len(actions) == 2
+    assert {action.existing_order_id for action in actions} == {"o1", "o2"}
+    assert any(action.reason == "same_reason:duplicate_open_order" for action in actions)
+
+
+def test_order_manager_rejects_duplicate_desired_quote_reasons() -> None:
+    now = datetime.now(timezone.utc)
+    manager = OrderManager(_strategy_config())
+    quote = QuoteIntent(
+        market_id="m1",
+        token_id="yes-1",
+        token_side=TokenSide.YES,
+        side=OrderSide.BUY,
+        price=0.45,
+        size=10.0,
+        fair_value=0.55,
+        reference_mid=0.50,
+        created_at=now,
+        reason="duplicate",
+    )
+
+    with pytest.raises(ValueError, match="Duplicate desired quote reason"):
+        manager.reconcile((quote, quote), [], now)

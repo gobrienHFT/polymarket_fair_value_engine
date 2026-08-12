@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import json
 import re
+from collections import Counter
+from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -31,6 +33,52 @@ ARTIFACT_FILENAMES = {
     "best_strategy/football_report.md": "best_strategy_report_md",
 }
 RUN_ID_PATTERN = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$")
+
+
+@dataclass
+class RunDecisionStats:
+    """Reason-coded counters shared by replay and paper run summaries."""
+
+    observations: int = 0
+    priced_observations: int = 0
+    skipped_observations: int = 0
+    quoteable_observations: int = 0
+    quotes_generated: int = 0
+    quotes_approved: int = 0
+    quotes_rejected: int = 0
+    skip_reasons: Counter[str] = field(default_factory=Counter)
+    risk_rejection_reasons: Counter[str] = field(default_factory=Counter)
+
+    def observe(self) -> None:
+        self.observations += 1
+
+    def record_skip(self, reason: str) -> None:
+        self.skipped_observations += 1
+        self.skip_reasons[reason] += 1
+
+    def record_priced(self, generated: int, approved: int, rejected_reasons: tuple[str, ...]) -> None:
+        self.priced_observations += 1
+        if approved > 0:
+            self.quoteable_observations += 1
+        self.quotes_generated += generated
+        self.quotes_approved += approved
+        self.quotes_rejected += len(rejected_reasons)
+        for reason in rejected_reasons:
+            category = reason.split(":", 1)[-1]
+            self.risk_rejection_reasons[category] += 1
+
+    def as_dict(self) -> dict[str, object]:
+        return {
+            "observations": self.observations,
+            "priced_observations": self.priced_observations,
+            "skipped_observations": self.skipped_observations,
+            "quoteable_observations": self.quoteable_observations,
+            "skip_reasons": dict(sorted(self.skip_reasons.items())),
+            "quotes_generated": self.quotes_generated,
+            "quotes_approved": self.quotes_approved,
+            "quotes_rejected": self.quotes_rejected,
+            "risk_rejection_reasons": dict(sorted(self.risk_rejection_reasons.items())),
+        }
 
 
 def validate_run_id(run_id: str) -> str:

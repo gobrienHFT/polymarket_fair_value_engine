@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import math
 import os
 from dataclasses import dataclass
 from pathlib import Path
@@ -16,16 +17,56 @@ def _pick(*names: str, default: str = "") -> str:
 
 
 def _as_int(*names: str, default: int) -> int:
-    return int(_pick(*names, default=str(default)))
+    raw = _pick(*names, default=str(default))
+    try:
+        return int(raw)
+    except (TypeError, ValueError) as exc:
+        raise ValueError(f"{names[0]} must be an integer; received {raw!r}") from exc
 
 
 def _as_float(*names: str, default: float) -> float:
-    return float(_pick(*names, default=str(default)))
+    raw = _pick(*names, default=str(default))
+    try:
+        value = float(raw)
+    except (TypeError, ValueError) as exc:
+        raise ValueError(f"{names[0]} must be numeric; received {raw!r}") from exc
+    if not math.isfinite(value):
+        raise ValueError(f"{names[0]} must be finite; received {raw!r}")
+    return value
 
 
 def _as_bool(*names: str, default: bool) -> bool:
     raw = _pick(*names, default="1" if default else "0").strip().lower()
-    return raw in {"1", "true", "yes", "on"}
+    if raw in {"1", "true", "yes", "on"}:
+        return True
+    if raw in {"0", "false", "no", "off"}:
+        return False
+    raise ValueError(f"{names[0]} must be boolean (1/0, true/false, yes/no, or on/off); received {raw!r}")
+
+
+def _require_text(value: str, field_name: str) -> None:
+    if not isinstance(value, str) or not value.strip():
+        raise ValueError(f"{field_name} must be non-empty")
+
+
+def _require_int(value: int, field_name: str, minimum: int = 0) -> None:
+    if isinstance(value, bool) or not isinstance(value, int) or value < minimum:
+        raise ValueError(f"{field_name} must be an integer >= {minimum}")
+
+
+def _require_number(
+    value: float,
+    field_name: str,
+    *,
+    minimum: float = 0.0,
+    maximum: float | None = None,
+) -> None:
+    if isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(float(value)):
+        raise ValueError(f"{field_name} must be a finite number")
+    numeric = float(value)
+    if numeric < minimum or (maximum is not None and numeric > maximum):
+        upper = f" and <= {maximum}" if maximum is not None else ""
+        raise ValueError(f"{field_name} must be >= {minimum}{upper}")
 
 
 @dataclass(frozen=True)
@@ -34,6 +75,11 @@ class EndpointConfig:
     clob_url: str
     polygon_rpc: str
     chain_id: int
+
+    def __post_init__(self) -> None:
+        _require_text(self.gamma_url, "gamma_url")
+        _require_text(self.clob_url, "clob_url")
+        _require_int(self.chain_id, "chain_id", minimum=1)
 
 
 @dataclass(frozen=True)
@@ -46,6 +92,9 @@ class AuthConfig:
     api_passphrase: str
     live_enabled: bool
 
+    def __post_init__(self) -> None:
+        _require_int(self.signature_type, "signature_type", minimum=0)
+
 
 @dataclass(frozen=True)
 class MarketConfig:
@@ -54,6 +103,13 @@ class MarketConfig:
     max_minutes_to_expiry: int
     no_trade_window_seconds: int
     market_scan_pages: int
+
+    def __post_init__(self) -> None:
+        _require_text(self.default_series, "default_series")
+        _require_int(self.target_probe_intervals, "target_probe_intervals")
+        _require_int(self.max_minutes_to_expiry, "max_minutes_to_expiry", minimum=1)
+        _require_int(self.no_trade_window_seconds, "no_trade_window_seconds")
+        _require_int(self.market_scan_pages, "market_scan_pages", minimum=1)
 
 
 @dataclass(frozen=True)
@@ -64,6 +120,14 @@ class ModelConfig:
     vol_floor: float
     uncertainty_multiplier: float
     market_blend_weight: float
+
+    def __post_init__(self) -> None:
+        _require_text(self.price_source, "price_source")
+        _require_int(self.vol_lookback_minutes, "vol_lookback_minutes", minimum=1)
+        _require_number(self.base_annual_vol, "base_annual_vol", minimum=1e-12)
+        _require_number(self.vol_floor, "vol_floor", minimum=1e-12)
+        _require_number(self.uncertainty_multiplier, "uncertainty_multiplier")
+        _require_number(self.market_blend_weight, "market_blend_weight", maximum=1.0)
 
 
 @dataclass(frozen=True)
@@ -79,6 +143,18 @@ class StrategyConfig:
     reprice_threshold: float
     reprice_cooldown_seconds: int
 
+    def __post_init__(self) -> None:
+        _require_int(self.poll_seconds, "poll_seconds", minimum=1)
+        _require_number(self.quote_half_spread, "quote_half_spread", minimum=1e-12, maximum=1.0)
+        _require_number(self.min_edge, "min_edge", maximum=1.0)
+        _require_number(self.inventory_skew_per_contract, "inventory_skew_per_contract")
+        _require_number(self.quote_notional, "quote_notional", minimum=1e-12)
+        _require_number(self.min_order_usdc, "min_order_usdc", minimum=1e-12)
+        _require_number(self.price_tick, "price_tick", minimum=1e-12, maximum=1.0)
+        _require_number(self.size_tick, "size_tick", minimum=1e-12)
+        _require_number(self.reprice_threshold, "reprice_threshold", maximum=1.0)
+        _require_int(self.reprice_cooldown_seconds, "reprice_cooldown_seconds")
+
 
 @dataclass(frozen=True)
 class RiskConfig:
@@ -89,6 +165,14 @@ class RiskConfig:
     max_open_orders: int
     stale_data_seconds: int
 
+    def __post_init__(self) -> None:
+        _require_number(self.max_notional_per_market, "max_notional_per_market", minimum=1e-12)
+        _require_number(self.max_gross_exposure, "max_gross_exposure", minimum=1e-12)
+        _require_number(self.max_net_exposure_per_series, "max_net_exposure_per_series", minimum=1e-12)
+        _require_number(self.max_order_size, "max_order_size", minimum=1e-12)
+        _require_int(self.max_open_orders, "max_open_orders", minimum=1)
+        _require_int(self.stale_data_seconds, "stale_data_seconds")
+
 
 @dataclass(frozen=True)
 class PaperConfig:
@@ -96,6 +180,11 @@ class PaperConfig:
     touch_fill_only: bool
     replay_fill_slack: float
     mark_source: str
+
+    def __post_init__(self) -> None:
+        _require_number(self.starting_cash, "starting_cash")
+        _require_number(self.replay_fill_slack, "replay_fill_slack", maximum=1.0)
+        _require_text(self.mark_source, "mark_source")
 
 
 @dataclass(frozen=True)
