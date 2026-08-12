@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from enum import Enum
+from math import isfinite
 from typing import Any
 
 
@@ -34,6 +35,12 @@ class BookLevel:
     price: float
     size: float
 
+    def __post_init__(self) -> None:
+        if not isfinite(self.price) or not 0.0 <= self.price <= 1.0:
+            raise ValueError("book price must be finite and within [0, 1]")
+        if not isfinite(self.size) or self.size <= 0.0:
+            raise ValueError("book size must be finite and greater than zero")
+
 
 @dataclass(frozen=True)
 class TokenOrderBook:
@@ -42,6 +49,14 @@ class TokenOrderBook:
     asks: tuple[BookLevel, ...] = ()
     timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
     source: str = "clob_rest"
+
+    def __post_init__(self) -> None:
+        if not self.token_id.strip():
+            raise ValueError("token_id must be non-empty")
+        if self.timestamp.tzinfo is None or self.timestamp.utcoffset() is None:
+            raise ValueError("order-book timestamp must be timezone-aware")
+        object.__setattr__(self, "bids", tuple(sorted(self.bids, key=lambda level: level.price, reverse=True)))
+        object.__setattr__(self, "asks", tuple(sorted(self.asks, key=lambda level: level.price)))
 
     @property
     def best_bid(self) -> BookLevel | None:
@@ -231,4 +246,3 @@ class PnLSnapshot:
     total_pnl: float
     gross_exposure: float
     net_exposure: float
-

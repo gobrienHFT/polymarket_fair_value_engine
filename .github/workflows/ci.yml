@@ -16,3 +16,9 @@ jobs:
         run: python -m pip install -e .[dev]
       - name: Test
         run: pytest -q
+      - name: Verify committed artifacts
+        run: python scripts/verify_committed_artifacts.py
+      - name: Verify sample-output reproducibility
+        run: |
+          python scripts/refresh_sample_outputs.py
+          git diff --exit-code -- docs/sample_outputs

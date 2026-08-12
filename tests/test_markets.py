@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from datetime import datetime, timedelta, timezone
 
+from polymarket_fair_value_engine.data.clob_rest import _parse_levels
 from polymarket_fair_value_engine.markets.discovery import MarketDiscoveryService
 from polymarket_fair_value_engine.markets.normalize import normalize_gamma_market
 
@@ -58,3 +59,17 @@ def test_market_discovery_filters_to_active_expiry_window() -> None:
 
     assert len(markets) == 1
     assert markets[0].slug == target_slug
+
+
+def test_clob_level_parser_skips_malformed_or_non_binary_levels() -> None:
+    levels = _parse_levels(
+        [
+            {"price": "not-a-number", "size": 10},
+            [0.40, 2.0],
+            [1.20, 5.0],
+            ["nan", 5.0],
+            {"price": 0.55, "quantity": 3.0},
+        ]
+    )
+
+    assert [(level.price, level.size) for level in levels] == [(0.40, 2.0), (0.55, 3.0)]

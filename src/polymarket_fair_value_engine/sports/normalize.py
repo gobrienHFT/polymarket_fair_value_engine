@@ -4,6 +4,7 @@ import json
 from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
+from math import isfinite
 from pathlib import Path
 from typing import Any
 
@@ -42,6 +43,18 @@ class FootballFixture:
     home_team: str
     away_team: str
 
+    def __post_init__(self) -> None:
+        if not self.event_id.strip():
+            raise ValueError("event_id must be non-empty")
+        if not self.league.strip():
+            raise ValueError("league must be non-empty")
+        if not self.home_team.strip() or not self.away_team.strip():
+            raise ValueError("home_team and away_team must be non-empty")
+        if self.home_team.strip() == self.away_team.strip():
+            raise ValueError("home_team and away_team must differ")
+        if self.kickoff_utc.tzinfo is None or self.kickoff_utc.utcoffset() is None:
+            raise ValueError("kickoff_utc must be timezone-aware")
+
 
 @dataclass(frozen=True)
 class BookmakerOneXTwoOddsSnapshot:
@@ -50,6 +63,21 @@ class BookmakerOneXTwoOddsSnapshot:
     draw_decimal: float
     away_decimal: float
     observed_at_utc: datetime | None = None
+
+    def __post_init__(self) -> None:
+        if not self.source_name.strip():
+            raise ValueError("source_name must be non-empty")
+        for name, value in (
+            ("home_decimal", self.home_decimal),
+            ("draw_decimal", self.draw_decimal),
+            ("away_decimal", self.away_decimal),
+        ):
+            if not isfinite(value) or value <= 1.0:
+                raise ValueError(f"{name} must be finite and greater than 1.0")
+        if self.observed_at_utc is not None and (
+            self.observed_at_utc.tzinfo is None or self.observed_at_utc.utcoffset() is None
+        ):
+            raise ValueError("observed_at_utc must be timezone-aware")
 
 
 @dataclass(frozen=True)
@@ -64,9 +92,9 @@ class PolymarketBinaryMarketDefinition:
     best_ask_yes: float | None
 
     def __post_init__(self) -> None:
-        if self.best_bid_yes is not None and not 0.0 <= self.best_bid_yes <= 1.0:
+        if self.best_bid_yes is not None and (not isfinite(self.best_bid_yes) or not 0.0 <= self.best_bid_yes <= 1.0):
             raise ValueError("best_bid_yes must be within [0, 1]")
-        if self.best_ask_yes is not None and not 0.0 <= self.best_ask_yes <= 1.0:
+        if self.best_ask_yes is not None and (not isfinite(self.best_ask_yes) or not 0.0 <= self.best_ask_yes <= 1.0):
             raise ValueError("best_ask_yes must be within [0, 1]")
         if self.best_bid_yes is not None and self.best_ask_yes is not None and self.best_bid_yes > self.best_ask_yes:
             raise ValueError("best_bid_yes cannot exceed best_ask_yes")
@@ -120,6 +148,14 @@ class FootballReplayFrame:
     match_state: FootballMatchState
     bookmaker_snapshots: tuple[BookmakerOneXTwoOddsSnapshot, ...]
     markets: tuple[PolymarketBinaryMarketDefinition, ...]
+
+    def __post_init__(self) -> None:
+        if not self.frame_id.strip():
+            raise ValueError("frame_id must be non-empty")
+        if self.timestamp_utc.tzinfo is None or self.timestamp_utc.utcoffset() is None:
+            raise ValueError("timestamp_utc must be timezone-aware")
+        if any(market.event_id != self.fixture.event_id for market in self.markets):
+            raise ValueError("all replay markets must belong to the frame fixture")
 
 
 @dataclass(frozen=True)
@@ -263,19 +299,31 @@ class FootballCalibrationRow:
 
 
 def _parse_datetime(value: str) -> datetime:
-    return datetime.fromisoformat(value.replace("Z", "+00:00"))
+    parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
+    if parsed.tzinfo is None or parsed.utcoffset() is None:
+        raise ValueError("datetime must include a timezone offset")
+    return parsed
 
 
 def _load_payloads(path: Path) -> list[dict[str, Any]]:
     if path.suffix.lower() == ".jsonl":
         payloads: list[dict[str, Any]] = []
         with path.open("r", encoding="utf-8") as handle:
-            for line in handle:
+            for line_number, line in enumerate(handle, start=1):
                 stripped = line.strip()
                 if stripped:
-                    payloads.append(json.loads(stripped))
+                    try:
+                        payload = json.loads(stripped)
+                    except json.JSONDecodeError as exc:
+                        raise ValueError(f"Invalid JSON on line {line_number} of {path}: {exc.msg}") from exc
+                    if not isinstance(payload, dict):
+                        raise ValueError(f"Replay row on line {line_number} of {path} must be a JSON object")
+                    payloads.append(payload)
         return payloads
-    return json.loads(path.read_text(encoding="utf-8"))
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    if not isinstance(payload, list) or not all(isinstance(item, dict) for item in payload):
+        raise ValueError(f"Football sample file {path} must contain a JSON array of objects")
+    return payload
 
 
 def _parse_fixture(payload: dict[str, Any]) -> FootballFixture:
@@ -338,14 +386,20 @@ def _parse_match_state(payload: dict[str, Any]) -> FootballMatchState:
 def load_football_sample(path: str | Path) -> tuple[NormalizedFootballEvent, ...]:
     file_path = Path(path)
     events: list[NormalizedFootballEvent] = []
+    seen_event_ids: set[str] = set()
     for payload in _load_payloads(file_path):
         fixture = _parse_fixture(payload["fixture"])
+        if fixture.event_id in seen_event_ids:
+            raise ValueError(f"Duplicate football fixture event_id: {fixture.event_id}")
         bookmaker_snapshots = tuple(_parse_bookmaker_snapshot(item) for item in payload.get("bookmakers", []))
         if not bookmaker_snapshots:
             raise ValueError(f"Fixture {fixture.event_id} requires at least one bookmaker snapshot")
         markets = tuple(_parse_market(fixture.event_id, item) for item in payload.get("markets", []))
         if not markets:
             raise ValueError(f"Fixture {fixture.event_id} requires at least one market")
+        market_ids = [market.market_id for market in markets]
+        if len(market_ids) != len(set(market_ids)):
+            raise ValueError(f"Fixture {fixture.event_id} contains duplicate market_id values")
         events.append(
             NormalizedFootballEvent(
                 fixture=fixture,
@@ -353,15 +407,31 @@ def load_football_sample(path: str | Path) -> tuple[NormalizedFootballEvent, ...
                 markets=markets,
             )
         )
+        seen_event_ids.add(fixture.event_id)
     return tuple(events)
 
 
 def load_football_replay_frames(path: str | Path) -> tuple[FootballReplayFrame, ...]:
     file_path = Path(path)
     frames: list[FootballReplayFrame] = []
+    seen_frame_ids: set[str] = set()
+    previous_timestamp_by_event: dict[str, datetime] = {}
+    fixture_by_event: dict[str, FootballFixture] = {}
     for payload in _load_payloads(file_path):
         fixture = _parse_fixture(payload["fixture"])
         timestamp_utc = _parse_datetime(str(payload["timestamp_utc"]))
+        frame_id = str(payload.get("frame_id", f"{fixture.event_id}:{timestamp_utc.isoformat()}"))
+        if frame_id in seen_frame_ids:
+            raise ValueError(f"Duplicate football replay frame_id: {frame_id}")
+        previous_timestamp = previous_timestamp_by_event.get(fixture.event_id)
+        if previous_timestamp is not None and timestamp_utc <= previous_timestamp:
+            raise ValueError(
+                f"Replay timestamps for {fixture.event_id} must be strictly increasing; "
+                f"got {timestamp_utc.isoformat()} after {previous_timestamp.isoformat()}"
+            )
+        previous_fixture = fixture_by_event.get(fixture.event_id)
+        if previous_fixture is not None and fixture != previous_fixture:
+            raise ValueError(f"Fixture metadata changed within replay event {fixture.event_id}")
         match_state = _parse_match_state(payload["match_state"])
         bookmaker_snapshots = tuple(_parse_bookmaker_snapshot(item) for item in payload.get("bookmakers", []))
         if not bookmaker_snapshots:
@@ -369,7 +439,9 @@ def load_football_replay_frames(path: str | Path) -> tuple[FootballReplayFrame, 
         markets = tuple(_parse_market(fixture.event_id, item) for item in payload.get("markets", []))
         if not markets:
             raise ValueError(f"Replay frame for {fixture.event_id} at {timestamp_utc.isoformat()} requires at least one market")
-        frame_id = str(payload.get("frame_id", f"{fixture.event_id}:{timestamp_utc.isoformat()}"))
+        market_ids = [market.market_id for market in markets]
+        if len(market_ids) != len(set(market_ids)):
+            raise ValueError(f"Replay frame {frame_id} contains duplicate market_id values")
         frames.append(
             FootballReplayFrame(
                 frame_id=frame_id,
@@ -380,4 +452,9 @@ def load_football_replay_frames(path: str | Path) -> tuple[FootballReplayFrame, 
                 markets=markets,
             )
         )
+        seen_frame_ids.add(frame_id)
+        previous_timestamp_by_event[fixture.event_id] = timestamp_utc
+        fixture_by_event[fixture.event_id] = fixture
+    if not frames:
+        raise ValueError(f"Football replay file {file_path} contains no frames")
     return tuple(frames)

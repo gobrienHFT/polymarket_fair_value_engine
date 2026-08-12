@@ -104,6 +104,8 @@ _CONFIG_FIELD_NAMES = _INT_CONFIG_FIELDS | _FLOAT_CONFIG_FIELDS
 
 
 def _validate_probability_like(value: float, field_name: str, *, allow_zero: bool) -> None:
+    if isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(float(value)):
+        raise ValueError(f"{field_name} must be a finite number")
     lower_bound = 0.0 if allow_zero else 0.0
     if value < lower_bound or (not allow_zero and value == 0.0) or value > 1.0:
         comparator = "within [0, 1]" if allow_zero else "within (0, 1]"
@@ -111,6 +113,8 @@ def _validate_probability_like(value: float, field_name: str, *, allow_zero: boo
 
 
 def _validate_count(value: int, field_name: str, minimum: int) -> None:
+    if isinstance(value, bool) or not isinstance(value, int):
+        raise ValueError(f"{field_name} must be an integer")
     if value < minimum:
         raise ValueError(f"{field_name} must be >= {minimum}")
 
@@ -205,6 +209,8 @@ def build_bookmaker_consensus(
     timestamp_utc: datetime | None = None,
     config: FootballPricingConfig = DEFAULT_FOOTBALL_PRICING_CONFIG,
 ) -> ConsensusFootballProbabilities:
+    if not bookmaker_snapshots:
+        raise ValueError("At least one bookmaker snapshot is required")
     fair_probabilities: list[OneXTwoProbabilities] = []
     overrounds: list[float] = []
     source_names: list[str] = []

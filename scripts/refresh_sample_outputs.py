@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import shutil
+import subprocess
 import sys
 from pathlib import Path
 from tempfile import TemporaryDirectory
@@ -201,11 +202,20 @@ def _refresh_football_sweep(temp_root: Path) -> dict[str, str]:
 def refresh_sample_outputs() -> dict[str, dict[str, str]]:
     with TemporaryDirectory(prefix="pmfe_sample_outputs_") as temp_dir:
         temp_root = Path(temp_dir)
-        return {
+        refreshed = {
             "football_demo_reference": _refresh_football_demo(temp_root),
             "football_replay_reference": _refresh_football_replay(temp_root),
             "football_sweep_reference": _refresh_football_sweep(temp_root),
         }
+    verifier = REPO_ROOT / "scripts" / "verify_committed_artifacts.py"
+    result = subprocess.run(
+        [sys.executable, str(verifier)],
+        cwd=REPO_ROOT,
+        check=False,
+    )
+    if result.returncode != 0:
+        raise RuntimeError("Committed football sample-output verification failed after refresh")
+    return refreshed
 
 
 def main() -> int:

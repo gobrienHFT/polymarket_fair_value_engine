@@ -3,6 +3,8 @@ from __future__ import annotations
 import json
 from datetime import datetime, timedelta, timezone
 
+import pytest
+
 from polymarket_fair_value_engine.backtest.replay import load_replay_file
 from polymarket_fair_value_engine.backtest.simulator import ReplaySimulator
 from polymarket_fair_value_engine.config import ModelConfig, RiskConfig, StrategyConfig
@@ -129,3 +131,19 @@ def test_replay_simulator_generates_outputs(tmp_path) -> None:
     assert (output_dir / "orders.csv").exists()
     assert (output_dir / "fills.csv").exists()
     assert (output_dir / "summary.json").exists()
+
+
+def test_load_replay_file_reports_malformed_json_with_line_number(tmp_path) -> None:
+    replay_path = tmp_path / "malformed.jsonl"
+    replay_path.write_text("not-json\n", encoding="utf-8")
+
+    with pytest.raises(ValueError, match="line 1"):
+        load_replay_file(replay_path)
+
+
+def test_load_replay_file_rejects_empty_input(tmp_path) -> None:
+    replay_path = tmp_path / "empty.jsonl"
+    replay_path.write_text("\n", encoding="utf-8")
+
+    with pytest.raises(ValueError, match="contains no market states"):
+        load_replay_file(replay_path)

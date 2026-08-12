@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from datetime import datetime, timezone
+from math import isfinite
 from typing import Any
 
 import requests
@@ -13,15 +14,18 @@ def _parse_levels(raw_levels: Any) -> tuple[BookLevel, ...]:
     if not isinstance(raw_levels, list):
         return tuple(levels)
     for entry in raw_levels:
-        if isinstance(entry, dict):
-            price = float(entry.get("price", 0.0))
-            size = float(entry.get("size", entry.get("quantity", 0.0)))
-        elif isinstance(entry, list) and len(entry) >= 2:
-            price = float(entry[0])
-            size = float(entry[1])
-        else:
+        try:
+            if isinstance(entry, dict):
+                price = float(entry.get("price", 0.0))
+                size = float(entry.get("size", entry.get("quantity", 0.0)))
+            elif isinstance(entry, list) and len(entry) >= 2:
+                price = float(entry[0])
+                size = float(entry[1])
+            else:
+                continue
+        except (TypeError, ValueError, OverflowError):
             continue
-        if price > 0.0 and size > 0.0:
+        if isfinite(price) and isfinite(size) and 0.0 < price <= 1.0 and size > 0.0:
             levels.append(BookLevel(price=price, size=size))
     return tuple(levels)
 
@@ -42,6 +46,8 @@ class ClobRestClient:
         response.raise_for_status()
         payload = response.json()
         data = payload.get("book", payload) if isinstance(payload, dict) else {}
+        if not isinstance(data, dict):
+            raise ValueError("CLOB order-book response must contain an object payload")
         bids = _parse_levels(data.get("bids", []))
         asks = _parse_levels(data.get("asks", []))
         return TokenOrderBook(
@@ -51,4 +57,3 @@ class ClobRestClient:
             timestamp=datetime.now(timezone.utc),
             source="clob_rest",
         )
-

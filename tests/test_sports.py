@@ -9,6 +9,7 @@ from polymarket_fair_value_engine import cli
 from polymarket_fair_value_engine.sports.demo import price_football_markets
 from polymarket_fair_value_engine.sports.normalize import load_football_sample
 from polymarket_fair_value_engine.sports.odds import FootballBinaryMarketType, OneXTwoProbabilities, binary_yes_probability, decimal_odds_to_implied_probabilities, overround, remove_overround_proportionally
+from polymarket_fair_value_engine.sports.pricing import FootballPricingConfig, build_bookmaker_consensus
 
 
 def test_remove_overround_proportionally_normalizes_one_x_two_market() -> None:
@@ -32,6 +33,19 @@ def test_binary_yes_probability_maps_one_x_two_probs_to_supported_market_types()
     assert binary_yes_probability(fair, FootballBinaryMarketType.HOME_OR_DRAW) == 0.75
     assert binary_yes_probability(fair, FootballBinaryMarketType.AWAY_OR_DRAW) == 0.5
     assert binary_yes_probability(fair, FootballBinaryMarketType.EITHER_TEAM_WINS) == 0.75
+
+
+def test_pricing_boundaries_reject_non_finite_config_and_empty_consensus() -> None:
+    with pytest.raises(ValueError, match="finite number"):
+        FootballPricingConfig(quote_tick=float("nan"))
+
+    with pytest.raises(ValueError, match="At least one bookmaker snapshot"):
+        build_bookmaker_consensus(())
+
+
+def test_one_x_two_probabilities_reject_values_outside_unit_interval() -> None:
+    with pytest.raises(ValueError, match=r"within \[0, 1\]"):
+        OneXTwoProbabilities(home=1.01, draw=0.0, away=0.0)
 
 
 def test_load_football_sample_normalizes_fixture_bookmakers_and_markets() -> None:

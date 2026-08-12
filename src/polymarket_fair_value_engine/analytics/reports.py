@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import re
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -29,11 +30,23 @@ ARTIFACT_FILENAMES = {
     "best_strategy/summary.json": "best_strategy_summary_json",
     "best_strategy/football_report.md": "best_strategy_report_md",
 }
+RUN_ID_PATTERN = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$")
+
+
+def validate_run_id(run_id: str) -> str:
+    if run_id == "latest":
+        raise ValueError("run_id 'latest' is reserved for report lookup")
+    if not RUN_ID_PATTERN.fullmatch(run_id):
+        raise ValueError("run_id must use only letters, numbers, '.', '_' and '-' and be at most 128 characters")
+    return run_id
 
 
 def create_run_directory(root: Path, run_id: str | None = None) -> tuple[str, Path]:
     run_id = run_id or datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
-    path = root / run_id
+    validate_run_id(run_id)
+    root = root.resolve()
+    path = (root / run_id).resolve()
+    path.relative_to(root)
     path.mkdir(parents=True, exist_ok=True)
     return run_id, path
 
@@ -73,7 +86,7 @@ def latest_run_directory(root: Path) -> Path | None:
 
 
 def load_summary(root: Path, run_id: str) -> tuple[Path, dict[str, Any]]:
-    target = latest_run_directory(root) if run_id == "latest" else root / run_id
+    target = latest_run_directory(root) if run_id == "latest" else root / validate_run_id(run_id)
     if target is None or not target.exists():
         raise FileNotFoundError(f"No run directory found for {run_id}.")
     summary_path = target / "summary.json"

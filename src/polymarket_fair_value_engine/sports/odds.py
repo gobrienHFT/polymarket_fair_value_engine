@@ -28,8 +28,8 @@ class OneXTwoProbabilities:
 
     def __post_init__(self) -> None:
         for name, value in (("home", self.home), ("draw", self.draw), ("away", self.away)):
-            if not isfinite(value) or value < 0.0:
-                raise ValueError(f"{name} probability must be finite and non-negative")
+            if not isfinite(value) or not 0.0 <= value <= 1.0:
+                raise ValueError(f"{name} probability must be finite and within [0, 1]")
 
     @property
     def total(self) -> float:

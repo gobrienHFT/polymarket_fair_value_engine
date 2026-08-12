@@ -1,0 +1,61 @@
+from datetime import datetime, timezone
+from math import nan
+
+import pytest
+
+from polymarket_fair_value_engine.analytics.reports import create_run_directory, load_summary
+from polymarket_fair_value_engine.types import BookLevel, TokenOrderBook
+
+
+def test_token_order_book_normalizes_best_level_order() -> None:
+    book = TokenOrderBook(
+        token_id="yes-token",
+        bids=(BookLevel(price=0.42, size=1.0), BookLevel(price=0.48, size=2.0)),
+        asks=(BookLevel(price=0.61, size=1.0), BookLevel(price=0.55, size=2.0)),
+        timestamp=datetime(2026, 1, 1, tzinfo=timezone.utc),
+    )
+
+    assert [level.price for level in book.bids] == [0.48, 0.42]
+    assert [level.price for level in book.asks] == [0.55, 0.61]
+    assert book.best_bid is not None and book.best_bid.price == 0.48
+    assert book.best_ask is not None and book.best_ask.price == 0.55
+
+
+@pytest.mark.parametrize(
+    ("price", "size"),
+    [
+        (nan, 1.0),
+        (1.01, 1.0),
+        (0.50, 0.0),
+        (0.50, nan),
+    ],
+)
+def test_book_level_rejects_non_tradeable_values(price: float, size: float) -> None:
+    with pytest.raises(ValueError):
+        BookLevel(price=price, size=size)
+
+
+def test_token_order_book_rejects_naive_timestamp() -> None:
+    with pytest.raises(ValueError, match="timezone-aware"):
+        TokenOrderBook(
+            token_id="yes-token",
+            bids=(BookLevel(price=0.50, size=1.0),),
+            timestamp=datetime(2026, 1, 1),
+        )
+
+
+def test_run_directory_rejects_path_traversal_and_reserved_ids(tmp_path) -> None:
+    root = tmp_path / "runs"
+
+    for run_id in ("../outside", "nested/run"):
+        with pytest.raises(ValueError):
+            create_run_directory(root, run_id=run_id)
+        with pytest.raises(ValueError):
+            load_summary(root, run_id)
+
+    with pytest.raises(ValueError):
+        create_run_directory(root, run_id="latest")
+    with pytest.raises(FileNotFoundError):
+        load_summary(root, "latest")
+
+    assert not (tmp_path / "outside").exists()

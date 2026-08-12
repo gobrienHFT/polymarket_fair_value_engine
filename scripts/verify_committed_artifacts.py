@@ -147,7 +147,7 @@ def _verify_front_door_links() -> list[str]:
         < btc_index
     ):
         issues.append("README.md front-door sections are not ordered football-first before BTC")
-    if "| At a glance | Committed value |" not in readme:
+    if "| Metric | Committed value |" not in readme:
         issues.append("README.md is missing the football at-a-glance summary table")
     demo_index = readme.find("pmfe demo")
     if demo_index != -1 and btc_index != -1 and demo_index < btc_index:
