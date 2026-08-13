@@ -26,6 +26,7 @@ Orders record decision, submit, acknowledgement, resting, fill, cancel request, 
 ## Sensitivity Matrix
 
 The matrix is one-factor-at-a-time around a fixed baseline. It varies fair-value edge, spread, depth imbalance, submit latency, execution profile, initial inventory, and fees. It is a tooling and assumption-sensitivity exercise, not a profitability validation.
+Assessment rule: a row is labelled `assumption_sensitive` when its next signed markout changes by at least 0.01, fill rate by at least 0.10, or marked PnL by at least 0.50 versus baseline; otherwise it is `stable_on_this_sample`.
 
 | Dimension | Value | Style | Fill rate | Next signed markout | Total marked PnL | Assessment |
 | --- | --- | --- | ---: | ---: | ---: | --- |
@@ -36,8 +37,8 @@ The matrix is one-factor-at-a-time around a fixed baseline. It varies fair-value
 | spread | 0.06 | passive | 0.225 | -0.093333 | -1.50227 | assumption_sensitive |
 | book_imbalance | -0.5 | passive | 0.435937 | -0.06875 | -0.872411 | assumption_sensitive |
 | book_imbalance | 0.5 | passive | 0.3625 | -0.06875 | -0.911324 | assumption_sensitive |
-| submit_latency_ms | 0 | passive | 0.257143 | -0.06875 | -1.17263 | stable_on_this_sample |
-| submit_latency_ms | 750 | passive | 0.257143 | -0.06875 | -1.17263 | stable_on_this_sample |
+| latency_ms | 0 | passive | 0.257143 | -0.06875 | -1.17263 | stable_on_this_sample |
+| latency_ms | 750 | passive | 0.314286 | -0.06875 | -1.19467 | stable_on_this_sample |
 | execution_profile | conservative | passive | 0.114286 | -0.1 | -0.475925 | assumption_sensitive |
 | execution_profile | base | passive | 0.257143 | -0.06875 | -1.17263 | stable_on_this_sample |
 | execution_profile | aggressive | passive | 0.474286 | -0.06875 | -1.377008 | assumption_sensitive |

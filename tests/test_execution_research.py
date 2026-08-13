@@ -61,7 +61,7 @@ def test_execution_research_writes_lifecycle_and_execution_artifacts(tmp_path) -
         "fair_value_edge_offset",
         "spread",
         "book_imbalance",
-        "submit_latency_ms",
+        "latency_ms",
         "execution_profile",
         "initial_inventory_yes",
         "fee_bps",

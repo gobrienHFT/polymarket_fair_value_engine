@@ -48,6 +48,9 @@ ARTIFACT_FILENAMES = {
     "execution_report.md": "execution_report_md",
     "execution_casebook.md": "execution_casebook_md",
 }
+SENSITIVITY_MARKOUT_DELTA = 0.01
+SENSITIVITY_FILL_RATE_DELTA = 0.10
+SENSITIVITY_PNL_DELTA = 0.50
 
 
 def _mean(values: Iterable[float]) -> float | None:
@@ -663,7 +666,7 @@ def _run_experiment_matrix(frames: list[ReplayFrame], config: ExecutionResearchC
     for value in config.imbalance_values:
         cases.append(("book_imbalance", value, [_frame_with_imbalance(frame, value) for frame in frames], config, baseline_profile, 0.0))
     for value in config.latency_values_ms:
-        cases.append(("submit_latency_ms", value, frames, with_overrides(config, submit_latency_ms=value), baseline_profile, 0.0))
+        cases.append(("latency_ms", value, frames, with_overrides(config, submit_latency_ms=value, ack_latency_ms=value, cancel_latency_ms=value), baseline_profile, 0.0))
     for profile in config.profiles:
         cases.append(("execution_profile", profile.name, frames, config, profile, 0.0))
     for value in config.inventory_values:
@@ -681,7 +684,7 @@ def _run_experiment_matrix(frames: list[ReplayFrame], config: ExecutionResearchC
         markout_delta = abs((row["average_next_signed_markout"] or 0.0) - (baseline_row["average_next_signed_markout"] or 0.0))
         fill_rate_delta = abs((row["fill_rate"] or 0.0) - (baseline_row["fill_rate"] or 0.0))
         pnl_delta = abs((row["total_pnl"] or 0.0) - (baseline_row["total_pnl"] or 0.0))
-        row["assessment"] = "assumption_sensitive" if markout_delta >= 0.01 or fill_rate_delta >= 0.10 or pnl_delta >= 0.50 else "stable_on_this_sample"
+        row["assessment"] = "assumption_sensitive" if markout_delta >= SENSITIVITY_MARKOUT_DELTA or fill_rate_delta >= SENSITIVITY_FILL_RATE_DELTA or pnl_delta >= SENSITIVITY_PNL_DELTA else "stable_on_this_sample"
     return rows
 
 
@@ -758,6 +761,7 @@ def _render_report(outputs: list[SimulationOutput], matrix_rows: list[dict[str, 
             "## Sensitivity Matrix",
             "",
             "The matrix is one-factor-at-a-time around a fixed baseline. It varies fair-value edge, spread, depth imbalance, submit latency, execution profile, initial inventory, and fees. It is a tooling and assumption-sensitivity exercise, not a profitability validation.",
+            "Assessment rule: a row is labelled `assumption_sensitive` when its next signed markout changes by at least 0.01, fill rate by at least 0.10, or marked PnL by at least 0.50 versus baseline; otherwise it is `stable_on_this_sample`.",
             "",
             "| Dimension | Value | Style | Fill rate | Next signed markout | Total marked PnL | Assessment |",
             "| --- | --- | --- | ---: | ---: | ---: | --- |",

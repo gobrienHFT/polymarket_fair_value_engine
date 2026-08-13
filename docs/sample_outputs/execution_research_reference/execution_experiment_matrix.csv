@@ -6,8 +6,8 @@ experiment-003,spread,0.02,base,passive,9,7,7.0,0.2,0.01,-0.158333,-1.05564,0.00
 experiment-004,spread,0.06,base,passive,10,8,9.0,0.225,0.03,-0.093333,-1.50227,0.00727,-6.0,assumption_sensitive
 experiment-005,book_imbalance,-0.5,base,passive,11,8,17.4375,0.435937,0.01875,-0.06875,-0.872411,0.016161,2.5625,assumption_sensitive
 experiment-006,book_imbalance,0.5,base,passive,10,7,12.6875,0.3625,0.01875,-0.06875,-0.911324,0.011324,0.0625,assumption_sensitive
-experiment-007,submit_latency_ms,0,base,passive,10,7,9.0,0.257143,0.01875,-0.06875,-1.17263,0.00763,-3.0,stable_on_this_sample
-experiment-008,submit_latency_ms,750,base,passive,10,7,9.0,0.257143,0.01875,-0.06875,-1.17263,0.00763,-3.0,stable_on_this_sample
+experiment-007,latency_ms,0,base,passive,10,7,9.0,0.257143,0.01875,-0.06875,-1.17263,0.00763,-3.0,stable_on_this_sample
+experiment-008,latency_ms,750,base,passive,10,7,11.0,0.314286,0.01875,-0.06875,-1.19467,0.00967,-2.0,stable_on_this_sample
 experiment-009,execution_profile,conservative,conservative,passive,10,7,4.0,0.114286,0.018333,-0.1,-0.475925,0.003425,-1.0,assumption_sensitive
 experiment-010,execution_profile,base,base,passive,10,7,9.0,0.257143,0.01875,-0.06875,-1.17263,0.00763,-3.0,stable_on_this_sample
 experiment-011,execution_profile,aggressive,aggressive,passive,10,7,16.6,0.474286,0.01875,-0.06875,-1.377008,0.015008,-0.6,assumption_sensitive
