@@ -63,6 +63,21 @@ For a sports-trading review, start with the committed football artifacts rather 
 - [docs/football_post_trade_analysis_note.md](docs/football_post_trade_analysis_note.md)
 - [docs/football_match_state_reaction_note.md](docs/football_match_state_reaction_note.md)
 
+## Execution Research Path
+
+The execution-research path asks one question: given a probabilistic fair value, when is the apparent edge still executable after spread, visible depth, queue uncertainty, latency, fees, inventory, and adverse selection? It is a deterministic binary-market CLOB replay around committed BTC-style market-state fixtures. It is separate from football probability calibration and does not claim live football execution.
+
+- Reference pack: [docs/sample_outputs/execution_research_reference/README.md](docs/sample_outputs/execution_research_reference/README.md)
+- Casebook: [docs/execution_casebook.md](docs/execution_casebook.md)
+- Execution research packet: [docs/interview_packet.md](docs/interview_packet.md)
+
+The pack compares passive and aggressive execution under conservative, base, and aggressive visible-depth profiles. It records fail-closed validity states, risk decisions, complete order lifecycle events, fills, fees, inventory, PnL, signed markouts, and one-factor sensitivity rows. The fresh-clone offline path is:
+
+```bash
+python -m pip install -e ".[dev]"
+python scripts/refresh_execution_research.py
+```
+
 ## Regeneration Commands
 
 The committed football packs above are generated from bundled sample inputs. Football remains offline-only, BTC remains the only end-to-end paper/live path, and football replay fills still do not claim queue-position realism.
@@ -145,6 +160,11 @@ Today the package can:
 - compute raw midpoint drift and directional capture metrics from the replay sample
 - compare multiple football strategy configurations with deterministic winner selection and regime breakdowns
 - export offline football pricing, replay, and strategy-sweep artifacts for inspection and review
+- replay bounded binary CLOB states with explicit stale, crossed, malformed, expired, and discontinuous validity decisions
+- compare passive and aggressive execution under named conservative, base, and aggressive visible-depth profiles
+- audit submit, acknowledgement, resting, partial/full fill, cancellation, expiry, rejection, and cancel/fill race transitions
+- measure spread paid/captured, fees, time resting, inventory, realised/unrealised/marked PnL, and signed multi-horizon markouts
+- bind execution-research runs to a code version, configuration hash, and input-data hash
 
 The repo still only implements BTC for end-to-end execution. Football stops at offline fair value formation, quote decisions, replay evaluation, and strategy comparison. That is deliberate.
 
@@ -208,6 +228,26 @@ runs/<run_id>/
 
 Committed sample-output packs for those football paths live under [docs/sample_outputs/README.md](docs/sample_outputs/README.md) and are generated from the bundled sample inputs.
 
+`pmfe execution-research --sample --config configs/execution_research.json` writes:
+
+```text
+runs/<run_id>/
+  summary.json
+  execution_replay_validity.csv
+  execution_decisions.csv
+  execution_orders.csv
+  execution_lifecycle_events.csv
+  execution_fills.csv
+  execution_markouts.csv
+  execution_account.csv
+  execution_profile_results.csv
+  execution_experiment_matrix.csv
+  execution_report.md
+  execution_casebook.md
+```
+
+The committed execution reference pack under [docs/sample_outputs/execution_research_reference/README.md](docs/sample_outputs/execution_research_reference/README.md) is the zero-click version of those artifacts.
+
 Paper fill behavior is intentionally simple:
 
 - `PMFE_TOUCH_FILL_ONLY=1`: fill only when the quoted price touches or crosses the best quote
@@ -232,7 +272,7 @@ Those guardrails apply to the BTC execution path. Live football execution is not
 
 ```text
 src/polymarket_fair_value_engine/
-  cli.py                 # scan / quote / backtest / demo / football-demo / football-replay / football-sweep / report / cancel-all
+  cli.py                 # scan / quote / backtest / demo / football-* / execution-research / report / cancel-all
   config.py              # env and runtime config
   data/                  # Gamma, CLOB REST, external prices
   markets/               # market discovery + normalization
@@ -242,6 +282,7 @@ src/polymarket_fair_value_engine/
   execution/             # paper + live execution paths
   analytics/             # exports + run summaries
   backtest/              # replay loader + simulator
+  execution_research/    # deterministic CLOB execution replay and evaluation
   sports/                # offline football pricing + sports helpers
 
 legacy/

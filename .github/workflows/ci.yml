@@ -22,3 +22,7 @@ jobs:
         run: |
           python scripts/refresh_sample_outputs.py
           git diff --exit-code -- docs/sample_outputs
+      - name: Verify execution-research reproducibility
+        run: |
+          python scripts/refresh_execution_research.py
+          git diff --exit-code -- docs/sample_outputs/execution_research_reference docs/execution_casebook.md

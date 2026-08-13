@@ -31,6 +31,17 @@ ARTIFACT_FILENAMES = {
     "football_strategy_best.json": "football_strategy_best_json",
     "best_strategy/summary.json": "best_strategy_summary_json",
     "best_strategy/football_report.md": "best_strategy_report_md",
+    "execution_replay_validity.csv": "execution_replay_validity_csv",
+    "execution_decisions.csv": "execution_decisions_csv",
+    "execution_orders.csv": "execution_orders_csv",
+    "execution_lifecycle_events.csv": "execution_lifecycle_events_csv",
+    "execution_fills.csv": "execution_fills_csv",
+    "execution_markouts.csv": "execution_markouts_csv",
+    "execution_account.csv": "execution_account_csv",
+    "execution_profile_results.csv": "execution_profile_results_csv",
+    "execution_experiment_matrix.csv": "execution_experiment_matrix_csv",
+    "execution_report.md": "execution_report_md",
+    "execution_casebook.md": "execution_casebook_md",
 }
 RUN_ID_PATTERN = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$")
 

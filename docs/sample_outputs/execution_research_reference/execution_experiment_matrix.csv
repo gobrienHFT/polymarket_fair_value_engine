@@ -1,0 +1,17 @@
+experiment_id,dimension,value,profile_name,style,quoteable_decisions,orders_submitted,filled_size,fill_rate,average_spread_paid_or_captured,average_next_signed_markout,total_pnl,fees,final_position_yes,assessment
+baseline,baseline,default,base,passive,10,7,9.0,0.257143,0.01875,-0.06875,-1.17263,0.00763,-3.0,baseline
+experiment-001,fair_value_edge_offset,-0.01,base,passive,10,7,9.0,0.257143,0.01875,-0.06875,-1.17263,0.00763,-3.0,stable_on_this_sample
+experiment-002,fair_value_edge_offset,0.02,base,passive,10,7,3.75,0.107143,0.018333,-0.026667,0.446325,0.003675,3.75,assumption_sensitive
+experiment-003,spread,0.02,base,passive,9,7,7.0,0.2,0.01,-0.158333,-1.05564,0.00564,-3.0,assumption_sensitive
+experiment-004,spread,0.06,base,passive,10,8,9.0,0.225,0.03,-0.093333,-1.50227,0.00727,-6.0,assumption_sensitive
+experiment-005,book_imbalance,-0.5,base,passive,11,8,17.4375,0.435937,0.01875,-0.06875,-0.872411,0.016161,2.5625,assumption_sensitive
+experiment-006,book_imbalance,0.5,base,passive,10,7,12.6875,0.3625,0.01875,-0.06875,-0.911324,0.011324,0.0625,assumption_sensitive
+experiment-007,submit_latency_ms,0,base,passive,10,7,9.0,0.257143,0.01875,-0.06875,-1.17263,0.00763,-3.0,stable_on_this_sample
+experiment-008,submit_latency_ms,750,base,passive,10,7,9.0,0.257143,0.01875,-0.06875,-1.17263,0.00763,-3.0,stable_on_this_sample
+experiment-009,execution_profile,conservative,conservative,passive,10,7,4.0,0.114286,0.018333,-0.1,-0.475925,0.003425,-1.0,assumption_sensitive
+experiment-010,execution_profile,base,base,passive,10,7,9.0,0.257143,0.01875,-0.06875,-1.17263,0.00763,-3.0,stable_on_this_sample
+experiment-011,execution_profile,aggressive,aggressive,passive,10,7,16.6,0.474286,0.01875,-0.06875,-1.377008,0.015008,-0.6,assumption_sensitive
+experiment-012,initial_inventory_yes,-5.0,base,passive,10,7,9.0,0.257143,0.01875,-0.06875,-1.72263,0.00763,-8.0,assumption_sensitive
+experiment-013,initial_inventory_yes,5.0,base,passive,10,7,9.0,0.257143,0.01875,-0.06875,-0.62263,0.00763,2.0,assumption_sensitive
+experiment-014,fee_bps,0.0,base,passive,10,7,9.0,0.257143,0.01875,-0.06875,-1.165,0.0,-3.0,stable_on_this_sample
+experiment-015,fee_bps,50.0,base,passive,10,7,9.0,0.257143,0.01875,-0.06875,-1.184075,0.019075,-3.0,stable_on_this_sample

@@ -23,6 +23,8 @@ from polymarket_fair_value_engine.data.gamma import GammaClient
 from polymarket_fair_value_engine.execution.live import PolymarketLiveExecutor
 from polymarket_fair_value_engine.execution.order_manager import OrderManager
 from polymarket_fair_value_engine.execution.paper import PaperExecutionEngine
+from polymarket_fair_value_engine.execution_research.config import load_execution_research_config
+from polymarket_fair_value_engine.execution_research.engine import run_execution_research
 from polymarket_fair_value_engine.logging_utils import configure_logging
 from polymarket_fair_value_engine.markets.discovery import MarketDiscoveryService
 from polymarket_fair_value_engine.markets.filters import has_sane_binary_books, in_no_trade_window, is_state_stale
@@ -51,6 +53,10 @@ def _bundled_sample_replay_path() -> Path:
 
 def _bundled_sample_football_path() -> Path:
     return _repo_root() / "data" / "sample_football_markets.json"
+
+
+def _bundled_sample_execution_path() -> Path:
+    return _repo_root() / "data" / "sample_execution_replay.jsonl"
 
 
 def _bundled_sample_football_replay_path() -> Path:
@@ -455,6 +461,34 @@ def _football_sweep_command(
     return 0
 
 
+def _execution_research_command(
+    config: EngineConfig,
+    input_path: str | None = None,
+    sample: bool = False,
+    config_path: str | None = None,
+    run_id: str | None = None,
+) -> int:
+    if config_path is None:
+        raise RuntimeError("execution-research requires --config.")
+    if sample:
+        input_file = _bundled_sample_execution_path()
+    elif input_path is not None:
+        input_file = Path(input_path)
+    else:
+        raise RuntimeError("execution-research requires either --input or --sample.")
+    research_config, loaded_path, config_hash = load_execution_research_config(config_path)
+    actual_run_id, output_dir, summary = run_execution_research(
+        input_path=input_file,
+        output_root=config.output.root,
+        config=research_config,
+        config_path=loaded_path,
+        config_hash=config_hash,
+        run_id=run_id,
+    )
+    print(json.dumps({**summary, "run_id": actual_run_id, "output_dir": str(output_dir)}, indent=2, default=str))
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="pmfe")
     subparsers = parser.add_subparsers(dest="command", required=True)
@@ -497,6 +531,13 @@ def build_parser() -> argparse.ArgumentParser:
     football_sweep.add_argument("--config", required=True)
     football_sweep.add_argument("--run-id", default=None)
 
+    execution_research = subparsers.add_parser("execution-research")
+    execution_research_input = execution_research.add_mutually_exclusive_group(required=True)
+    execution_research_input.add_argument("--input", default=None)
+    execution_research_input.add_argument("--sample", action="store_true", default=False)
+    execution_research.add_argument("--config", required=True)
+    execution_research.add_argument("--run-id", default=None)
+
     cancel_all = subparsers.add_parser("cancel-all")
     cancel_all.add_argument("--live", action="store_true", default=False)
     cancel_all.add_argument("--ack-live-risk", action="store_true", default=False)
@@ -537,6 +578,8 @@ def _dispatch(argv: list[str] | None = None) -> int:
         return _football_replay_command(config, input_path=args.input, sample=bool(args.sample), run_id=args.run_id, config_path=args.config)
     if args.command == "football-sweep":
         return _football_sweep_command(config, input_path=args.input, sample=bool(args.sample), config_path=args.config, run_id=args.run_id)
+    if args.command == "execution-research":
+        return _execution_research_command(config, input_path=args.input, sample=bool(args.sample), config_path=args.config, run_id=args.run_id)
     if args.command == "cancel-all":
         guard_live_mode(live=bool(args.live), ack_live_risk=bool(args.ack_live_risk), live_enabled=config.auth.live_enabled)
         if not args.live:

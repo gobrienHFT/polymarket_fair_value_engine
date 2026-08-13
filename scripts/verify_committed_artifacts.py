@@ -18,6 +18,8 @@ SAMPLE_OUTPUTS_ROOT = REPO_ROOT / "docs" / "sample_outputs"
 SAMPLE_OUTPUTS_INDEX = SAMPLE_OUTPUTS_ROOT / "README.md"
 FOOTBALL_REPLAY_WALKTHROUGH = REPO_ROOT / "docs" / "football_replay_walkthrough.md"
 FOOTBALL_SWEEP_WALKTHROUGH = REPO_ROOT / "docs" / "football_strategy_sweep_walkthrough.md"
+EXECUTION_CASEBOOK = REPO_ROOT / "docs" / "execution_casebook.md"
+EXECUTION_PACKET = REPO_ROOT / "docs" / "interview_packet.md"
 
 PACKS = {
     "football_demo_reference": {
@@ -58,6 +60,24 @@ PACKS = {
             "best_strategy/football_state_changes.csv",
             "best_strategy/football_no_trade_reasons.csv",
             "best_strategy/football_report.md",
+        ),
+    },
+    "execution_research_reference": {
+        "dir": SAMPLE_OUTPUTS_ROOT / "execution_research_reference",
+        "required_files": (
+            "README.md",
+            "summary.json",
+            "execution_replay_validity.csv",
+            "execution_decisions.csv",
+            "execution_orders.csv",
+            "execution_lifecycle_events.csv",
+            "execution_fills.csv",
+            "execution_markouts.csv",
+            "execution_account.csv",
+            "execution_profile_results.csv",
+            "execution_experiment_matrix.csv",
+            "execution_report.md",
+            "execution_casebook.md",
         ),
     },
 }
@@ -101,6 +121,8 @@ def _verify_markdown_links() -> list[str]:
         SAMPLE_OUTPUTS_INDEX,
         FOOTBALL_REPLAY_WALKTHROUGH,
         FOOTBALL_SWEEP_WALKTHROUGH,
+        EXECUTION_CASEBOOK,
+        EXECUTION_PACKET,
         *(pack["dir"] / "README.md" for pack in PACKS.values()),
     ]
     for path in audit_files:
@@ -171,6 +193,9 @@ def _verify_front_door_links() -> list[str]:
         "docs/sample_outputs/football_demo_reference/README.md",
         "docs/sample_outputs/football_replay_reference/README.md",
         "docs/sample_outputs/football_sweep_reference/README.md",
+        "docs/sample_outputs/execution_research_reference/README.md",
+        "docs/execution_casebook.md",
+        "docs/interview_packet.md",
     ]
     for link in expected_readme_links:
         if link not in readme:
@@ -196,6 +221,9 @@ def _verify_front_door_links() -> list[str]:
         "football_demo_reference/README.md",
         "football_replay_reference/README.md",
         "football_sweep_reference/README.md",
+        "execution_research_reference/README.md",
+        "../execution_casebook.md",
+        "../interview_packet.md",
     ):
         if link not in index:
             issues.append(f"Missing pack link in docs/sample_outputs/README.md: {link}")
@@ -212,6 +240,10 @@ def _verify_front_door_links() -> list[str]:
         issues.append("Missing docs/football_strategy_configuration_note.md")
     if not FOOTBALL_RESEARCH_NOTE.exists():
         issues.append("Missing docs/football_trading_research_note.md")
+    if not EXECUTION_CASEBOOK.exists():
+        issues.append("Missing docs/execution_casebook.md")
+    if not EXECUTION_PACKET.exists():
+        issues.append("Missing docs/interview_packet.md")
 
     replay_doc = _read_text(FOOTBALL_REPLAY_WALKTHROUGH)
     if "docs/sample_outputs/football_replay_reference/README.md" not in replay_doc:
@@ -238,6 +270,8 @@ def _verify_no_temp_paths() -> list[str]:
         FOOTBALL_POST_TRADE_ANALYSIS_NOTE,
         FOOTBALL_STRATEGY_CONFIGURATION_NOTE,
         FOOTBALL_RESEARCH_NOTE,
+        EXECUTION_CASEBOOK,
+        EXECUTION_PACKET,
         SAMPLE_OUTPUTS_INDEX,
         *(pack["dir"] / "README.md" for pack in PACKS.values()),
     ]

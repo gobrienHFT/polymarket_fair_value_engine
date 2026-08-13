@@ -19,6 +19,8 @@ FOOTBALL_RESEARCH_NOTE = REPO_ROOT / "docs" / "football_trading_research_note.md
 SAMPLE_OUTPUTS_INDEX = REPO_ROOT / "docs" / "sample_outputs" / "README.md"
 FOOTBALL_REPLAY_WALKTHROUGH = REPO_ROOT / "docs" / "football_replay_walkthrough.md"
 FOOTBALL_SWEEP_WALKTHROUGH = REPO_ROOT / "docs" / "football_strategy_sweep_walkthrough.md"
+EXECUTION_CASEBOOK = REPO_ROOT / "docs" / "execution_casebook.md"
+EXECUTION_PACKET = REPO_ROOT / "docs" / "interview_packet.md"
 
 
 def test_committed_artifacts_have_no_integrity_issues() -> None:
@@ -112,3 +114,20 @@ def test_post_trade_analysis_note_exists() -> None:
 
 def test_strategy_configuration_note_exists() -> None:
     assert FOOTBALL_STRATEGY_CONFIGURATION_NOTE.exists()
+
+
+def test_execution_research_docs_exist() -> None:
+    assert EXECUTION_CASEBOOK.exists()
+    assert EXECUTION_PACKET.exists()
+
+
+def test_readme_and_sample_index_link_execution_research() -> None:
+    readme = README.read_text(encoding="utf-8")
+    index = SAMPLE_OUTPUTS_INDEX.read_text(encoding="utf-8")
+
+    assert "docs/sample_outputs/execution_research_reference/README.md" in readme
+    assert "docs/execution_casebook.md" in readme
+    assert "docs/interview_packet.md" in readme
+    assert "execution_research_reference/README.md" in index
+    assert "../execution_casebook.md" in index
+    assert "../interview_packet.md" in index

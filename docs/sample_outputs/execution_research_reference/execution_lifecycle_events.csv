@@ -1,0 +1,329 @@
+event_id,event_type,timestamp,order_id,decision_id,profile_name,style,side,price,size,detail
+event-000001,decision,2026-01-01T12:00:00+00:00,,conservative-passive-decision-0001,conservative,passive,BUY_YES,0.5,5.0,actionable fair-value edge
+event-000002,risk_check,2026-01-01T12:00:00+00:00,,conservative-passive-decision-0001,conservative,passive,BUY_YES,0.5,5.0,approved
+event-000003,submit,2026-01-01T12:00:00.250000+00:00,conservative-passive-order-0001,conservative-passive-decision-0001,conservative,passive,BUY_YES,0.5,5.0,order submitted
+event-000004,acknowledge,2026-01-01T12:00:00.500000+00:00,conservative-passive-order-0001,conservative-passive-decision-0001,conservative,passive,BUY_YES,0.5,5.0,acknowledged
+event-000005,rest,2026-01-01T12:00:00.500000+00:00,conservative-passive-order-0001,conservative-passive-decision-0001,conservative,passive,BUY_YES,0.5,5.0,resting or eligible for aggressive execution
+event-000006,decision,2026-01-01T12:00:01+00:00,,conservative-passive-decision-0002,conservative,passive,BUY_YES,0.5,5.0,actionable fair-value edge
+event-000007,decision,2026-01-01T12:00:02+00:00,,conservative-passive-decision-0003,conservative,passive,BUY_YES,0.5,5.0,actionable fair-value edge
+event-000008,partial_fill,2026-01-01T12:00:03+00:00,conservative-passive-order-0001,conservative-passive-decision-0001,conservative,passive,BUY_YES,0.5,0.75,visible_depth_depletion
+event-000009,decision,2026-01-01T12:00:03+00:00,,conservative-passive-decision-0004,conservative,passive,BUY_YES,0.37,5.0,actionable fair-value edge
+event-000010,cancel_request,2026-01-01T12:00:03+00:00,conservative-passive-order-0001,conservative-passive-decision-0001,conservative,passive,BUY_YES,0.5,4.25,decision changed or data became invalid
+event-000011,cancel_acknowledge,2026-01-01T12:00:04+00:00,conservative-passive-order-0001,conservative-passive-decision-0001,conservative,passive,BUY_YES,0.5,4.25,cancel acknowledged
+event-000012,decision,2026-01-01T12:00:04+00:00,,conservative-passive-decision-0005,conservative,passive,NO_TRADE,,,invalid_market_state:crossed
+event-000013,decision,2026-01-01T12:00:05+00:00,,conservative-passive-decision-0006,conservative,passive,NO_TRADE,,,invalid_market_state:stale
+event-000014,decision,2026-01-01T12:00:06+00:00,,conservative-passive-decision-0007,conservative,passive,SELL_YES,0.39,5.0,actionable fair-value edge
+event-000015,risk_check,2026-01-01T12:00:06+00:00,,conservative-passive-decision-0007,conservative,passive,SELL_YES,0.39,5.0,approved
+event-000016,submit,2026-01-01T12:00:06.250000+00:00,conservative-passive-order-0002,conservative-passive-decision-0007,conservative,passive,SELL_YES,0.39,5.0,order submitted
+event-000017,acknowledge,2026-01-01T12:00:06.500000+00:00,conservative-passive-order-0002,conservative-passive-decision-0007,conservative,passive,SELL_YES,0.39,5.0,acknowledged
+event-000018,rest,2026-01-01T12:00:06.500000+00:00,conservative-passive-order-0002,conservative-passive-decision-0007,conservative,passive,SELL_YES,0.39,5.0,resting or eligible for aggressive execution
+event-000019,decision,2026-01-01T12:00:07+00:00,,conservative-passive-decision-0008,conservative,passive,SELL_YES,0.39,5.0,actionable fair-value edge
+event-000020,decision,2026-01-01T12:00:08+00:00,,conservative-passive-decision-0009,conservative,passive,NO_TRADE,,,invalid_market_state:discontinuous
+event-000021,cancel_request,2026-01-01T12:00:08+00:00,conservative-passive-order-0002,conservative-passive-decision-0007,conservative,passive,SELL_YES,0.39,5.0,decision changed or data became invalid
+event-000022,cancel_acknowledge,2026-01-01T12:00:09+00:00,conservative-passive-order-0002,conservative-passive-decision-0007,conservative,passive,SELL_YES,0.39,5.0,cancel acknowledged
+event-000023,decision,2026-01-01T12:00:09+00:00,,conservative-passive-decision-0010,conservative,passive,SELL_YES,0.37,5.0,actionable fair-value edge
+event-000024,risk_check,2026-01-01T12:00:09+00:00,,conservative-passive-decision-0010,conservative,passive,SELL_YES,0.37,5.0,approved
+event-000025,submit,2026-01-01T12:00:09.250000+00:00,conservative-passive-order-0003,conservative-passive-decision-0010,conservative,passive,SELL_YES,0.37,5.0,order submitted
+event-000026,acknowledge,2026-01-01T12:00:09.500000+00:00,conservative-passive-order-0003,conservative-passive-decision-0010,conservative,passive,SELL_YES,0.37,5.0,acknowledged
+event-000027,rest,2026-01-01T12:00:09.500000+00:00,conservative-passive-order-0003,conservative-passive-decision-0010,conservative,passive,SELL_YES,0.37,5.0,resting or eligible for aggressive execution
+event-000028,decision,2026-01-01T12:00:10+00:00,,conservative-passive-decision-0011,conservative,passive,SELL_YES,0.38,5.0,actionable fair-value edge
+event-000029,cancel_request,2026-01-01T12:00:10+00:00,conservative-passive-order-0003,conservative-passive-decision-0010,conservative,passive,SELL_YES,0.37,5.0,decision changed or data became invalid
+event-000030,cancel_fill_race,2026-01-01T12:00:11+00:00,conservative-passive-order-0003,conservative-passive-decision-0010,conservative,passive,SELL_YES,0.37,2.5,fill occurred before cancel acknowledgement
+event-000031,partial_fill,2026-01-01T12:00:11+00:00,conservative-passive-order-0003,conservative-passive-decision-0010,conservative,passive,SELL_YES,0.37,2.5,touch_or_cross
+event-000032,cancel_acknowledge,2026-01-01T12:00:11+00:00,conservative-passive-order-0003,conservative-passive-decision-0010,conservative,passive,SELL_YES,0.37,2.5,cancel acknowledged
+event-000033,decision,2026-01-01T12:00:11+00:00,,conservative-passive-decision-0012,conservative,passive,BUY_YES,0.55,5.0,actionable fair-value edge
+event-000034,risk_check,2026-01-01T12:00:11+00:00,,conservative-passive-decision-0012,conservative,passive,BUY_YES,0.55,5.0,approved
+event-000035,submit,2026-01-01T12:00:11.250000+00:00,conservative-passive-order-0004,conservative-passive-decision-0012,conservative,passive,BUY_YES,0.55,5.0,order submitted
+event-000036,acknowledge,2026-01-01T12:00:11.500000+00:00,conservative-passive-order-0004,conservative-passive-decision-0012,conservative,passive,BUY_YES,0.55,5.0,acknowledged
+event-000037,rest,2026-01-01T12:00:11.500000+00:00,conservative-passive-order-0004,conservative-passive-decision-0012,conservative,passive,BUY_YES,0.55,5.0,resting or eligible for aggressive execution
+event-000038,decision,2026-01-01T12:00:12+00:00,,conservative-passive-decision-0013,conservative,passive,BUY_YES,0.56,5.0,actionable fair-value edge
+event-000039,cancel_request,2026-01-01T12:00:12+00:00,conservative-passive-order-0004,conservative-passive-decision-0012,conservative,passive,BUY_YES,0.55,5.0,decision changed or data became invalid
+event-000040,cancel_fill_race,2026-01-01T12:00:13+00:00,conservative-passive-order-0004,conservative-passive-decision-0012,conservative,passive,BUY_YES,0.55,0.75,fill occurred before cancel acknowledgement
+event-000041,partial_fill,2026-01-01T12:00:13+00:00,conservative-passive-order-0004,conservative-passive-decision-0012,conservative,passive,BUY_YES,0.55,0.75,visible_depth_depletion
+event-000042,cancel_acknowledge,2026-01-01T12:00:13+00:00,conservative-passive-order-0004,conservative-passive-decision-0012,conservative,passive,BUY_YES,0.55,4.25,cancel acknowledged
+event-000043,decision,2026-01-01T12:00:13+00:00,,conservative-passive-decision-0014,conservative,passive,BUY_YES,0.54,5.0,actionable fair-value edge
+event-000044,risk_check,2026-01-01T12:00:13+00:00,,conservative-passive-decision-0014,conservative,passive,BUY_YES,0.54,5.0,approved
+event-000045,submit,2026-01-01T12:00:13.250000+00:00,conservative-passive-order-0005,conservative-passive-decision-0014,conservative,passive,BUY_YES,0.54,5.0,order submitted
+event-000046,acknowledge,2026-01-01T12:00:13.500000+00:00,conservative-passive-order-0005,conservative-passive-decision-0014,conservative,passive,BUY_YES,0.54,5.0,acknowledged
+event-000047,rest,2026-01-01T12:00:13.500000+00:00,conservative-passive-order-0005,conservative-passive-decision-0014,conservative,passive,BUY_YES,0.54,5.0,resting or eligible for aggressive execution
+event-000048,decision,2026-01-01T12:00:14+00:00,,conservative-passive-decision-0015,conservative,passive,BUY_YES,0.57,5.0,actionable fair-value edge
+event-000049,cancel_request,2026-01-01T12:00:14+00:00,conservative-passive-order-0005,conservative-passive-decision-0014,conservative,passive,BUY_YES,0.54,5.0,decision changed or data became invalid
+event-000050,cancel_acknowledge,2026-01-01T12:00:15+00:00,conservative-passive-order-0005,conservative-passive-decision-0014,conservative,passive,BUY_YES,0.54,5.0,cancel acknowledged
+event-000051,decision,2026-01-01T12:00:15+00:00,,conservative-passive-decision-0016,conservative,passive,BUY_YES,0.58,5.0,actionable fair-value edge
+event-000052,risk_check,2026-01-01T12:00:15+00:00,,conservative-passive-decision-0016,conservative,passive,BUY_YES,0.58,5.0,approved
+event-000053,submit,2026-01-01T12:00:15.250000+00:00,conservative-passive-order-0006,conservative-passive-decision-0016,conservative,passive,BUY_YES,0.58,5.0,order submitted
+event-000054,acknowledge,2026-01-01T12:00:15.500000+00:00,conservative-passive-order-0006,conservative-passive-decision-0016,conservative,passive,BUY_YES,0.58,5.0,acknowledged
+event-000055,rest,2026-01-01T12:00:15.500000+00:00,conservative-passive-order-0006,conservative-passive-decision-0016,conservative,passive,BUY_YES,0.58,5.0,resting or eligible for aggressive execution
+event-000056,decision,2026-01-01T12:00:16+00:00,,conservative-passive-decision-0017,conservative,passive,BUY_YES,0.6,5.0,actionable fair-value edge
+event-000057,cancel_request,2026-01-01T12:00:16+00:00,conservative-passive-order-0006,conservative-passive-decision-0016,conservative,passive,BUY_YES,0.58,5.0,decision changed or data became invalid
+event-000058,cancel_acknowledge,2026-01-01T12:00:17+00:00,conservative-passive-order-0006,conservative-passive-decision-0016,conservative,passive,BUY_YES,0.58,5.0,cancel acknowledged
+event-000059,decision,2026-01-01T12:00:17+00:00,,conservative-passive-decision-0018,conservative,passive,NO_TRADE,,,invalid_market_state:malformed
+event-000060,decision,2026-01-01T12:00:18+00:00,,conservative-passive-decision-0019,conservative,passive,BUY_YES,0.6,5.0,actionable fair-value edge
+event-000061,risk_check,2026-01-01T12:00:18+00:00,,conservative-passive-decision-0019,conservative,passive,BUY_YES,0.6,5.0,approved
+event-000062,submit,2026-01-01T12:00:18.250000+00:00,conservative-passive-order-0007,conservative-passive-decision-0019,conservative,passive,BUY_YES,0.6,5.0,order submitted
+event-000063,expire,2026-01-01T12:00:22+00:00,conservative-passive-order-0007,conservative-passive-decision-0019,conservative,passive,BUY_YES,0.6,5.0,replay ended before a fill
+event-000001,decision,2026-01-01T12:00:00+00:00,,conservative-aggressive-decision-0001,conservative,aggressive,BUY_YES,0.54,5.0,actionable fair-value edge
+event-000002,risk_check,2026-01-01T12:00:00+00:00,,conservative-aggressive-decision-0001,conservative,aggressive,BUY_YES,0.54,5.0,approved
+event-000003,submit,2026-01-01T12:00:00.250000+00:00,conservative-aggressive-order-0001,conservative-aggressive-decision-0001,conservative,aggressive,BUY_YES,0.54,5.0,order submitted
+event-000004,acknowledge,2026-01-01T12:00:00.500000+00:00,conservative-aggressive-order-0001,conservative-aggressive-decision-0001,conservative,aggressive,BUY_YES,0.54,5.0,acknowledged
+event-000005,rest,2026-01-01T12:00:00.500000+00:00,conservative-aggressive-order-0001,conservative-aggressive-decision-0001,conservative,aggressive,BUY_YES,0.54,5.0,resting or eligible for aggressive execution
+event-000006,partial_fill,2026-01-01T12:00:01+00:00,conservative-aggressive-order-0001,conservative-aggressive-decision-0001,conservative,aggressive,BUY_YES,0.54,3.0,aggressive_cross
+event-000007,decision,2026-01-01T12:00:01+00:00,,conservative-aggressive-decision-0002,conservative,aggressive,BUY_YES,0.54,5.0,actionable fair-value edge
+event-000008,fill,2026-01-01T12:00:02+00:00,conservative-aggressive-order-0001,conservative-aggressive-decision-0001,conservative,aggressive,BUY_YES,0.53,2.0,aggressive_cross
+event-000009,decision,2026-01-01T12:00:02+00:00,,conservative-aggressive-decision-0003,conservative,aggressive,BUY_YES,0.53,5.0,actionable fair-value edge
+event-000010,risk_check,2026-01-01T12:00:02+00:00,,conservative-aggressive-decision-0003,conservative,aggressive,BUY_YES,0.53,5.0,approved
+event-000011,submit,2026-01-01T12:00:02.250000+00:00,conservative-aggressive-order-0002,conservative-aggressive-decision-0003,conservative,aggressive,BUY_YES,0.53,5.0,order submitted
+event-000012,acknowledge,2026-01-01T12:00:02.500000+00:00,conservative-aggressive-order-0002,conservative-aggressive-decision-0003,conservative,aggressive,BUY_YES,0.53,5.0,acknowledged
+event-000013,rest,2026-01-01T12:00:02.500000+00:00,conservative-aggressive-order-0002,conservative-aggressive-decision-0003,conservative,aggressive,BUY_YES,0.53,5.0,resting or eligible for aggressive execution
+event-000014,partial_fill,2026-01-01T12:00:03+00:00,conservative-aggressive-order-0002,conservative-aggressive-decision-0003,conservative,aggressive,BUY_YES,0.41,2.25,aggressive_cross
+event-000015,decision,2026-01-01T12:00:03+00:00,,conservative-aggressive-decision-0004,conservative,aggressive,NO_TRADE,0.41,,edge_below_threshold
+event-000016,cancel_request,2026-01-01T12:00:03+00:00,conservative-aggressive-order-0002,conservative-aggressive-decision-0003,conservative,aggressive,BUY_YES,0.53,2.75,decision changed or data became invalid
+event-000017,cancel_acknowledge,2026-01-01T12:00:04+00:00,conservative-aggressive-order-0002,conservative-aggressive-decision-0003,conservative,aggressive,BUY_YES,0.53,2.75,cancel acknowledged
+event-000018,decision,2026-01-01T12:00:04+00:00,,conservative-aggressive-decision-0005,conservative,aggressive,NO_TRADE,,,invalid_market_state:crossed
+event-000019,decision,2026-01-01T12:00:05+00:00,,conservative-aggressive-decision-0006,conservative,aggressive,NO_TRADE,,,invalid_market_state:stale
+event-000020,decision,2026-01-01T12:00:06+00:00,,conservative-aggressive-decision-0007,conservative,aggressive,NO_TRADE,0.35,,edge_below_threshold
+event-000021,decision,2026-01-01T12:00:07+00:00,,conservative-aggressive-decision-0008,conservative,aggressive,NO_TRADE,0.35,,edge_below_threshold
+event-000022,decision,2026-01-01T12:00:08+00:00,,conservative-aggressive-decision-0009,conservative,aggressive,NO_TRADE,,,invalid_market_state:discontinuous
+event-000023,decision,2026-01-01T12:00:09+00:00,,conservative-aggressive-decision-0010,conservative,aggressive,NO_TRADE,0.33,,edge_below_threshold
+event-000024,decision,2026-01-01T12:00:10+00:00,,conservative-aggressive-decision-0011,conservative,aggressive,NO_TRADE,0.35,,edge_below_threshold
+event-000025,decision,2026-01-01T12:00:11+00:00,,conservative-aggressive-decision-0012,conservative,aggressive,BUY_YES,0.58,5.0,actionable fair-value edge
+event-000026,risk_check,2026-01-01T12:00:11+00:00,,conservative-aggressive-decision-0012,conservative,aggressive,BUY_YES,0.58,5.0,max_position
+event-000027,reject,2026-01-01T12:00:11+00:00,,conservative-aggressive-decision-0012,conservative,aggressive,BUY_YES,0.58,5.0,max_position
+event-000028,decision,2026-01-01T12:00:12+00:00,,conservative-aggressive-decision-0013,conservative,aggressive,BUY_YES,0.59,5.0,actionable fair-value edge
+event-000029,risk_check,2026-01-01T12:00:12+00:00,,conservative-aggressive-decision-0013,conservative,aggressive,BUY_YES,0.59,5.0,max_position
+event-000030,reject,2026-01-01T12:00:12+00:00,,conservative-aggressive-decision-0013,conservative,aggressive,BUY_YES,0.59,5.0,max_position
+event-000031,decision,2026-01-01T12:00:13+00:00,,conservative-aggressive-decision-0014,conservative,aggressive,BUY_YES,0.55,5.0,actionable fair-value edge
+event-000032,risk_check,2026-01-01T12:00:13+00:00,,conservative-aggressive-decision-0014,conservative,aggressive,BUY_YES,0.55,5.0,max_position
+event-000033,reject,2026-01-01T12:00:13+00:00,,conservative-aggressive-decision-0014,conservative,aggressive,BUY_YES,0.55,5.0,max_position
+event-000034,decision,2026-01-01T12:00:14+00:00,,conservative-aggressive-decision-0015,conservative,aggressive,BUY_YES,0.6,5.0,actionable fair-value edge
+event-000035,risk_check,2026-01-01T12:00:14+00:00,,conservative-aggressive-decision-0015,conservative,aggressive,BUY_YES,0.6,5.0,max_position
+event-000036,reject,2026-01-01T12:00:14+00:00,,conservative-aggressive-decision-0015,conservative,aggressive,BUY_YES,0.6,5.0,max_position
+event-000037,decision,2026-01-01T12:00:15+00:00,,conservative-aggressive-decision-0016,conservative,aggressive,BUY_YES,0.61,5.0,actionable fair-value edge
+event-000038,risk_check,2026-01-01T12:00:15+00:00,,conservative-aggressive-decision-0016,conservative,aggressive,BUY_YES,0.61,5.0,max_position
+event-000039,reject,2026-01-01T12:00:15+00:00,,conservative-aggressive-decision-0016,conservative,aggressive,BUY_YES,0.61,5.0,max_position
+event-000040,decision,2026-01-01T12:00:16+00:00,,conservative-aggressive-decision-0017,conservative,aggressive,BUY_YES,0.62,5.0,actionable fair-value edge
+event-000041,risk_check,2026-01-01T12:00:16+00:00,,conservative-aggressive-decision-0017,conservative,aggressive,BUY_YES,0.62,5.0,max_position
+event-000042,reject,2026-01-01T12:00:16+00:00,,conservative-aggressive-decision-0017,conservative,aggressive,BUY_YES,0.62,5.0,max_position
+event-000043,decision,2026-01-01T12:00:17+00:00,,conservative-aggressive-decision-0018,conservative,aggressive,NO_TRADE,,,invalid_market_state:malformed
+event-000044,decision,2026-01-01T12:00:18+00:00,,conservative-aggressive-decision-0019,conservative,aggressive,BUY_YES,0.62,5.0,actionable fair-value edge
+event-000045,risk_check,2026-01-01T12:00:18+00:00,,conservative-aggressive-decision-0019,conservative,aggressive,BUY_YES,0.62,5.0,max_position
+event-000046,reject,2026-01-01T12:00:18+00:00,,conservative-aggressive-decision-0019,conservative,aggressive,BUY_YES,0.62,5.0,max_position
+event-000001,decision,2026-01-01T12:00:00+00:00,,base-passive-decision-0001,base,passive,BUY_YES,0.5,5.0,actionable fair-value edge
+event-000002,risk_check,2026-01-01T12:00:00+00:00,,base-passive-decision-0001,base,passive,BUY_YES,0.5,5.0,approved
+event-000003,submit,2026-01-01T12:00:00.250000+00:00,base-passive-order-0001,base-passive-decision-0001,base,passive,BUY_YES,0.5,5.0,order submitted
+event-000004,acknowledge,2026-01-01T12:00:00.500000+00:00,base-passive-order-0001,base-passive-decision-0001,base,passive,BUY_YES,0.5,5.0,acknowledged
+event-000005,rest,2026-01-01T12:00:00.500000+00:00,base-passive-order-0001,base-passive-decision-0001,base,passive,BUY_YES,0.5,5.0,resting or eligible for aggressive execution
+event-000006,decision,2026-01-01T12:00:01+00:00,,base-passive-decision-0002,base,passive,BUY_YES,0.5,5.0,actionable fair-value edge
+event-000007,decision,2026-01-01T12:00:02+00:00,,base-passive-decision-0003,base,passive,BUY_YES,0.5,5.0,actionable fair-value edge
+event-000008,partial_fill,2026-01-01T12:00:03+00:00,base-passive-order-0001,base-passive-decision-0001,base,passive,BUY_YES,0.5,1.5,visible_depth_depletion
+event-000009,decision,2026-01-01T12:00:03+00:00,,base-passive-decision-0004,base,passive,BUY_YES,0.37,5.0,actionable fair-value edge
+event-000010,cancel_request,2026-01-01T12:00:03+00:00,base-passive-order-0001,base-passive-decision-0001,base,passive,BUY_YES,0.5,3.5,decision changed or data became invalid
+event-000011,cancel_acknowledge,2026-01-01T12:00:04+00:00,base-passive-order-0001,base-passive-decision-0001,base,passive,BUY_YES,0.5,3.5,cancel acknowledged
+event-000012,decision,2026-01-01T12:00:04+00:00,,base-passive-decision-0005,base,passive,NO_TRADE,,,invalid_market_state:crossed
+event-000013,decision,2026-01-01T12:00:05+00:00,,base-passive-decision-0006,base,passive,NO_TRADE,,,invalid_market_state:stale
+event-000014,decision,2026-01-01T12:00:06+00:00,,base-passive-decision-0007,base,passive,SELL_YES,0.39,5.0,actionable fair-value edge
+event-000015,risk_check,2026-01-01T12:00:06+00:00,,base-passive-decision-0007,base,passive,SELL_YES,0.39,5.0,approved
+event-000016,submit,2026-01-01T12:00:06.250000+00:00,base-passive-order-0002,base-passive-decision-0007,base,passive,SELL_YES,0.39,5.0,order submitted
+event-000017,acknowledge,2026-01-01T12:00:06.500000+00:00,base-passive-order-0002,base-passive-decision-0007,base,passive,SELL_YES,0.39,5.0,acknowledged
+event-000018,rest,2026-01-01T12:00:06.500000+00:00,base-passive-order-0002,base-passive-decision-0007,base,passive,SELL_YES,0.39,5.0,resting or eligible for aggressive execution
+event-000019,decision,2026-01-01T12:00:07+00:00,,base-passive-decision-0008,base,passive,SELL_YES,0.39,5.0,actionable fair-value edge
+event-000020,decision,2026-01-01T12:00:08+00:00,,base-passive-decision-0009,base,passive,NO_TRADE,,,invalid_market_state:discontinuous
+event-000021,cancel_request,2026-01-01T12:00:08+00:00,base-passive-order-0002,base-passive-decision-0007,base,passive,SELL_YES,0.39,5.0,decision changed or data became invalid
+event-000022,cancel_fill_race,2026-01-01T12:00:09+00:00,base-passive-order-0002,base-passive-decision-0007,base,passive,SELL_YES,0.39,1.0,fill occurred before cancel acknowledgement
+event-000023,partial_fill,2026-01-01T12:00:09+00:00,base-passive-order-0002,base-passive-decision-0007,base,passive,SELL_YES,0.39,1.0,visible_depth_depletion
+event-000024,cancel_acknowledge,2026-01-01T12:00:09+00:00,base-passive-order-0002,base-passive-decision-0007,base,passive,SELL_YES,0.39,4.0,cancel acknowledged
+event-000025,decision,2026-01-01T12:00:09+00:00,,base-passive-decision-0010,base,passive,SELL_YES,0.37,5.0,actionable fair-value edge
+event-000026,risk_check,2026-01-01T12:00:09+00:00,,base-passive-decision-0010,base,passive,SELL_YES,0.37,5.0,approved
+event-000027,submit,2026-01-01T12:00:09.250000+00:00,base-passive-order-0003,base-passive-decision-0010,base,passive,SELL_YES,0.37,5.0,order submitted
+event-000028,acknowledge,2026-01-01T12:00:09.500000+00:00,base-passive-order-0003,base-passive-decision-0010,base,passive,SELL_YES,0.37,5.0,acknowledged
+event-000029,rest,2026-01-01T12:00:09.500000+00:00,base-passive-order-0003,base-passive-decision-0010,base,passive,SELL_YES,0.37,5.0,resting or eligible for aggressive execution
+event-000030,decision,2026-01-01T12:00:10+00:00,,base-passive-decision-0011,base,passive,SELL_YES,0.38,5.0,actionable fair-value edge
+event-000031,cancel_request,2026-01-01T12:00:10+00:00,base-passive-order-0003,base-passive-decision-0010,base,passive,SELL_YES,0.37,5.0,decision changed or data became invalid
+event-000032,cancel_fill_race,2026-01-01T12:00:11+00:00,base-passive-order-0003,base-passive-decision-0010,base,passive,SELL_YES,0.37,5.0,fill occurred before cancel acknowledgement
+event-000033,fill,2026-01-01T12:00:11+00:00,base-passive-order-0003,base-passive-decision-0010,base,passive,SELL_YES,0.37,5.0,touch_or_cross
+event-000034,decision,2026-01-01T12:00:11+00:00,,base-passive-decision-0012,base,passive,BUY_YES,0.55,5.0,actionable fair-value edge
+event-000035,risk_check,2026-01-01T12:00:11+00:00,,base-passive-decision-0012,base,passive,BUY_YES,0.55,5.0,approved
+event-000036,submit,2026-01-01T12:00:11.250000+00:00,base-passive-order-0004,base-passive-decision-0012,base,passive,BUY_YES,0.55,5.0,order submitted
+event-000037,acknowledge,2026-01-01T12:00:11.500000+00:00,base-passive-order-0004,base-passive-decision-0012,base,passive,BUY_YES,0.55,5.0,acknowledged
+event-000038,rest,2026-01-01T12:00:11.500000+00:00,base-passive-order-0004,base-passive-decision-0012,base,passive,BUY_YES,0.55,5.0,resting or eligible for aggressive execution
+event-000039,decision,2026-01-01T12:00:12+00:00,,base-passive-decision-0013,base,passive,BUY_YES,0.56,5.0,actionable fair-value edge
+event-000040,cancel_request,2026-01-01T12:00:12+00:00,base-passive-order-0004,base-passive-decision-0012,base,passive,BUY_YES,0.55,5.0,decision changed or data became invalid
+event-000041,cancel_fill_race,2026-01-01T12:00:13+00:00,base-passive-order-0004,base-passive-decision-0012,base,passive,BUY_YES,0.55,1.5,fill occurred before cancel acknowledgement
+event-000042,partial_fill,2026-01-01T12:00:13+00:00,base-passive-order-0004,base-passive-decision-0012,base,passive,BUY_YES,0.55,1.5,visible_depth_depletion
+event-000043,cancel_acknowledge,2026-01-01T12:00:13+00:00,base-passive-order-0004,base-passive-decision-0012,base,passive,BUY_YES,0.55,3.5,cancel acknowledged
+event-000044,decision,2026-01-01T12:00:13+00:00,,base-passive-decision-0014,base,passive,BUY_YES,0.54,5.0,actionable fair-value edge
+event-000045,risk_check,2026-01-01T12:00:13+00:00,,base-passive-decision-0014,base,passive,BUY_YES,0.54,5.0,approved
+event-000046,submit,2026-01-01T12:00:13.250000+00:00,base-passive-order-0005,base-passive-decision-0014,base,passive,BUY_YES,0.54,5.0,order submitted
+event-000047,acknowledge,2026-01-01T12:00:13.500000+00:00,base-passive-order-0005,base-passive-decision-0014,base,passive,BUY_YES,0.54,5.0,acknowledged
+event-000048,rest,2026-01-01T12:00:13.500000+00:00,base-passive-order-0005,base-passive-decision-0014,base,passive,BUY_YES,0.54,5.0,resting or eligible for aggressive execution
+event-000049,decision,2026-01-01T12:00:14+00:00,,base-passive-decision-0015,base,passive,BUY_YES,0.57,5.0,actionable fair-value edge
+event-000050,cancel_request,2026-01-01T12:00:14+00:00,base-passive-order-0005,base-passive-decision-0014,base,passive,BUY_YES,0.54,5.0,decision changed or data became invalid
+event-000051,cancel_acknowledge,2026-01-01T12:00:15+00:00,base-passive-order-0005,base-passive-decision-0014,base,passive,BUY_YES,0.54,5.0,cancel acknowledged
+event-000052,decision,2026-01-01T12:00:15+00:00,,base-passive-decision-0016,base,passive,BUY_YES,0.58,5.0,actionable fair-value edge
+event-000053,risk_check,2026-01-01T12:00:15+00:00,,base-passive-decision-0016,base,passive,BUY_YES,0.58,5.0,approved
+event-000054,submit,2026-01-01T12:00:15.250000+00:00,base-passive-order-0006,base-passive-decision-0016,base,passive,BUY_YES,0.58,5.0,order submitted
+event-000055,acknowledge,2026-01-01T12:00:15.500000+00:00,base-passive-order-0006,base-passive-decision-0016,base,passive,BUY_YES,0.58,5.0,acknowledged
+event-000056,rest,2026-01-01T12:00:15.500000+00:00,base-passive-order-0006,base-passive-decision-0016,base,passive,BUY_YES,0.58,5.0,resting or eligible for aggressive execution
+event-000057,decision,2026-01-01T12:00:16+00:00,,base-passive-decision-0017,base,passive,BUY_YES,0.6,5.0,actionable fair-value edge
+event-000058,cancel_request,2026-01-01T12:00:16+00:00,base-passive-order-0006,base-passive-decision-0016,base,passive,BUY_YES,0.58,5.0,decision changed or data became invalid
+event-000059,cancel_acknowledge,2026-01-01T12:00:17+00:00,base-passive-order-0006,base-passive-decision-0016,base,passive,BUY_YES,0.58,5.0,cancel acknowledged
+event-000060,decision,2026-01-01T12:00:17+00:00,,base-passive-decision-0018,base,passive,NO_TRADE,,,invalid_market_state:malformed
+event-000061,decision,2026-01-01T12:00:18+00:00,,base-passive-decision-0019,base,passive,BUY_YES,0.6,5.0,actionable fair-value edge
+event-000062,risk_check,2026-01-01T12:00:18+00:00,,base-passive-decision-0019,base,passive,BUY_YES,0.6,5.0,approved
+event-000063,submit,2026-01-01T12:00:18.250000+00:00,base-passive-order-0007,base-passive-decision-0019,base,passive,BUY_YES,0.6,5.0,order submitted
+event-000064,expire,2026-01-01T12:00:22+00:00,base-passive-order-0007,base-passive-decision-0019,base,passive,BUY_YES,0.6,5.0,replay ended before a fill
+event-000001,decision,2026-01-01T12:00:00+00:00,,base-aggressive-decision-0001,base,aggressive,BUY_YES,0.54,5.0,actionable fair-value edge
+event-000002,risk_check,2026-01-01T12:00:00+00:00,,base-aggressive-decision-0001,base,aggressive,BUY_YES,0.54,5.0,approved
+event-000003,submit,2026-01-01T12:00:00.250000+00:00,base-aggressive-order-0001,base-aggressive-decision-0001,base,aggressive,BUY_YES,0.54,5.0,order submitted
+event-000004,acknowledge,2026-01-01T12:00:00.500000+00:00,base-aggressive-order-0001,base-aggressive-decision-0001,base,aggressive,BUY_YES,0.54,5.0,acknowledged
+event-000005,rest,2026-01-01T12:00:00.500000+00:00,base-aggressive-order-0001,base-aggressive-decision-0001,base,aggressive,BUY_YES,0.54,5.0,resting or eligible for aggressive execution
+event-000006,partial_fill,2026-01-01T12:00:01+00:00,base-aggressive-order-0001,base-aggressive-decision-0001,base,aggressive,BUY_YES,0.54,4.0,aggressive_cross
+event-000007,decision,2026-01-01T12:00:01+00:00,,base-aggressive-decision-0002,base,aggressive,BUY_YES,0.54,5.0,actionable fair-value edge
+event-000008,fill,2026-01-01T12:00:02+00:00,base-aggressive-order-0001,base-aggressive-decision-0001,base,aggressive,BUY_YES,0.53,1.0,aggressive_cross
+event-000009,decision,2026-01-01T12:00:02+00:00,,base-aggressive-decision-0003,base,aggressive,BUY_YES,0.53,5.0,actionable fair-value edge
+event-000010,risk_check,2026-01-01T12:00:02+00:00,,base-aggressive-decision-0003,base,aggressive,BUY_YES,0.53,5.0,approved
+event-000011,submit,2026-01-01T12:00:02.250000+00:00,base-aggressive-order-0002,base-aggressive-decision-0003,base,aggressive,BUY_YES,0.53,5.0,order submitted
+event-000012,acknowledge,2026-01-01T12:00:02.500000+00:00,base-aggressive-order-0002,base-aggressive-decision-0003,base,aggressive,BUY_YES,0.53,5.0,acknowledged
+event-000013,rest,2026-01-01T12:00:02.500000+00:00,base-aggressive-order-0002,base-aggressive-decision-0003,base,aggressive,BUY_YES,0.53,5.0,resting or eligible for aggressive execution
+event-000014,partial_fill,2026-01-01T12:00:03+00:00,base-aggressive-order-0002,base-aggressive-decision-0003,base,aggressive,BUY_YES,0.41,3.0,aggressive_cross
+event-000015,decision,2026-01-01T12:00:03+00:00,,base-aggressive-decision-0004,base,aggressive,NO_TRADE,0.41,,edge_below_threshold
+event-000016,cancel_request,2026-01-01T12:00:03+00:00,base-aggressive-order-0002,base-aggressive-decision-0003,base,aggressive,BUY_YES,0.53,2.0,decision changed or data became invalid
+event-000017,cancel_acknowledge,2026-01-01T12:00:04+00:00,base-aggressive-order-0002,base-aggressive-decision-0003,base,aggressive,BUY_YES,0.53,2.0,cancel acknowledged
+event-000018,decision,2026-01-01T12:00:04+00:00,,base-aggressive-decision-0005,base,aggressive,NO_TRADE,,,invalid_market_state:crossed
+event-000019,decision,2026-01-01T12:00:05+00:00,,base-aggressive-decision-0006,base,aggressive,NO_TRADE,,,invalid_market_state:stale
+event-000020,decision,2026-01-01T12:00:06+00:00,,base-aggressive-decision-0007,base,aggressive,NO_TRADE,0.35,,edge_below_threshold
+event-000021,decision,2026-01-01T12:00:07+00:00,,base-aggressive-decision-0008,base,aggressive,NO_TRADE,0.35,,edge_below_threshold
+event-000022,decision,2026-01-01T12:00:08+00:00,,base-aggressive-decision-0009,base,aggressive,NO_TRADE,,,invalid_market_state:discontinuous
+event-000023,decision,2026-01-01T12:00:09+00:00,,base-aggressive-decision-0010,base,aggressive,NO_TRADE,0.33,,edge_below_threshold
+event-000024,decision,2026-01-01T12:00:10+00:00,,base-aggressive-decision-0011,base,aggressive,NO_TRADE,0.35,,edge_below_threshold
+event-000025,decision,2026-01-01T12:00:11+00:00,,base-aggressive-decision-0012,base,aggressive,BUY_YES,0.58,5.0,actionable fair-value edge
+event-000026,risk_check,2026-01-01T12:00:11+00:00,,base-aggressive-decision-0012,base,aggressive,BUY_YES,0.58,5.0,max_position
+event-000027,reject,2026-01-01T12:00:11+00:00,,base-aggressive-decision-0012,base,aggressive,BUY_YES,0.58,5.0,max_position
+event-000028,decision,2026-01-01T12:00:12+00:00,,base-aggressive-decision-0013,base,aggressive,BUY_YES,0.59,5.0,actionable fair-value edge
+event-000029,risk_check,2026-01-01T12:00:12+00:00,,base-aggressive-decision-0013,base,aggressive,BUY_YES,0.59,5.0,max_position
+event-000030,reject,2026-01-01T12:00:12+00:00,,base-aggressive-decision-0013,base,aggressive,BUY_YES,0.59,5.0,max_position
+event-000031,decision,2026-01-01T12:00:13+00:00,,base-aggressive-decision-0014,base,aggressive,BUY_YES,0.55,5.0,actionable fair-value edge
+event-000032,risk_check,2026-01-01T12:00:13+00:00,,base-aggressive-decision-0014,base,aggressive,BUY_YES,0.55,5.0,max_position
+event-000033,reject,2026-01-01T12:00:13+00:00,,base-aggressive-decision-0014,base,aggressive,BUY_YES,0.55,5.0,max_position
+event-000034,decision,2026-01-01T12:00:14+00:00,,base-aggressive-decision-0015,base,aggressive,BUY_YES,0.6,5.0,actionable fair-value edge
+event-000035,risk_check,2026-01-01T12:00:14+00:00,,base-aggressive-decision-0015,base,aggressive,BUY_YES,0.6,5.0,max_position
+event-000036,reject,2026-01-01T12:00:14+00:00,,base-aggressive-decision-0015,base,aggressive,BUY_YES,0.6,5.0,max_position
+event-000037,decision,2026-01-01T12:00:15+00:00,,base-aggressive-decision-0016,base,aggressive,BUY_YES,0.61,5.0,actionable fair-value edge
+event-000038,risk_check,2026-01-01T12:00:15+00:00,,base-aggressive-decision-0016,base,aggressive,BUY_YES,0.61,5.0,max_position
+event-000039,reject,2026-01-01T12:00:15+00:00,,base-aggressive-decision-0016,base,aggressive,BUY_YES,0.61,5.0,max_position
+event-000040,decision,2026-01-01T12:00:16+00:00,,base-aggressive-decision-0017,base,aggressive,BUY_YES,0.62,5.0,actionable fair-value edge
+event-000041,risk_check,2026-01-01T12:00:16+00:00,,base-aggressive-decision-0017,base,aggressive,BUY_YES,0.62,5.0,max_position
+event-000042,reject,2026-01-01T12:00:16+00:00,,base-aggressive-decision-0017,base,aggressive,BUY_YES,0.62,5.0,max_position
+event-000043,decision,2026-01-01T12:00:17+00:00,,base-aggressive-decision-0018,base,aggressive,NO_TRADE,,,invalid_market_state:malformed
+event-000044,decision,2026-01-01T12:00:18+00:00,,base-aggressive-decision-0019,base,aggressive,BUY_YES,0.62,5.0,actionable fair-value edge
+event-000045,risk_check,2026-01-01T12:00:18+00:00,,base-aggressive-decision-0019,base,aggressive,BUY_YES,0.62,5.0,max_position
+event-000046,reject,2026-01-01T12:00:18+00:00,,base-aggressive-decision-0019,base,aggressive,BUY_YES,0.62,5.0,max_position
+event-000001,decision,2026-01-01T12:00:00+00:00,,aggressive-passive-decision-0001,aggressive,passive,BUY_YES,0.5,5.0,actionable fair-value edge
+event-000002,risk_check,2026-01-01T12:00:00+00:00,,aggressive-passive-decision-0001,aggressive,passive,BUY_YES,0.5,5.0,approved
+event-000003,submit,2026-01-01T12:00:00.250000+00:00,aggressive-passive-order-0001,aggressive-passive-decision-0001,aggressive,passive,BUY_YES,0.5,5.0,order submitted
+event-000004,acknowledge,2026-01-01T12:00:00.500000+00:00,aggressive-passive-order-0001,aggressive-passive-decision-0001,aggressive,passive,BUY_YES,0.5,5.0,acknowledged
+event-000005,rest,2026-01-01T12:00:00.500000+00:00,aggressive-passive-order-0001,aggressive-passive-decision-0001,aggressive,passive,BUY_YES,0.5,5.0,resting or eligible for aggressive execution
+event-000006,decision,2026-01-01T12:00:01+00:00,,aggressive-passive-decision-0002,aggressive,passive,BUY_YES,0.5,5.0,actionable fair-value edge
+event-000007,decision,2026-01-01T12:00:02+00:00,,aggressive-passive-decision-0003,aggressive,passive,BUY_YES,0.5,5.0,actionable fair-value edge
+event-000008,partial_fill,2026-01-01T12:00:03+00:00,aggressive-passive-order-0001,aggressive-passive-decision-0001,aggressive,passive,BUY_YES,0.5,3.0,visible_depth_depletion
+event-000009,decision,2026-01-01T12:00:03+00:00,,aggressive-passive-decision-0004,aggressive,passive,BUY_YES,0.37,5.0,actionable fair-value edge
+event-000010,cancel_request,2026-01-01T12:00:03+00:00,aggressive-passive-order-0001,aggressive-passive-decision-0001,aggressive,passive,BUY_YES,0.5,2.0,decision changed or data became invalid
+event-000011,cancel_acknowledge,2026-01-01T12:00:04+00:00,aggressive-passive-order-0001,aggressive-passive-decision-0001,aggressive,passive,BUY_YES,0.5,2.0,cancel acknowledged
+event-000012,decision,2026-01-01T12:00:04+00:00,,aggressive-passive-decision-0005,aggressive,passive,NO_TRADE,,,invalid_market_state:crossed
+event-000013,decision,2026-01-01T12:00:05+00:00,,aggressive-passive-decision-0006,aggressive,passive,NO_TRADE,,,invalid_market_state:stale
+event-000014,decision,2026-01-01T12:00:06+00:00,,aggressive-passive-decision-0007,aggressive,passive,SELL_YES,0.39,5.0,actionable fair-value edge
+event-000015,risk_check,2026-01-01T12:00:06+00:00,,aggressive-passive-decision-0007,aggressive,passive,SELL_YES,0.39,5.0,approved
+event-000016,submit,2026-01-01T12:00:06.250000+00:00,aggressive-passive-order-0002,aggressive-passive-decision-0007,aggressive,passive,SELL_YES,0.39,5.0,order submitted
+event-000017,acknowledge,2026-01-01T12:00:06.500000+00:00,aggressive-passive-order-0002,aggressive-passive-decision-0007,aggressive,passive,SELL_YES,0.39,5.0,acknowledged
+event-000018,rest,2026-01-01T12:00:06.500000+00:00,aggressive-passive-order-0002,aggressive-passive-decision-0007,aggressive,passive,SELL_YES,0.39,5.0,resting or eligible for aggressive execution
+event-000019,decision,2026-01-01T12:00:07+00:00,,aggressive-passive-decision-0008,aggressive,passive,SELL_YES,0.39,5.0,actionable fair-value edge
+event-000020,decision,2026-01-01T12:00:08+00:00,,aggressive-passive-decision-0009,aggressive,passive,NO_TRADE,,,invalid_market_state:discontinuous
+event-000021,cancel_request,2026-01-01T12:00:08+00:00,aggressive-passive-order-0002,aggressive-passive-decision-0007,aggressive,passive,SELL_YES,0.39,5.0,decision changed or data became invalid
+event-000022,cancel_fill_race,2026-01-01T12:00:09+00:00,aggressive-passive-order-0002,aggressive-passive-decision-0007,aggressive,passive,SELL_YES,0.39,3.6,fill occurred before cancel acknowledgement
+event-000023,partial_fill,2026-01-01T12:00:09+00:00,aggressive-passive-order-0002,aggressive-passive-decision-0007,aggressive,passive,SELL_YES,0.39,3.6,visible_depth_depletion
+event-000024,cancel_acknowledge,2026-01-01T12:00:09+00:00,aggressive-passive-order-0002,aggressive-passive-decision-0007,aggressive,passive,SELL_YES,0.39,1.4,cancel acknowledged
+event-000025,decision,2026-01-01T12:00:09+00:00,,aggressive-passive-decision-0010,aggressive,passive,SELL_YES,0.37,5.0,actionable fair-value edge
+event-000026,risk_check,2026-01-01T12:00:09+00:00,,aggressive-passive-decision-0010,aggressive,passive,SELL_YES,0.37,5.0,approved
+event-000027,submit,2026-01-01T12:00:09.250000+00:00,aggressive-passive-order-0003,aggressive-passive-decision-0010,aggressive,passive,SELL_YES,0.37,5.0,order submitted
+event-000028,acknowledge,2026-01-01T12:00:09.500000+00:00,aggressive-passive-order-0003,aggressive-passive-decision-0010,aggressive,passive,SELL_YES,0.37,5.0,acknowledged
+event-000029,rest,2026-01-01T12:00:09.500000+00:00,aggressive-passive-order-0003,aggressive-passive-decision-0010,aggressive,passive,SELL_YES,0.37,5.0,resting or eligible for aggressive execution
+event-000030,decision,2026-01-01T12:00:10+00:00,,aggressive-passive-decision-0011,aggressive,passive,SELL_YES,0.38,5.0,actionable fair-value edge
+event-000031,cancel_request,2026-01-01T12:00:10+00:00,aggressive-passive-order-0003,aggressive-passive-decision-0010,aggressive,passive,SELL_YES,0.37,5.0,decision changed or data became invalid
+event-000032,cancel_fill_race,2026-01-01T12:00:11+00:00,aggressive-passive-order-0003,aggressive-passive-decision-0010,aggressive,passive,SELL_YES,0.37,5.0,fill occurred before cancel acknowledgement
+event-000033,fill,2026-01-01T12:00:11+00:00,aggressive-passive-order-0003,aggressive-passive-decision-0010,aggressive,passive,SELL_YES,0.37,5.0,touch_or_cross
+event-000034,decision,2026-01-01T12:00:11+00:00,,aggressive-passive-decision-0012,aggressive,passive,BUY_YES,0.55,5.0,actionable fair-value edge
+event-000035,risk_check,2026-01-01T12:00:11+00:00,,aggressive-passive-decision-0012,aggressive,passive,BUY_YES,0.55,5.0,approved
+event-000036,submit,2026-01-01T12:00:11.250000+00:00,aggressive-passive-order-0004,aggressive-passive-decision-0012,aggressive,passive,BUY_YES,0.55,5.0,order submitted
+event-000037,acknowledge,2026-01-01T12:00:11.500000+00:00,aggressive-passive-order-0004,aggressive-passive-decision-0012,aggressive,passive,BUY_YES,0.55,5.0,acknowledged
+event-000038,rest,2026-01-01T12:00:11.500000+00:00,aggressive-passive-order-0004,aggressive-passive-decision-0012,aggressive,passive,BUY_YES,0.55,5.0,resting or eligible for aggressive execution
+event-000039,decision,2026-01-01T12:00:12+00:00,,aggressive-passive-decision-0013,aggressive,passive,BUY_YES,0.56,5.0,actionable fair-value edge
+event-000040,cancel_request,2026-01-01T12:00:12+00:00,aggressive-passive-order-0004,aggressive-passive-decision-0012,aggressive,passive,BUY_YES,0.55,5.0,decision changed or data became invalid
+event-000041,cancel_fill_race,2026-01-01T12:00:13+00:00,aggressive-passive-order-0004,aggressive-passive-decision-0012,aggressive,passive,BUY_YES,0.55,5.0,fill occurred before cancel acknowledgement
+event-000042,fill,2026-01-01T12:00:13+00:00,aggressive-passive-order-0004,aggressive-passive-decision-0012,aggressive,passive,BUY_YES,0.55,5.0,visible_depth_depletion
+event-000043,decision,2026-01-01T12:00:13+00:00,,aggressive-passive-decision-0014,aggressive,passive,BUY_YES,0.54,5.0,actionable fair-value edge
+event-000044,risk_check,2026-01-01T12:00:13+00:00,,aggressive-passive-decision-0014,aggressive,passive,BUY_YES,0.54,5.0,approved
+event-000045,submit,2026-01-01T12:00:13.250000+00:00,aggressive-passive-order-0005,aggressive-passive-decision-0014,aggressive,passive,BUY_YES,0.54,5.0,order submitted
+event-000046,acknowledge,2026-01-01T12:00:13.500000+00:00,aggressive-passive-order-0005,aggressive-passive-decision-0014,aggressive,passive,BUY_YES,0.54,5.0,acknowledged
+event-000047,rest,2026-01-01T12:00:13.500000+00:00,aggressive-passive-order-0005,aggressive-passive-decision-0014,aggressive,passive,BUY_YES,0.54,5.0,resting or eligible for aggressive execution
+event-000048,decision,2026-01-01T12:00:14+00:00,,aggressive-passive-decision-0015,aggressive,passive,BUY_YES,0.57,5.0,actionable fair-value edge
+event-000049,cancel_request,2026-01-01T12:00:14+00:00,aggressive-passive-order-0005,aggressive-passive-decision-0014,aggressive,passive,BUY_YES,0.54,5.0,decision changed or data became invalid
+event-000050,cancel_acknowledge,2026-01-01T12:00:15+00:00,aggressive-passive-order-0005,aggressive-passive-decision-0014,aggressive,passive,BUY_YES,0.54,5.0,cancel acknowledged
+event-000051,decision,2026-01-01T12:00:15+00:00,,aggressive-passive-decision-0016,aggressive,passive,BUY_YES,0.58,5.0,actionable fair-value edge
+event-000052,risk_check,2026-01-01T12:00:15+00:00,,aggressive-passive-decision-0016,aggressive,passive,BUY_YES,0.58,5.0,approved
+event-000053,submit,2026-01-01T12:00:15.250000+00:00,aggressive-passive-order-0006,aggressive-passive-decision-0016,aggressive,passive,BUY_YES,0.58,5.0,order submitted
+event-000054,acknowledge,2026-01-01T12:00:15.500000+00:00,aggressive-passive-order-0006,aggressive-passive-decision-0016,aggressive,passive,BUY_YES,0.58,5.0,acknowledged
+event-000055,rest,2026-01-01T12:00:15.500000+00:00,aggressive-passive-order-0006,aggressive-passive-decision-0016,aggressive,passive,BUY_YES,0.58,5.0,resting or eligible for aggressive execution
+event-000056,decision,2026-01-01T12:00:16+00:00,,aggressive-passive-decision-0017,aggressive,passive,BUY_YES,0.6,5.0,actionable fair-value edge
+event-000057,cancel_request,2026-01-01T12:00:16+00:00,aggressive-passive-order-0006,aggressive-passive-decision-0016,aggressive,passive,BUY_YES,0.58,5.0,decision changed or data became invalid
+event-000058,cancel_acknowledge,2026-01-01T12:00:17+00:00,aggressive-passive-order-0006,aggressive-passive-decision-0016,aggressive,passive,BUY_YES,0.58,5.0,cancel acknowledged
+event-000059,decision,2026-01-01T12:00:17+00:00,,aggressive-passive-decision-0018,aggressive,passive,NO_TRADE,,,invalid_market_state:malformed
+event-000060,decision,2026-01-01T12:00:18+00:00,,aggressive-passive-decision-0019,aggressive,passive,BUY_YES,0.6,5.0,actionable fair-value edge
+event-000061,risk_check,2026-01-01T12:00:18+00:00,,aggressive-passive-decision-0019,aggressive,passive,BUY_YES,0.6,5.0,approved
+event-000062,submit,2026-01-01T12:00:18.250000+00:00,aggressive-passive-order-0007,aggressive-passive-decision-0019,aggressive,passive,BUY_YES,0.6,5.0,order submitted
+event-000063,expire,2026-01-01T12:00:22+00:00,aggressive-passive-order-0007,aggressive-passive-decision-0019,aggressive,passive,BUY_YES,0.6,5.0,replay ended before a fill
+event-000001,decision,2026-01-01T12:00:00+00:00,,aggressive-aggressive-decision-0001,aggressive,aggressive,BUY_YES,0.54,5.0,actionable fair-value edge
+event-000002,risk_check,2026-01-01T12:00:00+00:00,,aggressive-aggressive-decision-0001,aggressive,aggressive,BUY_YES,0.54,5.0,approved
+event-000003,submit,2026-01-01T12:00:00.250000+00:00,aggressive-aggressive-order-0001,aggressive-aggressive-decision-0001,aggressive,aggressive,BUY_YES,0.54,5.0,order submitted
+event-000004,acknowledge,2026-01-01T12:00:00.500000+00:00,aggressive-aggressive-order-0001,aggressive-aggressive-decision-0001,aggressive,aggressive,BUY_YES,0.54,5.0,acknowledged
+event-000005,rest,2026-01-01T12:00:00.500000+00:00,aggressive-aggressive-order-0001,aggressive-aggressive-decision-0001,aggressive,aggressive,BUY_YES,0.54,5.0,resting or eligible for aggressive execution
+event-000006,partial_fill,2026-01-01T12:00:01+00:00,aggressive-aggressive-order-0001,aggressive-aggressive-decision-0001,aggressive,aggressive,BUY_YES,0.54,4.0,aggressive_cross
+event-000007,decision,2026-01-01T12:00:01+00:00,,aggressive-aggressive-decision-0002,aggressive,aggressive,BUY_YES,0.54,5.0,actionable fair-value edge
+event-000008,fill,2026-01-01T12:00:02+00:00,aggressive-aggressive-order-0001,aggressive-aggressive-decision-0001,aggressive,aggressive,BUY_YES,0.53,1.0,aggressive_cross
+event-000009,decision,2026-01-01T12:00:02+00:00,,aggressive-aggressive-decision-0003,aggressive,aggressive,BUY_YES,0.53,5.0,actionable fair-value edge
+event-000010,risk_check,2026-01-01T12:00:02+00:00,,aggressive-aggressive-decision-0003,aggressive,aggressive,BUY_YES,0.53,5.0,approved
+event-000011,submit,2026-01-01T12:00:02.250000+00:00,aggressive-aggressive-order-0002,aggressive-aggressive-decision-0003,aggressive,aggressive,BUY_YES,0.53,5.0,order submitted
+event-000012,acknowledge,2026-01-01T12:00:02.500000+00:00,aggressive-aggressive-order-0002,aggressive-aggressive-decision-0003,aggressive,aggressive,BUY_YES,0.53,5.0,acknowledged
+event-000013,rest,2026-01-01T12:00:02.500000+00:00,aggressive-aggressive-order-0002,aggressive-aggressive-decision-0003,aggressive,aggressive,BUY_YES,0.53,5.0,resting or eligible for aggressive execution
+event-000014,partial_fill,2026-01-01T12:00:03+00:00,aggressive-aggressive-order-0002,aggressive-aggressive-decision-0003,aggressive,aggressive,BUY_YES,0.41,3.0,aggressive_cross
+event-000015,decision,2026-01-01T12:00:03+00:00,,aggressive-aggressive-decision-0004,aggressive,aggressive,NO_TRADE,0.41,,edge_below_threshold
+event-000016,cancel_request,2026-01-01T12:00:03+00:00,aggressive-aggressive-order-0002,aggressive-aggressive-decision-0003,aggressive,aggressive,BUY_YES,0.53,2.0,decision changed or data became invalid
+event-000017,cancel_acknowledge,2026-01-01T12:00:04+00:00,aggressive-aggressive-order-0002,aggressive-aggressive-decision-0003,aggressive,aggressive,BUY_YES,0.53,2.0,cancel acknowledged
+event-000018,decision,2026-01-01T12:00:04+00:00,,aggressive-aggressive-decision-0005,aggressive,aggressive,NO_TRADE,,,invalid_market_state:crossed
+event-000019,decision,2026-01-01T12:00:05+00:00,,aggressive-aggressive-decision-0006,aggressive,aggressive,NO_TRADE,,,invalid_market_state:stale
+event-000020,decision,2026-01-01T12:00:06+00:00,,aggressive-aggressive-decision-0007,aggressive,aggressive,NO_TRADE,0.35,,edge_below_threshold
+event-000021,decision,2026-01-01T12:00:07+00:00,,aggressive-aggressive-decision-0008,aggressive,aggressive,NO_TRADE,0.35,,edge_below_threshold
+event-000022,decision,2026-01-01T12:00:08+00:00,,aggressive-aggressive-decision-0009,aggressive,aggressive,NO_TRADE,,,invalid_market_state:discontinuous
+event-000023,decision,2026-01-01T12:00:09+00:00,,aggressive-aggressive-decision-0010,aggressive,aggressive,NO_TRADE,0.33,,edge_below_threshold
+event-000024,decision,2026-01-01T12:00:10+00:00,,aggressive-aggressive-decision-0011,aggressive,aggressive,NO_TRADE,0.35,,edge_below_threshold
+event-000025,decision,2026-01-01T12:00:11+00:00,,aggressive-aggressive-decision-0012,aggressive,aggressive,BUY_YES,0.58,5.0,actionable fair-value edge
+event-000026,risk_check,2026-01-01T12:00:11+00:00,,aggressive-aggressive-decision-0012,aggressive,aggressive,BUY_YES,0.58,5.0,max_position
+event-000027,reject,2026-01-01T12:00:11+00:00,,aggressive-aggressive-decision-0012,aggressive,aggressive,BUY_YES,0.58,5.0,max_position
+event-000028,decision,2026-01-01T12:00:12+00:00,,aggressive-aggressive-decision-0013,aggressive,aggressive,BUY_YES,0.59,5.0,actionable fair-value edge
+event-000029,risk_check,2026-01-01T12:00:12+00:00,,aggressive-aggressive-decision-0013,aggressive,aggressive,BUY_YES,0.59,5.0,max_position
+event-000030,reject,2026-01-01T12:00:12+00:00,,aggressive-aggressive-decision-0013,aggressive,aggressive,BUY_YES,0.59,5.0,max_position
+event-000031,decision,2026-01-01T12:00:13+00:00,,aggressive-aggressive-decision-0014,aggressive,aggressive,BUY_YES,0.55,5.0,actionable fair-value edge
+event-000032,risk_check,2026-01-01T12:00:13+00:00,,aggressive-aggressive-decision-0014,aggressive,aggressive,BUY_YES,0.55,5.0,max_position
+event-000033,reject,2026-01-01T12:00:13+00:00,,aggressive-aggressive-decision-0014,aggressive,aggressive,BUY_YES,0.55,5.0,max_position
+event-000034,decision,2026-01-01T12:00:14+00:00,,aggressive-aggressive-decision-0015,aggressive,aggressive,BUY_YES,0.6,5.0,actionable fair-value edge
+event-000035,risk_check,2026-01-01T12:00:14+00:00,,aggressive-aggressive-decision-0015,aggressive,aggressive,BUY_YES,0.6,5.0,max_position
+event-000036,reject,2026-01-01T12:00:14+00:00,,aggressive-aggressive-decision-0015,aggressive,aggressive,BUY_YES,0.6,5.0,max_position
+event-000037,decision,2026-01-01T12:00:15+00:00,,aggressive-aggressive-decision-0016,aggressive,aggressive,BUY_YES,0.61,5.0,actionable fair-value edge
+event-000038,risk_check,2026-01-01T12:00:15+00:00,,aggressive-aggressive-decision-0016,aggressive,aggressive,BUY_YES,0.61,5.0,max_position
+event-000039,reject,2026-01-01T12:00:15+00:00,,aggressive-aggressive-decision-0016,aggressive,aggressive,BUY_YES,0.61,5.0,max_position
+event-000040,decision,2026-01-01T12:00:16+00:00,,aggressive-aggressive-decision-0017,aggressive,aggressive,BUY_YES,0.62,5.0,actionable fair-value edge
+event-000041,risk_check,2026-01-01T12:00:16+00:00,,aggressive-aggressive-decision-0017,aggressive,aggressive,BUY_YES,0.62,5.0,max_position
+event-000042,reject,2026-01-01T12:00:16+00:00,,aggressive-aggressive-decision-0017,aggressive,aggressive,BUY_YES,0.62,5.0,max_position
+event-000043,decision,2026-01-01T12:00:17+00:00,,aggressive-aggressive-decision-0018,aggressive,aggressive,NO_TRADE,,,invalid_market_state:malformed
+event-000044,decision,2026-01-01T12:00:18+00:00,,aggressive-aggressive-decision-0019,aggressive,aggressive,BUY_YES,0.62,5.0,actionable fair-value edge
+event-000045,risk_check,2026-01-01T12:00:18+00:00,,aggressive-aggressive-decision-0019,aggressive,aggressive,BUY_YES,0.62,5.0,max_position
+event-000046,reject,2026-01-01T12:00:18+00:00,,aggressive-aggressive-decision-0019,aggressive,aggressive,BUY_YES,0.62,5.0,max_position

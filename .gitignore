@@ -16,3 +16,4 @@ data/*
 !data/sample_replay.jsonl
 !data/sample_football_markets.json
 !data/sample_football_replay.jsonl
+!data/sample_execution_replay.jsonl
