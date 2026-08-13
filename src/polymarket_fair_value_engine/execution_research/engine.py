@@ -545,6 +545,11 @@ def _simulate(
         (fill.mid_yes - fill.price) if fill.side is DecisionSide.BUY_YES else (fill.price - fill.mid_yes)
         for fill in fills
     ]
+    adverse_selection = [
+        max(0.0, -row.next_snapshot_signed_markout)
+        for row in markout_rows
+        if row.next_snapshot_signed_markout is not None
+    ]
     latest_mark = next((snapshot.mark_yes for snapshot in reversed(account_snapshots) if snapshot.mark_yes is not None), None)
     final_snapshot = account_snapshots[-1] if account_snapshots else None
     result = ProfileResult(
@@ -569,6 +574,7 @@ def _simulate(
         cancel_fill_races=sum(1 for event in events if event.event_type is LifecycleEventType.CANCEL_FILL_RACE),
         average_time_resting_ms=_mean(resting_durations),
         average_spread_paid_or_captured=_mean(spread_capture),
+        average_next_adverse_selection=_mean(adverse_selection),
         total_fees=sum(fill.fee for fill in fills),
         final_position_yes=account.position,
         realized_pnl=account.realized_pnl,
@@ -668,6 +674,7 @@ def _result_row(result: ProfileResult, experiment_id: str, dimension: str, value
         "filled_size": _round(result.filled_size),
         "fill_rate": _round(result.fill_rate),
         "average_spread_paid_or_captured": _round(result.average_spread_paid_or_captured),
+        "average_next_adverse_selection": _round(result.average_next_adverse_selection),
         "average_next_signed_markout": _round(result.average_next_signed_markout),
         "total_pnl": _round(result.total_pnl),
         "fees": _round(result.total_fees),
@@ -765,13 +772,13 @@ def _render_report(outputs: list[SimulationOutput], matrix_rows: list[dict[str, 
         "",
         "## Profile Comparison",
         "",
-        "| Profile | Style | Filled | Fill rate | Avg spread capture | Next signed markout | Total marked PnL |",
-        "| --- | --- | ---: | ---: | ---: | ---: | ---: |",
+        "| Profile | Style | Filled | Fill rate | Avg spread capture | Next signed markout | Next adverse selection | Total marked PnL |",
+        "| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: |",
     ]
     for output in outputs:
         result = output.result
         lines.append(
-            f"| {result.profile_name} | {result.style.value} | {result.filled_size:.2f} | {result.fill_rate:.1%} | {result.average_spread_paid_or_captured if result.average_spread_paid_or_captured is not None else 0.0:.4f} | {result.average_next_signed_markout if result.average_next_signed_markout is not None else 0.0:.4f} | {result.total_pnl:.4f} |"
+            f"| {result.profile_name} | {result.style.value} | {result.filled_size:.2f} | {result.fill_rate:.1%} | {result.average_spread_paid_or_captured if result.average_spread_paid_or_captured is not None else 0.0:.4f} | {result.average_next_signed_markout if result.average_next_signed_markout is not None else 0.0:.4f} | {result.average_next_adverse_selection if result.average_next_adverse_selection is not None else 0.0:.4f} | {result.total_pnl:.4f} |"
         )
     lines.extend(
         [
@@ -782,7 +789,7 @@ def _render_report(outputs: list[SimulationOutput], matrix_rows: list[dict[str, 
             "",
             "## Sensitivity Matrix",
             "",
-            "The matrix is one-factor-at-a-time around a fixed baseline. It varies fair-value edge, spread, depth imbalance, submit latency, execution profile, initial inventory, and fees. It is a tooling and assumption-sensitivity exercise, not a profitability validation.",
+            "The matrix is one-factor-at-a-time around a fixed baseline. It varies fair-value edge, spread, depth imbalance, end-to-end order latency, execution profile, initial inventory, and fees. It is a tooling and assumption-sensitivity exercise, not a profitability validation.",
             "Assessment rule: a row is labelled `assumption_sensitive` when its next signed markout changes by at least 0.01, fill rate by at least 0.10, or marked PnL by at least 0.50 versus baseline; otherwise it is `stable_on_this_sample`.",
             "",
             "| Dimension | Value | Style | Fill rate | Next signed markout | Total marked PnL | Assessment |",

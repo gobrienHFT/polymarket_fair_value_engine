@@ -73,7 +73,7 @@ def _status(reasons: list[str]) -> MarketValidity:
 def load_clob_replay(path: str | Path, config: ExecutionResearchConfig) -> list[ReplayFrame]:
     replay_path = Path(path)
     frames: list[ReplayFrame] = []
-    previous: dict[str, tuple[int, datetime]] = {}
+    previous: dict[str, tuple[int, datetime, str]] = {}
     with replay_path.open("r", encoding="utf-8") as handle:
         for row_number, line in enumerate(handle, start=1):
             if not line.strip():
@@ -100,7 +100,7 @@ def load_clob_replay(path: str | Path, config: ExecutionResearchConfig) -> list[
             timestamp = _parse_timestamp(payload.get("timestamp_utc"))
             if timestamp is None:
                 reasons.append(MarketValidity.MALFORMED.value)
-            source_timestamp = _parse_timestamp(payload.get("book_timestamp_utc", payload.get("timestamp_utc")))
+            source_timestamp = _parse_timestamp(payload.get("book_timestamp_utc"))
             if source_timestamp is None:
                 reasons.append(MarketValidity.MALFORMED.value)
             sequence = _parse_sequence(payload.get("sequence"))
@@ -136,11 +136,13 @@ def load_clob_replay(path: str | Path, config: ExecutionResearchConfig) -> list[
 
             prior = previous.get(market_id)
             if prior is not None and sequence is not None and timestamp is not None:
-                previous_sequence, previous_timestamp = prior
+                previous_sequence, previous_timestamp, previous_token_id = prior
                 if sequence != previous_sequence + 1 or timestamp <= previous_timestamp:
                     reasons.append(MarketValidity.DISCONTINUOUS.value)
+                if yes_token_id != previous_token_id:
+                    reasons.append(MarketValidity.MALFORMED.value)
             if sequence is not None and timestamp is not None:
-                previous[market_id] = (sequence, timestamp)
+                previous[market_id] = (sequence, timestamp, yes_token_id)
 
             normalized_reasons = tuple(sorted(set(reasons)))
             snapshot = ClobSnapshot(

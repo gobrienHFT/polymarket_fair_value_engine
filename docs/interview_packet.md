@@ -11,7 +11,7 @@ This packet is a compact route through the repo's fair-value-to-execution eviden
 3. Read the [execution casebook](execution_casebook.md) for one decision traced from book state to markout and PnL.
 4. Inspect [execution replay validity](sample_outputs/execution_research_reference/execution_replay_validity.csv) and [lifecycle events](sample_outputs/execution_research_reference/execution_lifecycle_events.csv).
 
-The key separation is deliberate: fair value supplies direction, while execution quality is measured through spread paid or captured, visible depth, latency, fills, fees, inventory, adverse selection, and signed post-fill markouts.
+The key separation is deliberate: fair value supplies direction, while execution quality is measured through spread paid or captured, visible depth, latency, fills, fees, inventory, adverse selection, and signed post-fill markouts. The execution harness consumes `fair_yes`; it does not claim to calibrate that probability. Football fair-value calibration remains in the football replay artifacts.
 
 ## 5-Minute Path
 

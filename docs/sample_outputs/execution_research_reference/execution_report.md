@@ -10,14 +10,14 @@ This deterministic replay separates fair-value direction from execution quality.
 
 ## Profile Comparison
 
-| Profile | Style | Filled | Fill rate | Avg spread capture | Next signed markout | Total marked PnL |
-| --- | --- | ---: | ---: | ---: | ---: | ---: |
-| conservative | passive | 4.00 | 11.4% | 0.0183 | -0.1000 | -0.4759 |
-| conservative | aggressive | 7.25 | 72.5% | 0.0250 | -0.0683 | 0.8128 |
-| base | passive | 9.00 | 25.7% | 0.0187 | -0.0688 | -1.1726 |
-| base | aggressive | 8.00 | 80.0% | 0.0250 | -0.0683 | 0.9522 |
-| aggressive | passive | 16.60 | 47.4% | 0.0187 | -0.0688 | -1.3770 |
-| aggressive | aggressive | 8.00 | 80.0% | 0.0250 | -0.0683 | 0.9522 |
+| Profile | Style | Filled | Fill rate | Avg spread capture | Next signed markout | Next adverse selection | Total marked PnL |
+| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| conservative | passive | 4.00 | 11.4% | 0.0183 | -0.1000 | 0.1117 | -0.4759 |
+| conservative | aggressive | 7.25 | 72.5% | 0.0250 | -0.0683 | 0.0683 | 0.8128 |
+| base | passive | 9.00 | 25.7% | 0.0187 | -0.0688 | 0.0837 | -1.1726 |
+| base | aggressive | 8.00 | 80.0% | 0.0250 | -0.0683 | 0.0683 | 0.9522 |
+| aggressive | passive | 16.60 | 47.4% | 0.0187 | -0.0688 | 0.0837 | -1.3770 |
+| aggressive | aggressive | 8.00 | 80.0% | 0.0250 | -0.0683 | 0.0683 | 0.9522 |
 
 ## Lifecycle And Validity
 
@@ -25,7 +25,7 @@ Orders record decision, submit, acknowledgement, resting, fill, cancel request, 
 
 ## Sensitivity Matrix
 
-The matrix is one-factor-at-a-time around a fixed baseline. It varies fair-value edge, spread, depth imbalance, submit latency, execution profile, initial inventory, and fees. It is a tooling and assumption-sensitivity exercise, not a profitability validation.
+The matrix is one-factor-at-a-time around a fixed baseline. It varies fair-value edge, spread, depth imbalance, end-to-end order latency, execution profile, initial inventory, and fees. It is a tooling and assumption-sensitivity exercise, not a profitability validation.
 Assessment rule: a row is labelled `assumption_sensitive` when its next signed markout changes by at least 0.01, fill rate by at least 0.10, or marked PnL by at least 0.50 versus baseline; otherwise it is `stable_on_this_sample`.
 
 | Dimension | Value | Style | Fill rate | Next signed markout | Total marked PnL | Assessment |

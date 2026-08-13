@@ -363,6 +363,7 @@ class ProfileResult:
     cancel_fill_races: int
     average_time_resting_ms: float | None
     average_spread_paid_or_captured: float | None
+    average_next_adverse_selection: float | None
     total_fees: float
     final_position_yes: float
     realized_pnl: float

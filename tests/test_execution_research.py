@@ -38,6 +38,39 @@ def test_execution_replay_classifies_fail_closed_states() -> None:
     assert all(frame.snapshot.validity is not MarketValidity.VALID or frame.snapshot.mid is not None for frame in frames)
 
 
+def test_execution_replay_fails_closed_on_source_identity_changes(tmp_path) -> None:
+    rows = [
+        {
+            "timestamp_utc": "2026-01-01T12:00:00Z",
+            "book_timestamp_utc": "2026-01-01T12:00:00Z",
+            "sequence": 1,
+            "market_id": "identity-market",
+            "yes_token_id": "yes-a",
+            "fair_yes": 0.60,
+            "yes_bids": [[0.50, 5.0]],
+            "yes_asks": [[0.55, 5.0]],
+        },
+        {
+            "timestamp_utc": "2026-01-01T12:00:01Z",
+            "sequence": 2,
+            "market_id": "identity-market",
+            "yes_token_id": "yes-b",
+            "fair_yes": 0.60,
+            "yes_bids": [[0.50, 5.0]],
+            "yes_asks": [[0.55, 5.0]],
+        },
+    ]
+    input_path = tmp_path / "identity.jsonl"
+    input_path.write_text("\n".join(json.dumps(row) for row in rows) + "\n", encoding="utf-8")
+    config, _, _ = _load_config()
+
+    frames = load_clob_replay(input_path, config)
+
+    assert frames[0].snapshot.validity is MarketValidity.VALID
+    assert frames[1].snapshot.validity is MarketValidity.MALFORMED
+    assert "malformed" in frames[1].snapshot.validity_reasons
+
+
 def test_execution_research_writes_lifecycle_and_execution_artifacts(tmp_path) -> None:
     config, config_path, config_hash = _load_config()
     _, output_dir, summary = run_execution_research(
