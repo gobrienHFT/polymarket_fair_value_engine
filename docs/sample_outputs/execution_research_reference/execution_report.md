@@ -2,7 +2,7 @@
 
 ## Overview
 
-This deterministic replay separates fair-value direction from execution quality. Each scenario uses the same committed YES-book snapshots, lifecycle latencies, risk checks, and accounting rules; only execution style or named sensitivity assumptions change.
+This deterministic replay separates fair-value direction from execution quality. `fair_yes` is a replay input, not a calibration result produced here. Each scenario uses the same committed YES-book snapshots, lifecycle latencies, risk checks, and accounting rules; only execution style or named sensitivity assumptions change.
 
 - Frames: 19 (15 valid, 4 fail-closed)
 - Code version: `execution-research-v1`
@@ -10,14 +10,14 @@ This deterministic replay separates fair-value direction from execution quality.
 
 ## Profile Comparison
 
-| Profile | Style | Filled | Fill rate | Avg spread capture | Next signed markout | Next adverse selection | Total marked PnL |
-| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| conservative | passive | 4.00 | 11.4% | 0.0183 | -0.1000 | 0.1117 | -0.4759 |
-| conservative | aggressive | 7.25 | 72.5% | 0.0250 | -0.0683 | 0.0683 | 0.8128 |
-| base | passive | 9.00 | 25.7% | 0.0187 | -0.0688 | 0.0837 | -1.1726 |
-| base | aggressive | 8.00 | 80.0% | 0.0250 | -0.0683 | 0.0683 | 0.9522 |
-| aggressive | passive | 16.60 | 47.4% | 0.0187 | -0.0688 | 0.0837 | -1.3770 |
-| aggressive | aggressive | 8.00 | 80.0% | 0.0250 | -0.0683 | 0.0683 | 0.9522 |
+| Profile | Style | Filled | Fill rate | Resting ms | Cancelled | Expired | Races | Spread capture | Next adverse selection | Next signed markout | Total marked PnL |
+| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| conservative | passive | 4.00 | 11.4% | 2000 | 6 | 1 | 2 | 0.0183 | 0.1117 | -0.1000 | -0.4759 |
+| conservative | aggressive | 7.25 | 72.5% | 1500 | 1 | 0 | 0 | 0.0250 | 0.0683 | -0.0683 | 0.8128 |
+| base | passive | 9.00 | 25.7% | 2000 | 5 | 1 | 3 | 0.0187 | 0.0837 | -0.0688 | -1.1726 |
+| base | aggressive | 8.00 | 80.0% | 1500 | 1 | 0 | 0 | 0.0250 | 0.0683 | -0.0683 | 0.9522 |
+| aggressive | passive | 16.60 | 47.4% | 2000 | 4 | 1 | 3 | 0.0187 | 0.0837 | -0.0688 | -1.3770 |
+| aggressive | aggressive | 8.00 | 80.0% | 1500 | 1 | 0 | 0 | 0.0250 | 0.0683 | -0.0683 | 0.9522 |
 
 ## Lifecycle And Validity
 

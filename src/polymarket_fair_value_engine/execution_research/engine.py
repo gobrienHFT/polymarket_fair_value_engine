@@ -764,7 +764,7 @@ def _render_report(outputs: list[SimulationOutput], matrix_rows: list[dict[str, 
         "",
         "## Overview",
         "",
-        "This deterministic replay separates fair-value direction from execution quality. Each scenario uses the same committed YES-book snapshots, lifecycle latencies, risk checks, and accounting rules; only execution style or named sensitivity assumptions change.",
+        "This deterministic replay separates fair-value direction from execution quality. `fair_yes` is a replay input, not a calibration result produced here. Each scenario uses the same committed YES-book snapshots, lifecycle latencies, risk checks, and accounting rules; only execution style or named sensitivity assumptions change.",
         "",
         f"- Frames: {len(frames)} ({sum(frame.snapshot.validity is MarketValidity.VALID for frame in frames)} valid, {sum(frame.snapshot.validity is not MarketValidity.VALID for frame in frames)} fail-closed)",
         f"- Code version: `{config.code_version}`",
@@ -772,13 +772,13 @@ def _render_report(outputs: list[SimulationOutput], matrix_rows: list[dict[str, 
         "",
         "## Profile Comparison",
         "",
-        "| Profile | Style | Filled | Fill rate | Avg spread capture | Next signed markout | Next adverse selection | Total marked PnL |",
-        "| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: |",
+        "| Profile | Style | Filled | Fill rate | Resting ms | Cancelled | Expired | Races | Spread capture | Next adverse selection | Next signed markout | Total marked PnL |",
+        "| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |",
     ]
     for output in outputs:
         result = output.result
         lines.append(
-            f"| {result.profile_name} | {result.style.value} | {result.filled_size:.2f} | {result.fill_rate:.1%} | {result.average_spread_paid_or_captured if result.average_spread_paid_or_captured is not None else 0.0:.4f} | {result.average_next_signed_markout if result.average_next_signed_markout is not None else 0.0:.4f} | {result.average_next_adverse_selection if result.average_next_adverse_selection is not None else 0.0:.4f} | {result.total_pnl:.4f} |"
+            f"| {result.profile_name} | {result.style.value} | {result.filled_size:.2f} | {result.fill_rate:.1%} | {result.average_time_resting_ms if result.average_time_resting_ms is not None else 0.0:.0f} | {result.cancelled_orders} | {result.expired_orders} | {result.cancel_fill_races} | {result.average_spread_paid_or_captured if result.average_spread_paid_or_captured is not None else 0.0:.4f} | {result.average_next_adverse_selection if result.average_next_adverse_selection is not None else 0.0:.4f} | {result.average_next_signed_markout if result.average_next_signed_markout is not None else 0.0:.4f} | {result.total_pnl:.4f} |"
         )
     lines.extend(
         [
@@ -811,7 +811,11 @@ def _render_report(outputs: list[SimulationOutput], matrix_rows: list[dict[str, 
     return "\n".join(lines)
 
 
-def _render_casebook(output: SimulationOutput, frames: list[ReplayFrame]) -> str:
+def _render_casebook(
+    output: SimulationOutput,
+    frames: list[ReplayFrame],
+    risk_output: SimulationOutput | None = None,
+) -> str:
     result = output.result
     first_fill = output.fills[0] if output.fills else None
     first_markout = output.markouts[0] if output.markouts else None
@@ -820,7 +824,8 @@ def _render_casebook(output: SimulationOutput, frames: list[ReplayFrame]) -> str
     first_events = [event for event in output.events if first_fill is not None and event.order_id == first_fill.order_id]
     invalid = next((frame for frame in frames if frame.snapshot.validity is not MarketValidity.VALID), None)
     expired_order = next((order for order in output.orders if order.status is LifecycleStatus.EXPIRED), None)
-    rejected_decision = next((row for row in output.decisions if row.risk_result.startswith("max_")), None)
+    risk_source = risk_output or output
+    rejected_decision = next((row for row in risk_source.decisions if row.risk_result.startswith("max_")), None)
     lines = [
         "# Binary Execution Casebook",
         "",
@@ -855,7 +860,11 @@ def _render_casebook(output: SimulationOutput, frames: list[ReplayFrame]) -> str
     else:
         lines.append("- No baseline order expired in this sample; the expiry path is covered by the execution lifecycle tests.")
     if rejected_decision is not None:
-        lines.append(f"- Risk rejection: decision `{rejected_decision.decision_id}` stood down with `{rejected_decision.risk_result}` at fair YES `{rejected_decision.fair_yes}` and quote `{rejected_decision.decision_price}`.")
+        lines.append(
+            f"- Risk rejection: `{rejected_decision.profile_name}/{rejected_decision.style.value}` decision `"
+            f"{rejected_decision.decision_id}` stood down with `{rejected_decision.risk_result}` at fair YES "
+            f"`{rejected_decision.fair_yes}` and quote `{rejected_decision.decision_price}`."
+        )
     lines.extend(
         [
             "",
@@ -901,7 +910,8 @@ def run_execution_research(
     validity_rows = _validity_rows(frames)
     base_output = next(output for output in outputs if output.result.profile_name == (config.profiles[1].name if len(config.profiles) > 1 else config.profiles[0].name) and output.result.style is ExecutionStyle.PASSIVE)
     report = _render_report(outputs, matrix_rows, frames, config)
-    casebook = _render_casebook(base_output, frames)
+    risk_output = next((output for output in outputs if output.result.risk_rejections > 0), None)
+    casebook = _render_casebook(base_output, frames, risk_output)
 
     export_dataclasses(output_dir / "execution_decisions.csv", [asdict(row) for output in outputs for row in output.decisions])
     export_dataclasses(output_dir / "execution_orders.csv", [order for output in outputs for order in output.orders])

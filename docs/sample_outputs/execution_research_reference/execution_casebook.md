@@ -19,6 +19,7 @@ This casebook is generated from the committed execution replay. It follows one b
 ## Case 3: No-Fill And Risk Restraint
 
 - Order `base-passive-order-0007` reached `EXPIRED` with `5.00` contracts unfilled. The lifecycle log records acknowledgement, resting, and expiry without inventing a fill from a missing market event.
+- Risk rejection: `conservative/aggressive` decision `conservative-aggressive-decision-0012` stood down with `max_position` at fair YES `0.64` and quote `0.58`.
 
 ## Baseline Outcome
 

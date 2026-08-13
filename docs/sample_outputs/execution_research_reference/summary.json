@@ -2,7 +2,7 @@
   "run_id": "execution-research-reference",
   "mode": "execution-research",
   "code_version": "execution-research-v1",
-  "code_sha256": "0fdaed90bbc034e09e97ac65f86b139c2f5ec2dd734a7346b571c6d170919e36",
+  "code_sha256": "5d7f2c299ca7a56de4d923cd4408fe3589bcd7be2318d880e659ee8422aa20d8",
   "input_path": "data/sample_execution_replay.jsonl",
   "input_sha256": "5480d6dcecdfe8774b08b2a21d0b3cf265b34d2ce780ae01a6feab1c8b14e5fa",
   "config_path": "configs/execution_research.json",

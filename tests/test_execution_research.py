@@ -128,6 +128,13 @@ def test_execution_research_writes_lifecycle_and_execution_artifacts(tmp_path) -
     assert cancel_ack_row["status_before"] == "CANCEL_REQUESTED"
     assert cancel_ack_row["status_after"] == "CANCELLED"
     assert "invalid_market_state" in (output_dir / "execution_decisions.csv").read_text(encoding="utf-8")
+    report = (output_dir / "execution_report.md").read_text(encoding="utf-8")
+    assert "Resting ms" in report
+    assert "Next adverse selection" in report
+    assert "`fair_yes` is a replay input" in report
+    casebook = (output_dir / "execution_casebook.md").read_text(encoding="utf-8")
+    assert "Risk rejection:" in casebook
+    assert "max_position" in casebook
 
 
 def test_execution_research_is_deterministic_for_same_inputs(tmp_path) -> None:
