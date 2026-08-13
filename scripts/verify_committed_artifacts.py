@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import re
 import sys
+from hashlib import sha256
 from pathlib import Path
 
 
@@ -20,6 +21,8 @@ FOOTBALL_REPLAY_WALKTHROUGH = REPO_ROOT / "docs" / "football_replay_walkthrough.
 FOOTBALL_SWEEP_WALKTHROUGH = REPO_ROOT / "docs" / "football_strategy_sweep_walkthrough.md"
 EXECUTION_CASEBOOK = REPO_ROOT / "docs" / "execution_casebook.md"
 EXECUTION_PACKET = REPO_ROOT / "docs" / "interview_packet.md"
+EXECUTION_INPUT = REPO_ROOT / "data" / "sample_execution_replay.jsonl"
+EXECUTION_CONFIG = REPO_ROOT / "configs" / "execution_research.json"
 
 PACKS = {
     "football_demo_reference": {
@@ -309,11 +312,46 @@ def _verify_no_temp_paths() -> list[str]:
     return issues
 
 
+def _verify_execution_reference_identity() -> list[str]:
+    issues: list[str] = []
+    pack_dir = PACKS["execution_research_reference"]["dir"]
+    summary_path = pack_dir / "summary.json"
+    if not summary_path.exists():
+        return issues
+    summary = json.loads(summary_path.read_text(encoding="utf-8"))
+    if summary.get("mode") != "execution-research":
+        issues.append("Execution reference summary has the wrong mode")
+    input_hash = sha256(EXECUTION_INPUT.read_bytes()).hexdigest()
+    if summary.get("input_sha256") != input_hash:
+        issues.append("Execution reference input_sha256 does not match the committed replay input")
+    config_payload = json.loads(EXECUTION_CONFIG.read_text(encoding="utf-8"))
+    config_hash = sha256(json.dumps(config_payload, sort_keys=True, separators=(",", ":")).encode("utf-8")).hexdigest()
+    if summary.get("config_sha256") != config_hash:
+        issues.append("Execution reference config_sha256 does not match the committed execution config")
+    if not str(summary.get("code_version", "")).strip():
+        issues.append("Execution reference summary is missing code_version")
+    for artifact in summary.get("artifacts", {}).values():
+        artifact_path = Path(str(artifact))
+        if artifact_path.is_absolute():
+            issues.append(f"Execution reference artifact path is absolute: {artifact}")
+            continue
+        try:
+            resolved = (REPO_ROOT / artifact_path).resolve()
+            resolved.relative_to(pack_dir.resolve())
+        except ValueError:
+            issues.append(f"Execution reference artifact path escapes its committed pack: {artifact}")
+            continue
+        if not resolved.exists():
+            issues.append(f"Execution reference artifact path is missing: {artifact}")
+    return issues
+
+
 def collect_artifact_issues() -> list[str]:
     issues: list[str] = []
     issues.extend(_verify_pack_files())
     issues.extend(_verify_front_door_links())
     issues.extend(_verify_no_temp_paths())
+    issues.extend(_verify_execution_reference_identity())
     issues.extend(_verify_markdown_links())
     return issues
 

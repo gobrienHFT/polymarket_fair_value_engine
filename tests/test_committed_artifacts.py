@@ -131,3 +131,8 @@ def test_readme_and_sample_index_link_execution_research() -> None:
     assert "execution_research_reference/README.md" in index
     assert "../execution_casebook.md" in index
     assert "../interview_packet.md" in index
+
+
+def test_execution_reference_is_bound_to_committed_inputs() -> None:
+    issues = collect_artifact_issues()
+    assert not any("Execution reference" in issue for issue in issues), "\n".join(issues)
