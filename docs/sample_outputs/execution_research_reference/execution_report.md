@@ -37,8 +37,8 @@ Assessment rule: a row is labelled `assumption_sensitive` when its next signed m
 | spread | 0.06 | passive | 0.225 | -0.093333 | -1.50227 | assumption_sensitive |
 | book_imbalance | -0.5 | passive | 0.435937 | -0.06875 | -0.872411 | assumption_sensitive |
 | book_imbalance | 0.5 | passive | 0.3625 | -0.06875 | -0.911324 | assumption_sensitive |
-| latency_ms | 0 | passive | 0.257143 | -0.06875 | -1.17263 | stable_on_this_sample |
-| latency_ms | 750 | passive | 0.314286 | -0.06875 | -1.19467 | stable_on_this_sample |
+| latency_ms | 0 | passive | 0.042857 | -0.13 | 0.1635 | assumption_sensitive |
+| latency_ms | 750 | passive | 0.042857 | -0.13 | 0.1635 | assumption_sensitive |
 | execution_profile | conservative | passive | 0.114286 | -0.1 | -0.475925 | assumption_sensitive |
 | execution_profile | base | passive | 0.257143 | -0.06875 | -1.17263 | stable_on_this_sample |
 | execution_profile | aggressive | passive | 0.474286 | -0.06875 | -1.377008 | assumption_sensitive |

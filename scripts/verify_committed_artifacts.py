@@ -23,6 +23,7 @@ EXECUTION_CASEBOOK = REPO_ROOT / "docs" / "execution_casebook.md"
 EXECUTION_PACKET = REPO_ROOT / "docs" / "interview_packet.md"
 EXECUTION_INPUT = REPO_ROOT / "data" / "sample_execution_replay.jsonl"
 EXECUTION_CONFIG = REPO_ROOT / "configs" / "execution_research.json"
+EXECUTION_SOURCE_ROOT = REPO_ROOT / "src" / "polymarket_fair_value_engine" / "execution_research"
 
 PACKS = {
     "football_demo_reference": {
@@ -330,6 +331,13 @@ def _verify_execution_reference_identity() -> list[str]:
         issues.append("Execution reference config_sha256 does not match the committed execution config")
     if not str(summary.get("code_version", "")).strip():
         issues.append("Execution reference summary is missing code_version")
+    code_digest = sha256()
+    for source_path in sorted(EXECUTION_SOURCE_ROOT.rglob("*.py")):
+        code_digest.update(source_path.relative_to(EXECUTION_SOURCE_ROOT).as_posix().encode("utf-8"))
+        code_digest.update(b"\0")
+        code_digest.update(source_path.read_bytes())
+    if summary.get("code_sha256") != code_digest.hexdigest():
+        issues.append("Execution reference code_sha256 does not match the committed execution-research source")
     for artifact in summary.get("artifacts", {}).values():
         artifact_path = Path(str(artifact))
         if artifact_path.is_absolute():

@@ -52,6 +52,7 @@ def test_execution_research_writes_lifecycle_and_execution_artifacts(tmp_path) -
     assert summary["mode"] == "execution-research"
     assert summary["input_sha256"]
     assert summary["config_sha256"] == config_hash
+    assert summary["code_sha256"]
     assert summary["validity_counts"] == {"crossed": 1, "discontinuous": 1, "malformed": 1, "stale": 1, "valid": 15}
     assert summary["claims"]["live_football_execution"] is False
     with (output_dir / "execution_experiment_matrix.csv").open(encoding="utf-8", newline="") as handle:
@@ -86,6 +87,13 @@ def test_execution_research_writes_lifecycle_and_execution_artifacts(tmp_path) -
     for event_name in ("decision", "risk_check", "submit", "acknowledge", "rest", "partial_fill", "fill", "cancel_request", "cancel_acknowledge"):
         assert event_name in lifecycle
     assert "reject" in lifecycle
+    with (output_dir / "execution_lifecycle_events.csv").open(encoding="utf-8", newline="") as handle:
+        lifecycle_rows = list(csv.DictReader(handle))
+    submit_row = next(row for row in lifecycle_rows if row["event_type"] == "submit")
+    cancel_ack_row = next(row for row in lifecycle_rows if row["event_type"] == "cancel_acknowledge")
+    assert submit_row["status_after"] == "SUBMITTED"
+    assert cancel_ack_row["status_before"] == "CANCEL_REQUESTED"
+    assert cancel_ack_row["status_after"] == "CANCELLED"
     assert "invalid_market_state" in (output_dir / "execution_decisions.csv").read_text(encoding="utf-8")
 
 
@@ -225,3 +233,58 @@ def test_unfilled_order_expires_after_replay_end(tmp_path) -> None:
     )
 
     assert "expire" in (output_dir / "execution_lifecycle_events.csv").read_text(encoding="utf-8")
+
+
+def test_cancel_acknowledgement_blocks_late_fill(tmp_path) -> None:
+    rows = [
+        {
+            "timestamp_utc": "2026-01-01T12:00:00Z",
+            "book_timestamp_utc": "2026-01-01T12:00:00Z",
+            "sequence": 1,
+            "market_id": "cancel-market",
+            "yes_token_id": "cancel-yes",
+            "fair_yes": 0.70,
+            "yes_bids": [[0.50, 10.0]],
+            "yes_asks": [[0.60, 5.0]],
+        },
+        {
+            "timestamp_utc": "2026-01-01T12:00:01Z",
+            "book_timestamp_utc": "2026-01-01T12:00:01Z",
+            "sequence": 2,
+            "market_id": "cancel-market",
+            "yes_token_id": "cancel-yes",
+            "fair_yes": 0.40,
+            "yes_bids": [[0.40, 5.0]],
+            "yes_asks": [[0.60, 5.0]],
+        },
+        {
+            "timestamp_utc": "2026-01-01T12:00:04Z",
+            "book_timestamp_utc": "2026-01-01T12:00:04Z",
+            "sequence": 3,
+            "market_id": "cancel-market",
+            "yes_token_id": "cancel-yes",
+            "fair_yes": 0.40,
+            "yes_bids": [[0.48, 5.0]],
+            "yes_asks": [[0.49, 5.0]],
+        },
+    ]
+    input_path = tmp_path / "cancel-late-fill.jsonl"
+    input_path.write_text("\n".join(json.dumps(row) for row in rows) + "\n", encoding="utf-8")
+    config, config_path, config_hash = _load_config()
+    from dataclasses import replace
+
+    config = replace(config, cancel_latency_ms=1000)
+    _, output_dir, _ = run_execution_research(
+        input_path,
+        tmp_path / "runs",
+        config,
+        config_path=config_path,
+        config_hash=config_hash,
+        run_id="cancel-late-fill",
+    )
+
+    fills = (output_dir / "execution_fills.csv").read_text(encoding="utf-8")
+    lifecycle = (output_dir / "execution_lifecycle_events.csv").read_text(encoding="utf-8")
+    assert "cancel_acknowledge" in lifecycle
+    assert "cancel_fill_race" not in lifecycle
+    assert fills.count("cancel-market") == 0

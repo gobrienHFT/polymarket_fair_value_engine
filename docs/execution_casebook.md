@@ -4,15 +4,21 @@ This casebook is generated from the committed execution replay. It follows one b
 
 ## Case 1: Actionable Edge
 
-- Decision: `BUY_YES` under `base/passive`.
-- Fair YES: `0.6200`; decision midpoint: `0.5200`; fill price: `0.5000`; size: `1.50`.
-- Risk: approved within configured position and notional limits; order `base-passive-order-0001` is fully or partially audited in `execution_lifecycle_events.csv`.
+- Raw state: source row `1`; bid/ask `0.5` / `0.54`; midpoint `0.52`; spread `0.040000000000000036`.
+- Microstructure: bid depth `18.0`, ask depth `12.0`, imbalance `0.2`, microprice `0.5285714285714286`.
+- Decision: `BUY_YES` under `base/passive`; fair YES `0.6200`; edge after fee `0.119`; quote `0.5000`.
+- Risk: `approved`; order `base-passive-order-0001` was submitted for `5.00` contracts.
+- Lifecycle: `submit, acknowledge, rest, partial_fill, cancel_request, cancel_acknowledge`.
 - Execution: `visible_depth_depletion` with fee `0.001500` and spread capture `0.020000`.
 - Evaluation: next valid midpoint `0.37` and signed next markout `-0.13`.
 
 ## Case 2: Fail-Closed State
 
 - Source row `5` is classified `crossed` with reasons `crossed`. It produces a `NO_TRADE` decision and cannot submit an order.
+
+## Case 3: No-Fill And Risk Restraint
+
+- Order `base-passive-order-0007` reached `EXPIRED` with `5.00` contracts unfilled. The lifecycle log records acknowledgement, resting, and expiry without inventing a fill from a missing market event.
 
 ## Baseline Outcome
 

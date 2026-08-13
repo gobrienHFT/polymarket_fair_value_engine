@@ -11,7 +11,7 @@ from typing import Any, Iterable
 
 from polymarket_fair_value_engine.analytics.fills import export_dataclasses, write_rows
 from polymarket_fair_value_engine.analytics.reports import create_run_directory
-from polymarket_fair_value_engine.execution_research.config import config_as_dict, with_overrides
+from polymarket_fair_value_engine.execution_research.config import config_as_dict, execution_code_sha256, with_overrides
 from polymarket_fair_value_engine.execution_research.replay import load_clob_replay
 from polymarket_fair_value_engine.execution_research.types import (
     AccountSnapshot,
@@ -146,6 +146,8 @@ def _emit(
     size: float | None,
     detail: str,
     decision_id: str | None = None,
+    status_before: LifecycleStatus | None = None,
+    status_after: LifecycleStatus | None = None,
 ) -> None:
     event_number[0] += 1
     events.append(
@@ -161,6 +163,8 @@ def _emit(
             price=price,
             size=size,
             detail=detail,
+            status_before=status_before,
+            status_after=status_after,
         )
     )
 
@@ -248,6 +252,7 @@ def _fill_order(
     fill_size = min(order.remaining_size, capacity)
     if fill_size <= 0.0:
         return False
+    status_before = order.status
 
     fee = fill_price * fill_size * config.fee_bps / 10000.0
     if race:
@@ -263,6 +268,8 @@ def _fill_order(
             price=fill_price,
             size=fill_size,
             detail="fill occurred before cancel acknowledgement",
+            status_before=status_before,
+            status_after=status_before,
         )
     fill_number[0] += 1
     fills.append(
@@ -309,6 +316,8 @@ def _fill_order(
         price=fill_price,
         size=fill_size,
         detail=fill_reason,
+        status_before=status_before,
+        status_after=order.status,
     )
     return True
 
@@ -328,38 +337,49 @@ def _advance_order(
     if timestamp is None:
         return
     if order.status is LifecycleStatus.SUBMITTED and timestamp >= order.acknowledge_timestamp:
+        status_before = order.status
         order.status = LifecycleStatus.ACKNOWLEDGED
         order.first_rest_timestamp = order.acknowledge_timestamp
         order.last_queue_depth = _same_side_depth(frame.snapshot, order.side, order.price)
         order.queue_ahead = order.last_queue_depth * profile.queue_ahead_fraction
-        _emit(events, event_number, LifecycleEventType.ACKNOWLEDGE, order.acknowledge_timestamp, order=order, profile_name=order.profile_name, style=order.style, side=order.side, price=order.price, size=order.remaining_size, detail="acknowledged")
-        _emit(events, event_number, LifecycleEventType.REST, order.acknowledge_timestamp, order=order, profile_name=order.profile_name, style=order.style, side=order.side, price=order.price, size=order.remaining_size, detail="resting or eligible for aggressive execution")
+        _emit(events, event_number, LifecycleEventType.ACKNOWLEDGE, order.acknowledge_timestamp, order=order, profile_name=order.profile_name, style=order.style, side=order.side, price=order.price, size=order.remaining_size, detail="acknowledged", status_before=status_before, status_after=order.status)
+        status_before = order.status
+        _emit(events, event_number, LifecycleEventType.REST, order.acknowledge_timestamp, order=order, profile_name=order.profile_name, style=order.style, side=order.side, price=order.price, size=order.remaining_size, detail="resting or eligible for aggressive execution", status_before=status_before, status_after=LifecycleStatus.RESTING)
         order.status = LifecycleStatus.RESTING
 
     race = order.status is LifecycleStatus.CANCEL_REQUESTED and order.cancel_acknowledge_timestamp is not None and timestamp <= order.cancel_acknowledge_timestamp
-    if _is_active(order) and frame.snapshot.validity is MarketValidity.VALID:
+    eligible_for_fill = (
+        _is_active(order)
+        and frame.snapshot.validity is MarketValidity.VALID
+        and timestamp < order.expiry_timestamp
+        and (order.status is not LifecycleStatus.CANCEL_REQUESTED or order.cancel_acknowledge_timestamp is None or timestamp <= order.cancel_acknowledge_timestamp)
+    )
+    if eligible_for_fill:
         _fill_order(order, frame, profile, config, account, fills, events, event_number, fill_number, race=race)
     if order.status is LifecycleStatus.FILLED:
         return
     if order.status is LifecycleStatus.CANCEL_REQUESTED and order.cancel_acknowledge_timestamp is not None and timestamp >= order.cancel_acknowledge_timestamp:
+        status_before = order.status
         order.status = LifecycleStatus.CANCELLED
         order.last_update_timestamp = timestamp
-        _emit(events, event_number, LifecycleEventType.CANCEL_ACKNOWLEDGE, order.cancel_acknowledge_timestamp, order=order, profile_name=order.profile_name, style=order.style, side=order.side, price=order.price, size=order.remaining_size, detail="cancel acknowledged")
+        _emit(events, event_number, LifecycleEventType.CANCEL_ACKNOWLEDGE, order.cancel_acknowledge_timestamp, order=order, profile_name=order.profile_name, style=order.style, side=order.side, price=order.price, size=order.remaining_size, detail="cancel acknowledged", status_before=status_before, status_after=order.status)
         return
     if _is_active(order) and timestamp >= order.expiry_timestamp:
+        status_before = order.status
         order.status = LifecycleStatus.EXPIRED
         order.last_update_timestamp = timestamp
-        _emit(events, event_number, LifecycleEventType.EXPIRE, order.expiry_timestamp, order=order, profile_name=order.profile_name, style=order.style, side=order.side, price=order.price, size=order.remaining_size, detail="order expiry reached")
+        _emit(events, event_number, LifecycleEventType.EXPIRE, order.expiry_timestamp, order=order, profile_name=order.profile_name, style=order.style, side=order.side, price=order.price, size=order.remaining_size, detail="order expiry reached", status_before=status_before, status_after=order.status)
 
 
 def _request_cancel(order: ResearchOrder, timestamp: datetime, config: ExecutionResearchConfig, events: list[LifecycleEvent], event_number: list[int]) -> None:
     if not _is_active(order) or order.cancel_request_timestamp is not None:
         return
+    status_before = order.status
     order.status = LifecycleStatus.CANCEL_REQUESTED
     order.cancel_request_timestamp = timestamp
     order.cancel_acknowledge_timestamp = timestamp + timedelta(milliseconds=config.cancel_latency_ms)
     order.last_update_timestamp = timestamp
-    _emit(events, event_number, LifecycleEventType.CANCEL_REQUEST, timestamp, order=order, profile_name=order.profile_name, style=order.style, side=order.side, price=order.price, size=order.remaining_size, detail="decision changed or data became invalid")
+    _emit(events, event_number, LifecycleEventType.CANCEL_REQUEST, timestamp, order=order, profile_name=order.profile_name, style=order.style, side=order.side, price=order.price, size=order.remaining_size, detail="decision changed or data became invalid", status_before=status_before, status_after=order.status)
 
 
 def _simulate(
@@ -444,9 +464,9 @@ def _simulate(
                     edge_after_fee=edge or 0.0,
                 )
                 orders.append(current_order)
-                _emit(events, event_number, LifecycleEventType.SUBMIT, submit_timestamp, order=current_order, profile_name=profile.name, style=style, side=side, price=price, size=config.order_size, detail="order submitted")
+                _emit(events, event_number, LifecycleEventType.SUBMIT, submit_timestamp, order=current_order, profile_name=profile.name, style=style, side=side, price=price, size=config.order_size, detail="order submitted", status_after=LifecycleStatus.SUBMITTED)
             else:
-                _emit(events, event_number, LifecycleEventType.REJECT, snapshot.timestamp, order=None, profile_name=profile.name, style=style, side=side, price=price, size=config.order_size, detail=risk_result, decision_id=decision_id)
+                _emit(events, event_number, LifecycleEventType.REJECT, snapshot.timestamp, order=None, profile_name=profile.name, style=style, side=side, price=price, size=config.order_size, detail=risk_result, decision_id=decision_id, status_after=LifecycleStatus.REJECTED)
 
         decisions.append(
             DecisionRow(
@@ -496,14 +516,16 @@ def _simulate(
     if last_timestamp is not None and current_order is not None and _is_active(current_order):
         if current_order.cancel_request_timestamp is not None and current_order.cancel_acknowledge_timestamp is not None:
             final_timestamp = max(last_timestamp, current_order.cancel_acknowledge_timestamp)
+            status_before = current_order.status
             current_order.status = LifecycleStatus.CANCELLED
             current_order.last_update_timestamp = final_timestamp
-            _emit(events, event_number, LifecycleEventType.CANCEL_ACKNOWLEDGE, final_timestamp, order=current_order, profile_name=profile.name, style=style, side=current_order.side, price=current_order.price, size=current_order.remaining_size, detail="cancel acknowledged after replay")
+            _emit(events, event_number, LifecycleEventType.CANCEL_ACKNOWLEDGE, final_timestamp, order=current_order, profile_name=profile.name, style=style, side=current_order.side, price=current_order.price, size=current_order.remaining_size, detail="cancel acknowledged after replay", status_before=status_before, status_after=current_order.status)
         else:
             final_timestamp = max(last_timestamp, current_order.expiry_timestamp)
+            status_before = current_order.status
             current_order.status = LifecycleStatus.EXPIRED
             current_order.last_update_timestamp = final_timestamp
-            _emit(events, event_number, LifecycleEventType.EXPIRE, final_timestamp, order=current_order, profile_name=profile.name, style=style, side=current_order.side, price=current_order.price, size=current_order.remaining_size, detail="replay ended before a fill")
+            _emit(events, event_number, LifecycleEventType.EXPIRE, final_timestamp, order=current_order, profile_name=profile.name, style=style, side=current_order.side, price=current_order.price, size=current_order.remaining_size, detail="replay ended before a fill", status_before=status_before, status_after=current_order.status)
 
     markout_rows = _build_markouts(frames, fills, config.markout_horizons)
     valid_decisions = [row for row in decisions if row.data_validity is MarketValidity.VALID]
@@ -511,7 +533,7 @@ def _simulate(
     submitted_orders = len(orders)
     acknowledged_orders = sum(1 for order in orders if order.first_rest_timestamp is not None)
     filled_orders = sum(1 for order in orders if order.status is LifecycleStatus.FILLED)
-    partial_fills = sum(1 for fill in fills if any(order.order_id == fill.order_id and order.remaining_size > 0.0 for order in orders))
+    partial_fills = sum(1 for event in events if event.event_type is LifecycleEventType.PARTIAL_FILL)
     total_order_size = sum(order.size for order in orders)
     filled_size = sum(fill.size for fill in fills)
     resting_durations = [
@@ -786,7 +808,12 @@ def _render_casebook(output: SimulationOutput, frames: list[ReplayFrame]) -> str
     result = output.result
     first_fill = output.fills[0] if output.fills else None
     first_markout = output.markouts[0] if output.markouts else None
+    first_decision = next((row for row in output.decisions if first_fill is not None and row.decision_id == first_fill.decision_id), None)
+    first_order = next((order for order in output.orders if first_fill is not None and order.order_id == first_fill.order_id), None)
+    first_events = [event for event in output.events if first_fill is not None and event.order_id == first_fill.order_id]
     invalid = next((frame for frame in frames if frame.snapshot.validity is not MarketValidity.VALID), None)
+    expired_order = next((order for order in output.orders if order.status is LifecycleStatus.EXPIRED), None)
+    rejected_decision = next((row for row in output.decisions if row.risk_result.startswith("max_")), None)
     lines = [
         "# Binary Execution Casebook",
         "",
@@ -800,9 +827,11 @@ def _render_casebook(output: SimulationOutput, frames: list[ReplayFrame]) -> str
     else:
         lines.extend(
             [
-                f"- Decision: `{first_fill.side.value}` under `{first_fill.profile_name}/{first_fill.style.value}`.",
-                f"- Fair YES: `{first_fill.fair_yes:.4f}`; decision midpoint: `{first_fill.mid_yes:.4f}`; fill price: `{first_fill.price:.4f}`; size: `{first_fill.size:.2f}`.",
-                f"- Risk: approved within configured position and notional limits; order `{first_fill.order_id}` is fully or partially audited in `execution_lifecycle_events.csv`.",
+                f"- Raw state: source row `{first_decision.frame_row if first_decision else 'n/a'}`; bid/ask `{first_decision.best_bid_yes if first_decision else 'n/a'}` / `{first_decision.best_ask_yes if first_decision else 'n/a'}`; midpoint `{first_decision.market_mid_yes if first_decision else 'n/a'}`; spread `{first_decision.spread if first_decision else 'n/a'}`.",
+                f"- Microstructure: bid depth `{first_decision.bid_depth if first_decision else 'n/a'}`, ask depth `{first_decision.ask_depth if first_decision else 'n/a'}`, imbalance `{first_decision.depth_imbalance if first_decision else 'n/a'}`, microprice `{first_decision.microprice if first_decision else 'n/a'}`.",
+                f"- Decision: `{first_fill.side.value}` under `{first_fill.profile_name}/{first_fill.style.value}`; fair YES `{first_fill.fair_yes:.4f}`; edge after fee `{first_decision.decision_edge_after_fee if first_decision else 'n/a'}`; quote `{first_fill.price:.4f}`.",
+                f"- Risk: `{first_decision.risk_result if first_decision else 'n/a'}`; order `{first_fill.order_id}` was submitted for `{first_order.size if first_order else first_fill.size:.2f}` contracts.",
+                f"- Lifecycle: `{', '.join(event.event_type.value for event in first_events)}`.",
                 f"- Execution: `{first_fill.fill_reason}` with fee `{first_fill.fee:.6f}` and spread capture `{(first_fill.mid_yes - first_fill.price) if first_fill.side is DecisionSide.BUY_YES else (first_fill.price - first_fill.mid_yes):.6f}`.",
             ]
         )
@@ -813,6 +842,13 @@ def _render_casebook(output: SimulationOutput, frames: list[ReplayFrame]) -> str
         lines.append("The bundled sample contains no invalid state; malformed, crossed, stale, and discontinuous fixtures are covered by the replay validity tests.")
     else:
         lines.append(f"- Source row `{invalid.snapshot.source_row}` is classified `{invalid.snapshot.validity.value}` with reasons `{', '.join(invalid.snapshot.validity_reasons)}`. It produces a `NO_TRADE` decision and cannot submit an order.")
+    lines.extend(["", "## Case 3: No-Fill And Risk Restraint", ""])
+    if expired_order is not None:
+        lines.append(f"- Order `{expired_order.order_id}` reached `EXPIRED` with `{expired_order.remaining_size:.2f}` contracts unfilled. The lifecycle log records acknowledgement, resting, and expiry without inventing a fill from a missing market event.")
+    else:
+        lines.append("- No baseline order expired in this sample; the expiry path is covered by the execution lifecycle tests.")
+    if rejected_decision is not None:
+        lines.append(f"- Risk rejection: decision `{rejected_decision.decision_id}` stood down with `{rejected_decision.risk_result}` at fair YES `{rejected_decision.fair_yes}` and quote `{rejected_decision.decision_price}`.")
     lines.extend(
         [
             "",
@@ -877,6 +913,7 @@ def run_execution_research(
         "run_id": actual_run_id,
         "mode": "execution-research",
         "code_version": config.code_version,
+        "code_sha256": execution_code_sha256(),
         "input_path": str(input_file),
         "input_sha256": input_hash,
         "config_path": str(config_path),

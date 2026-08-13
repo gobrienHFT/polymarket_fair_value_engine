@@ -255,6 +255,8 @@ class LifecycleEvent:
     price: float | None
     size: float | None
     detail: str
+    status_before: LifecycleStatus | None = None
+    status_after: LifecycleStatus | None = None
 
 
 @dataclass(frozen=True)

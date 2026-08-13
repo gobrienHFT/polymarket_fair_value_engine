@@ -115,5 +115,16 @@ def config_as_dict(config: ExecutionResearchConfig) -> dict[str, Any]:
     return asdict(config)
 
 
+def execution_code_sha256() -> str:
+    source_root = Path(__file__).resolve().parent
+    digest = sha256()
+    for source_path in sorted(source_root.rglob("*.py")):
+        relative_path = source_path.relative_to(source_root).as_posix()
+        digest.update(relative_path.encode("utf-8"))
+        digest.update(b"\0")
+        digest.update(source_path.read_bytes())
+    return digest.hexdigest()
+
+
 def with_overrides(config: ExecutionResearchConfig, **overrides: Any) -> ExecutionResearchConfig:
     return replace(config, **overrides)
