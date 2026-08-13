@@ -117,7 +117,7 @@ def test_execution_research_writes_lifecycle_and_execution_artifacts(tmp_path) -
         assert (output_dir / filename).exists()
 
     lifecycle = (output_dir / "execution_lifecycle_events.csv").read_text(encoding="utf-8")
-    for event_name in ("decision", "risk_check", "submit", "acknowledge", "rest", "partial_fill", "fill", "cancel_request", "cancel_acknowledge"):
+    for event_name in ("decision", "risk_check", "submit", "acknowledge", "rest", "partial_fill", "fill", "cancel_request", "cancel_acknowledge", "cancel_fill_race", "expire"):
         assert event_name in lifecycle
     assert "reject" in lifecycle
     with (output_dir / "execution_lifecycle_events.csv").open(encoding="utf-8", newline="") as handle:
@@ -127,7 +127,15 @@ def test_execution_research_writes_lifecycle_and_execution_artifacts(tmp_path) -
     assert submit_row["status_after"] == "SUBMITTED"
     assert cancel_ack_row["status_before"] == "CANCEL_REQUESTED"
     assert cancel_ack_row["status_after"] == "CANCELLED"
+    decision_rows = list(csv.DictReader((output_dir / "execution_decisions.csv").open(encoding="utf-8", newline="")))
+    assert any(row["risk_result"] == "max_position" and not row["order_id"] for row in decision_rows)
     assert "invalid_market_state" in (output_dir / "execution_decisions.csv").read_text(encoding="utf-8")
+    account_rows = list(csv.DictReader((output_dir / "execution_account.csv").open(encoding="utf-8", newline="")))
+    for row in account_rows:
+        mark = float(row["mark_yes"]) if row["mark_yes"] else None
+        marked_value = float(row["position_yes"]) * mark if mark is not None else 0.0
+        expected_total_pnl = float(row["cash"]) + marked_value - 100.0
+        assert float(row["total_pnl"]) == pytest.approx(expected_total_pnl)
     report = (output_dir / "execution_report.md").read_text(encoding="utf-8")
     assert "Resting ms" in report
     assert "Next adverse selection" in report
