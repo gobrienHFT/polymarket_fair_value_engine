@@ -31,6 +31,8 @@ FILES = (
     "execution_lifecycle_events.csv",
     "execution_fills.csv",
     "execution_markouts.csv",
+    "execution_attribution.csv",
+    "execution_markout_slices.csv",
     "execution_account.csv",
     "execution_profile_results.csv",
     "execution_experiment_matrix.csv",

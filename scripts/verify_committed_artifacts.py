@@ -20,7 +20,7 @@ SAMPLE_OUTPUTS_INDEX = SAMPLE_OUTPUTS_ROOT / "README.md"
 FOOTBALL_REPLAY_WALKTHROUGH = REPO_ROOT / "docs" / "football_replay_walkthrough.md"
 FOOTBALL_SWEEP_WALKTHROUGH = REPO_ROOT / "docs" / "football_strategy_sweep_walkthrough.md"
 EXECUTION_CASEBOOK = REPO_ROOT / "docs" / "execution_casebook.md"
-EXECUTION_PACKET = REPO_ROOT / "docs" / "interview_packet.md"
+EXECUTION_PACKET = REPO_ROOT / "docs" / "execution_research_packet.md"
 EXECUTION_INPUT = REPO_ROOT / "data" / "sample_execution_replay.jsonl"
 EXECUTION_CONFIG = REPO_ROOT / "configs" / "execution_research.json"
 EXECUTION_SOURCE_ROOT = REPO_ROOT / "src" / "polymarket_fair_value_engine" / "execution_research"
@@ -77,6 +77,8 @@ PACKS = {
             "execution_lifecycle_events.csv",
             "execution_fills.csv",
             "execution_markouts.csv",
+            "execution_attribution.csv",
+            "execution_markout_slices.csv",
             "execution_account.csv",
             "execution_profile_results.csv",
             "execution_experiment_matrix.csv",
@@ -199,7 +201,7 @@ def _verify_front_door_links() -> list[str]:
         "docs/sample_outputs/football_sweep_reference/README.md",
         "docs/sample_outputs/execution_research_reference/README.md",
         "docs/execution_casebook.md",
-        "docs/interview_packet.md",
+        "docs/execution_research_packet.md",
     ]
     for link in expected_readme_links:
         if link not in readme:
@@ -227,7 +229,7 @@ def _verify_front_door_links() -> list[str]:
         "football_sweep_reference/README.md",
         "execution_research_reference/README.md",
         "../execution_casebook.md",
-        "../interview_packet.md",
+        "../execution_research_packet.md",
     ):
         if link not in index:
             issues.append(f"Missing pack link in docs/sample_outputs/README.md: {link}")
@@ -247,7 +249,7 @@ def _verify_front_door_links() -> list[str]:
     if not EXECUTION_CASEBOOK.exists():
         issues.append("Missing docs/execution_casebook.md")
     if not EXECUTION_PACKET.exists():
-        issues.append("Missing docs/interview_packet.md")
+        issues.append("Missing docs/execution_research_packet.md")
 
     replay_doc = _read_text(FOOTBALL_REPLAY_WALKTHROUGH)
     if "docs/sample_outputs/football_replay_reference/README.md" not in replay_doc:
@@ -338,7 +340,8 @@ def _verify_execution_reference_identity() -> list[str]:
         code_digest.update(source_path.read_bytes())
     if summary.get("code_sha256") != code_digest.hexdigest():
         issues.append("Execution reference code_sha256 does not match the committed execution-research source")
-    for artifact in summary.get("artifacts", {}).values():
+    resolved_artifacts: dict[str, Path] = {}
+    for artifact_key, artifact in summary.get("artifacts", {}).items():
         artifact_path = Path(str(artifact))
         if artifact_path.is_absolute():
             issues.append(f"Execution reference artifact path is absolute: {artifact}")
@@ -351,6 +354,23 @@ def _verify_execution_reference_identity() -> list[str]:
             continue
         if not resolved.exists():
             issues.append(f"Execution reference artifact path is missing: {artifact}")
+            continue
+        resolved_artifacts[artifact_key] = resolved
+
+    artifact_hashes = summary.get("artifact_sha256")
+    if not isinstance(artifact_hashes, dict):
+        issues.append("Execution reference summary is missing artifact_sha256")
+    else:
+        if set(artifact_hashes) != set(resolved_artifacts):
+            issues.append("Execution reference artifact_sha256 keys do not match artifacts")
+        for artifact_key, artifact_path in resolved_artifacts.items():
+            expected_hash = artifact_hashes.get(artifact_key)
+            if not isinstance(expected_hash, str):
+                issues.append(f"Execution reference artifact hash is missing: {artifact_key}")
+                continue
+            actual_hash = sha256(artifact_path.read_bytes()).hexdigest()
+            if actual_hash != expected_hash:
+                issues.append(f"Execution reference artifact hash does not match: {artifact_key}")
     return issues
 
 

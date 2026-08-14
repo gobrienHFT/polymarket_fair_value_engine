@@ -12,7 +12,7 @@ The execution reference pack is generated separately from the bundled binary CLO
 - Post-trade analysis note: [docs/football_post_trade_analysis_note.md](../football_post_trade_analysis_note.md)
 - Match-state reaction note: [docs/football_match_state_reaction_note.md](../football_match_state_reaction_note.md)
 - Execution casebook: [docs/execution_casebook.md](../execution_casebook.md)
-- Execution research packet: [docs/interview_packet.md](../interview_packet.md)
+- Execution research packet: [docs/execution_research_packet.md](../execution_research_packet.md)
 
 ## Football Snapshot Reference
 
@@ -36,5 +36,5 @@ The execution reference pack is generated separately from the bundled binary CLO
 
 - Pack: [docs/sample_outputs/execution_research_reference/README.md](execution_research_reference/README.md)
 - Summary: [docs/sample_outputs/execution_research_reference/summary.json](execution_research_reference/summary.json)
-- Start with: [execution_report.md](execution_research_reference/execution_report.md), [execution_casebook.md](execution_research_reference/execution_casebook.md), and [execution_lifecycle_events.csv](execution_research_reference/execution_lifecycle_events.csv)
+- Start with: [execution_report.md](execution_research_reference/execution_report.md), [execution_casebook.md](execution_research_reference/execution_casebook.md), [execution_attribution.csv](execution_research_reference/execution_attribution.csv), [execution_markout_slices.csv](execution_research_reference/execution_markout_slices.csv), and [execution_lifecycle_events.csv](execution_research_reference/execution_lifecycle_events.csv)
 - Refresh command: `python scripts/refresh_execution_research.py`

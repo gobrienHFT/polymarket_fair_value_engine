@@ -104,6 +104,7 @@ def load_execution_research_config(path: str | Path) -> tuple[ExecutionResearchC
         edge_offsets=_number_list(experiment_matrix, "edge_offsets", (-0.01, 0.02)),
         spread_values=_number_list(experiment_matrix, "spread_values", (0.02, 0.06)),
         imbalance_values=_number_list(experiment_matrix, "imbalance_values", (-0.5, 0.5)),
+        depth_multipliers=_number_list(experiment_matrix, "depth_multipliers", (0.5, 2.0)),
         latency_values_ms=_integer_list(experiment_matrix, "latency_values_ms", (0, 750)),
         inventory_values=_number_list(experiment_matrix, "inventory_values", (-5.0, 5.0)),
         fee_values_bps=_number_list(experiment_matrix, "fee_values_bps", (0.0, 50.0)),

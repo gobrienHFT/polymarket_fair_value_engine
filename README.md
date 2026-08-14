@@ -69,12 +69,11 @@ The execution-research path asks one question: given a probabilistic fair value,
 
 - Reference pack: [docs/sample_outputs/execution_research_reference/README.md](docs/sample_outputs/execution_research_reference/README.md)
 - Casebook: [docs/execution_casebook.md](docs/execution_casebook.md)
-- Execution research packet: [docs/interview_packet.md](docs/interview_packet.md)
+- Review packet: [docs/execution_research_packet.md](docs/execution_research_packet.md)
 
-The pack compares passive and aggressive execution under conservative, base, and aggressive visible-depth profiles. It records fail-closed validity states, risk decisions, complete order lifecycle events, fills, fees, inventory, PnL, signed markouts, and one-factor sensitivity rows. The fresh-clone offline path is:
+The pack compares passive and aggressive execution under conservative, base, and aggressive sensitivity profiles. It records fail-closed validity states, risk decisions, complete order lifecycle events, fills, fees, inventory, PnL, signed markouts, model-edge attribution, markout coverage slices, and one-factor sensitivity rows. The canonical reviewer refresh, after installing the editable package, is:
 
 ```bash
-python -m pip install -e ".[dev]"
 python scripts/refresh_execution_research.py
 ```
 
@@ -161,9 +160,9 @@ Today the package can:
 - compare multiple football strategy configurations with deterministic winner selection and regime breakdowns
 - export offline football pricing, replay, and strategy-sweep artifacts for inspection and review
 - replay bounded binary CLOB states with explicit stale, crossed, malformed, expired, and discontinuous validity decisions
-- compare passive and aggressive execution under named conservative, base, and aggressive visible-depth profiles
+- compare passive and aggressive execution under named conservative, base, and aggressive visible-depth profiles, with separable queue-ahead and participation sensitivities
 - audit submit, acknowledgement, resting, partial/full fill, cancellation, expiry, rejection, and cancel/fill race transitions
-- measure spread paid/captured, fees, time resting, inventory, realised/unrealised/marked PnL, and signed multi-horizon markouts
+- measure spread paid/captured, fees, time resting, inventory, realised/unrealised/marked PnL, signed multi-horizon markouts, and model-edge-to-realized-edge attribution
 - bind execution-research runs to a code version, configuration hash, and input-data hash
 
 The repo still only implements BTC for end-to-end execution. Football stops at offline fair value formation, quote decisions, replay evaluation, and strategy comparison. That is deliberate.
@@ -239,6 +238,8 @@ runs/<run_id>/
   execution_lifecycle_events.csv
   execution_fills.csv
   execution_markouts.csv
+  execution_attribution.csv
+  execution_markout_slices.csv
   execution_account.csv
   execution_profile_results.csv
   execution_experiment_matrix.csv

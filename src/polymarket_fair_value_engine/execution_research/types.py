@@ -105,6 +105,7 @@ class ExecutionResearchConfig:
     edge_offsets: tuple[float, ...]
     spread_values: tuple[float, ...]
     imbalance_values: tuple[float, ...]
+    depth_multipliers: tuple[float, ...]
     latency_values_ms: tuple[int, ...]
     inventory_values: tuple[float, ...]
     fee_values_bps: tuple[float, ...]
@@ -130,12 +131,14 @@ class ExecutionResearchConfig:
         names = [profile.name for profile in self.profiles]
         if len(set(names)) != len(names):
             raise ValueError("execution profile names must be unique")
-        for values_name in ("edge_offsets", "spread_values", "imbalance_values", "latency_values_ms", "inventory_values", "fee_values_bps"):
+        for values_name in ("edge_offsets", "spread_values", "imbalance_values", "depth_multipliers", "latency_values_ms", "inventory_values", "fee_values_bps"):
             if not getattr(self, values_name):
                 raise ValueError(f"{values_name} must not be empty")
-        for values_name in ("edge_offsets", "spread_values", "imbalance_values", "inventory_values", "fee_values_bps"):
+        for values_name in ("edge_offsets", "spread_values", "imbalance_values", "depth_multipliers", "inventory_values", "fee_values_bps"):
             if any(isinstance(value, bool) or not isinstance(value, (int, float)) or not isfinite(float(value)) for value in getattr(self, values_name)):
                 raise ValueError(f"{values_name} must contain finite numbers")
+        if any(value <= 0.0 for value in self.depth_multipliers):
+            raise ValueError("depth_multipliers must contain positive numbers")
         if any(isinstance(value, bool) or not isinstance(value, int) or value < 0 for value in self.latency_values_ms):
             raise ValueError("latency_values_ms must contain integers >= 0")
 
@@ -231,6 +234,7 @@ class ResearchOrder:
     fair_yes: float
     mid_yes: float
     edge_after_fee: float
+    raw_model_edge: float
     queue_ahead: float = 0.0
     last_queue_depth: float = 0.0
     cancel_request_timestamp: datetime | None = None
@@ -272,10 +276,18 @@ class ResearchFill:
     size: float
     fee: float
     fair_yes: float
+    decision_timestamp: datetime
+    decision_mid_yes: float
     mid_yes: float
+    raw_model_edge: float
     spread: float
     depth_imbalance: float | None
     microprice: float | None
+    queue_ahead: float
+    inventory_after: float
+    realized_pnl_after: float
+    unrealized_pnl_after: float
+    total_marked_pnl_after: float
     fill_reason: str
 
 
@@ -290,8 +302,12 @@ class MarkoutRow:
     fill_price: float
     fee: float
     current_mid_yes: float
+    decision_mid_yes: float
     fair_yes: float
+    raw_model_edge: float
     spread_paid_or_captured: float
+    net_realized_edge: float
+    inventory_after: float
     next_snapshot_mid_yes: float | None
     next_snapshot_signed_markout: float | None
     horizon_markouts: dict[str, float | None]
@@ -319,6 +335,7 @@ class DecisionRow:
     depth_imbalance: float | None
     microprice: float | None
     decision: DecisionSide
+    raw_model_edge: float | None
     decision_edge_after_fee: float | None
     decision_price: float | None
     risk_result: str
@@ -364,6 +381,11 @@ class ProfileResult:
     average_time_resting_ms: float | None
     average_spread_paid_or_captured: float | None
     average_next_adverse_selection: float | None
+    average_raw_model_edge: float | None
+    average_net_realized_edge: float | None
+    markout_observations: int
+    markout_coverage: float
+    positive_next_markout_rate: float | None
     total_fees: float
     final_position_yes: float
     realized_pnl: float
@@ -387,3 +409,66 @@ class SimulationOutput:
     fills: list[ResearchFill] = field(default_factory=list)
     markouts: list[MarkoutRow] = field(default_factory=list)
     account_snapshots: list[AccountSnapshot] = field(default_factory=list)
+
+
+@dataclass(frozen=True)
+class ExecutionAttributionRow:
+    """One filled, unfilled, or risk-rejected opportunity decomposition."""
+
+    attribution_id: str
+    opportunity_type: str
+    decision_id: str
+    order_id: str | None
+    fill_id: str | None
+    profile_name: str
+    style: ExecutionStyle
+    side: DecisionSide
+    decision_timestamp: datetime | None
+    fill_timestamp: datetime | None
+    fair_yes: float | None
+    decision_mid_yes: float | None
+    fill_mid_yes: float | None
+    best_bid_yes: float | None
+    best_ask_yes: float | None
+    market_spread: float | None
+    raw_model_edge: float | None
+    execution_price: float | None
+    spread_paid_or_captured: float | None
+    fees: float | None
+    fee_per_contract: float | None
+    queue_ahead: float | None
+    queue_depth_adjustment: float | None
+    decision_to_fill_latency_ms: float | None
+    latency_mid_impact: float | None
+    requested_quantity: float
+    fill_quantity: float
+    unfilled_quantity: float
+    inventory_after: float | None
+    realized_pnl_after: float | None
+    unrealized_pnl_after: float | None
+    total_marked_pnl_after: float | None
+    markout_1: float | None
+    markout_3: float | None
+    markout_5: float | None
+    eventual_signed_markout: float | None
+    net_realized_edge: float | None
+    outcome: str
+    limitation: str
+
+
+@dataclass(frozen=True)
+class MarkoutSliceRow:
+    profile_name: str
+    style: ExecutionStyle
+    slice_type: str
+    slice_value: str
+    observations: int
+    markout_observations: int
+    markout_coverage: float
+    positive_next_markout_rate: float | None
+    average_next_signed_markout: float | None
+    average_markout_1: float | None
+    average_markout_3: float | None
+    average_markout_5: float | None
+    average_eventual_signed_markout: float | None
+    average_net_realized_edge: float | None

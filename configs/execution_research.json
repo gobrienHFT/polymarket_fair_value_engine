@@ -39,6 +39,7 @@
     "edge_offsets": [-0.01, 0.02],
     "spread_values": [0.02, 0.06],
     "imbalance_values": [-0.5, 0.5],
+    "depth_multipliers": [0.5, 2.0],
     "latency_values_ms": [0, 750],
     "inventory_values": [-5.0, 5.0],
     "fee_values_bps": [0.0, 50.0]

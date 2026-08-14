@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import json
+from hashlib import sha256
 import subprocess
 import sys
 from pathlib import Path
@@ -20,7 +22,8 @@ SAMPLE_OUTPUTS_INDEX = REPO_ROOT / "docs" / "sample_outputs" / "README.md"
 FOOTBALL_REPLAY_WALKTHROUGH = REPO_ROOT / "docs" / "football_replay_walkthrough.md"
 FOOTBALL_SWEEP_WALKTHROUGH = REPO_ROOT / "docs" / "football_strategy_sweep_walkthrough.md"
 EXECUTION_CASEBOOK = REPO_ROOT / "docs" / "execution_casebook.md"
-EXECUTION_PACKET = REPO_ROOT / "docs" / "interview_packet.md"
+EXECUTION_PACKET = REPO_ROOT / "docs" / "execution_research_packet.md"
+EXECUTION_REFERENCE = REPO_ROOT / "docs" / "sample_outputs" / "execution_research_reference"
 
 
 def test_committed_artifacts_have_no_integrity_issues() -> None:
@@ -127,12 +130,22 @@ def test_readme_and_sample_index_link_execution_research() -> None:
 
     assert "docs/sample_outputs/execution_research_reference/README.md" in readme
     assert "docs/execution_casebook.md" in readme
-    assert "docs/interview_packet.md" in readme
+    assert "docs/execution_research_packet.md" in readme
     assert "execution_research_reference/README.md" in index
     assert "../execution_casebook.md" in index
-    assert "../interview_packet.md" in index
+    assert "../execution_research_packet.md" in index
 
 
 def test_execution_reference_is_bound_to_committed_inputs() -> None:
     issues = collect_artifact_issues()
     assert not any("Execution reference" in issue for issue in issues), "\n".join(issues)
+
+
+def test_execution_reference_artifact_hashes_match_committed_files() -> None:
+    summary = json.loads((EXECUTION_REFERENCE / "summary.json").read_text(encoding="utf-8"))
+    assert set(summary["artifact_sha256"]) == set(summary["artifacts"])
+    for artifact_key, artifact_path in summary["artifacts"].items():
+        path = Path(artifact_path)
+        if not path.is_absolute():
+            path = REPO_ROOT / path
+        assert summary["artifact_sha256"][artifact_key] == sha256(path.read_bytes()).hexdigest()
