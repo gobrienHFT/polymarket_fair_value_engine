@@ -1,59 +1,88 @@
-# Execution Research Review Packet
+# Binary Market Execution Research
 
-## Scope
+## Research Question
 
-This packet is a compact route through the repo's fair-value-to-execution evidence. It uses only the committed execution-research pack generated from `data/sample_execution_replay.jsonl` and `configs/execution_research.json`. The input is synthetic and bounded so every result is deterministic and inspectable.
+This study asks how much of a probabilistic fair-value discrepancy remains executable after a decision is exposed to a binary order book. It separates the model input from the execution process: spread, visible depth, queue uncertainty, latency, fees, inventory, fills, and adverse selection are measured independently rather than collapsed into one headline number.
+
+## Study Design
+
+The execution harness consumes `fair_yes` values from `data/sample_execution_replay.jsonl` and replays the same market states, lifecycle latencies, risk checks, and accounting rules across execution scenarios. It does not calibrate the probability input.
+
+The reference pack compares passive and aggressive styles under conservative, base, and aggressive visible-depth profiles. Invalid, stale, crossed, malformed, expired, or discontinuous frames fail closed. Valid scenarios record the decision, risk result, order lifecycle, fills, fees, inventory, PnL, and signed markouts.
+
+The input is a small synthetic fixture selected for deterministic inspection. It demonstrates the measurement chain; it is not a historical venue record or a production validation set.
 
 ## Canonical Refresh
 
-After installing the editable package, the single reviewer refresh command is:
+After installing the editable package, regenerate the reference pack with:
 
 ```bash
 python scripts/refresh_execution_research.py
 ```
 
-The script regenerates the committed reference pack, copies the top-level casebook, and runs the committed-artifact verifier. The optional direct CLI form is useful for a temporary run, but is not the canonical reviewer path.
+The script regenerates `docs/sample_outputs/execution_research_reference/`, copies the top-level casebook, and runs the committed-artifact verifier. A direct CLI run is available for temporary experiments, but the refresh script is the reproducible path for the public pack.
 
 ## 60-Second Path
 
-1. Open the [execution reference pack](sample_outputs/execution_research_reference/README.md).
-2. Read the [execution report](sample_outputs/execution_research_reference/execution_report.md).
-3. Read the [execution casebook](execution_casebook.md) for five bounded decisions traced from book state to lifecycle outcome and markout.
-4. Inspect [execution attribution](sample_outputs/execution_research_reference/execution_attribution.csv) to see raw model edge, execution cost, latency impact, fill ratio, fees, inventory, and net realized edge together.
+1. Read the [execution report](sample_outputs/execution_research_reference/execution_report.md) for the profile comparison and validity treatment.
+2. Inspect [execution attribution](sample_outputs/execution_research_reference/execution_attribution.csv) to see raw model edge, execution price, spread cost or capture, latency impact, fees, fill ratio, and net realized edge together.
+3. Trace the [execution casebook](execution_casebook.md) for passive, aggressive, no-fill, risk, and cancel/fill-race examples.
 
-The key separation is deliberate: fair value supplies direction, while execution quality is measured through spread paid or captured, visible depth, latency, fills, fees, inventory, adverse selection, and signed post-fill markouts. The harness consumes `fair_yes`; it does not claim to calibrate that probability. Football fair-value calibration remains in the football replay artifacts.
+The useful separation is simple: fair value supplies direction; execution quality determines what survives contact with the book.
 
 ## Attribution Definitions
 
-- `raw_model_edge` is the directional fair-value difference versus the decision midpoint.
-- `spread_paid_or_captured` is the directional difference between the fill-time midpoint and execution price.
-- `latency_mid_impact` is the signed midpoint move from decision to fill; positive values indicate movement against the selected side.
-- `queue_depth_adjustment` is the filled/requested quantity ratio under the visible-depth proxy.
-- `net_realized_edge` is the directional fair-value difference at execution after fee per contract.
-- `markout_1`, `markout_3`, and `markout_5` are signed future midpoint changes from the fill price at the next valid snapshot and configured horizons.
+- `raw_model_edge`: directional fair-value difference versus the decision midpoint.
+- `spread_paid_or_captured`: directional difference between the fill-time midpoint and execution price.
+- `latency_mid_impact`: signed midpoint move from decision to fill. Positive values indicate movement against the selected side.
+- `queue_ahead`: visible quantity assumed to be ahead of the order.
+- `queue_depth_adjustment`: filled quantity divided by requested quantity under the visible-depth proxy.
+- `net_realized_edge`: directional fair-value difference at execution after fee per contract.
+- `markout_1`, `markout_3`, and `markout_5`: signed future midpoint changes from the fill price at the configured horizons.
 
-These quantities answer different questions. A positive fair-to-fill edge can coexist with a negative post-fill markout; neither number is a production profitability claim.
+The fields answer different questions. A positive raw model edge can pay spread, lose value during latency, fill only partially, or receive no fill. A positive fair-to-fill accounting result can also coexist with a negative post-fill markout. The [attribution CSV](sample_outputs/execution_research_reference/execution_attribution.csv) keeps those effects visible.
 
-## 5-Minute Path
+## Passive And Aggressive Choices
 
-1. Read [execution decisions](sample_outputs/execution_research_reference/execution_decisions.csv) to see fair value, midpoint, bid/ask, spread, depth imbalance, microprice, decision side, and risk result together.
-2. Compare [profile results](sample_outputs/execution_research_reference/execution_profile_results.csv) across passive/aggressive styles and conservative/base/aggressive sensitivity assumptions.
-3. Trace [orders](sample_outputs/execution_research_reference/execution_orders.csv), [fills](sample_outputs/execution_research_reference/execution_fills.csv), and [lifecycle events](sample_outputs/execution_research_reference/execution_lifecycle_events.csv).
-4. Read [markouts](sample_outputs/execution_research_reference/execution_markouts.csv) and [markout slices](sample_outputs/execution_research_reference/execution_markout_slices.csv) for signed post-fill movement, coverage, and edge/spread/inventory/latency breakdowns.
-5. Read [account snapshots](sample_outputs/execution_research_reference/execution_account.csv) for cash, position, realized PnL, unrealized PnL, fees, and marked total PnL.
-6. Inspect the [experiment matrix](sample_outputs/execution_research_reference/execution_experiment_matrix.csv) for one-factor changes in edge, spread, visible depth, queue-ahead, participation, latency, execution profile, inventory, and fees.
+Passive orders can capture spread but depend on queue-ahead, visible-depth depletion, participation, expiry, and cancel/fill races. Aggressive orders increase participation and pay the opposing quote. The relevant comparison is therefore conditional: does the edge survive the modeled spread, fee, and latency assumptions for the selected style?
 
-## Claim And Non-Claim Matrix
+The [profile results](sample_outputs/execution_research_reference/execution_profile_results.csv) compare those styles under the three named depth assumptions. The [experiment matrix](sample_outputs/execution_research_reference/execution_experiment_matrix.csv) varies one dimension at a time, including fair-value edge, spread, imbalance, visible depth, queue-ahead, participation, latency, inventory, fees, and execution profile.
 
-| Area | Supported by this repo | Boundary |
-| --- | --- | --- |
-| Fair value to execution | Yes, under explicit replay inputs and assumptions | Does not establish a live trading edge |
-| Live football execution | No | BTC remains the only live-capable path |
-| Queue realism | Visible-depth depletion proxy | No participant-level historical FIFO |
-| Hidden liquidity | No | Public snapshots do not reveal it |
-| Historical fill truth | No | Synthetic replay fills are assumption-sensitive |
-| Latency realism | Parameterized submit, acknowledgement, and cancel delays | Not a venue measurement |
-| Recorded public evidence | Not included | Available public data is not sufficient here to bind historical depth, fair-value inputs, and provenance deterministically |
-| Profitability | Accounting and markouts are reported | No production alpha claim |
+## Lifecycle And Accounting
 
-Football fair-value calibration remains a separate offline workflow. The execution harness is intentionally binary-market and microstructure-focused; it does not broaden football into live trading.
+Each submitted order is evaluated through submit, acknowledgement, resting, partial or full fill, cancel request, cancel acknowledgement, expiry, rejection, and cancel/fill-race transitions. Invalid market states cannot create a new order, and risk rejections remain distinct from no-fill outcomes.
+
+The [lifecycle events](sample_outputs/execution_research_reference/execution_lifecycle_events.csv), [fills](sample_outputs/execution_research_reference/execution_fills.csv), and [account snapshots](sample_outputs/execution_research_reference/execution_account.csv) connect event ordering to fees, inventory, realized PnL, unrealized PnL, and marked PnL. This is why the evaluation is more than a final account balance.
+
+## Markouts And Slices
+
+The [execution markouts](sample_outputs/execution_research_reference/execution_markouts.csv) measure signed midpoint movement after fills. The [markout slices](sample_outputs/execution_research_reference/execution_markout_slices.csv) add coverage and descriptive averages by edge, spread, inventory, and decision-to-fill latency buckets. Missing future marks remain missing rather than being filled with a favorable assumption.
+
+The [casebook](execution_casebook.md) shows how to read these outputs together: an apparent edge can be consumed by execution cost, remain unfilled, be rejected by risk, or mark adversely after a fill. Those outcomes are properties of the specified replay assumptions, not claims about a venue or a live strategy.
+
+## Reproducibility
+
+The refresh binds the input, configuration, code version, and generated artifacts into `summary.json` using SHA-256 values. The reference pack is generated from:
+
+- input: `data/sample_execution_replay.jsonl`
+- configuration: `configs/execution_research.json`
+- command: `python scripts/refresh_execution_research.py`
+
+The same engine can write temporary outputs under `runs/<run_id>/` for local inspection. The reference pack is the stable copy used by the documentation.
+
+## Limits
+
+- the replay uses synthetic binary CLOB states rather than historical venue data
+- visible-depth depletion is a queue proxy, not participant-level FIFO reconstruction
+- hidden liquidity and historical fill truth are not observable from these inputs
+- latency values are configured assumptions, not venue measurements
+- there is no holdout split or production profitability validation
+- football remains an offline fair-value and replay workflow; live football execution is not implemented
+- BTC is the only end-to-end paper/live execution path
+
+## Further Reading
+
+- [execution reference pack](sample_outputs/execution_research_reference/README.md)
+- [execution report](sample_outputs/execution_research_reference/execution_report.md)
+- [execution casebook](execution_casebook.md)
+- [design note](design.md)

@@ -1,8 +1,8 @@
 # Sample Outputs
 
-Committed football reference packs are generated from the bundled sample inputs so the offline football path can be inspected on GitHub without writing new `runs/<run_id>/` directories.
+The primary reference pack is the deterministic binary-market execution study under [Execution Research Reference](execution_research_reference/README.md). It records how supplied fair value becomes a decision, order lifecycle, fill or no fill, markout, inventory, and PnL outcome.
 
-The execution reference pack is generated separately from the bundled binary CLOB replay and records the fair-value-to-execution assumptions and outcomes described in the execution research path.
+The football packs are a separate offline fair-value, replay, and strategy-comparison case study generated from bundled sample inputs. The index keeps both research layers inspectable without writing new `runs/<run_id>/` directories.
 
 - Refresh command: `python scripts/refresh_sample_outputs.py`
 - Dashboard: [docs/football_research_dashboard.md](../football_research_dashboard.md)

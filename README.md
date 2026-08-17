@@ -1,15 +1,75 @@
-# Polymarket Fair Value Engine
+# polymarket_fair_value_engine
 
-`polymarket_fair_value_engine` is a research and execution framework for Polymarket-style binary markets, with an offline football pricing/replay/sweep research path and a secondary BTC execution sandbox.
+`polymarket_fair_value_engine` traces a binary-market idea from probabilistic fair value to executable edge. It separates model edge from the execution process that determines whether that edge survives spread, depth, queue uncertainty, latency, fees, inventory, and adverse selection.
 
-The implemented scope is intentionally narrow and explicit:
+The implemented scope is deliberately narrow:
 
-- **Football** is an offline fair-value, replay, calibration, and strategy-comparison workflow built from bundled sample inputs
-- **BTC 5-minute up/down** is still the only end-to-end paper/live execution path
+- the execution-research path is a deterministic binary CLOB replay around supplied fair values
+- the football path is an offline probability, fair-value, replay, and calibration case study
+- BTC 5-minute up/down is the only end-to-end paper/live-capable path
+
+## Research Pipeline
+
+```mermaid
+flowchart LR
+    A["Fair value"] --> B["Apparent edge"] --> C["Execution choice"]
+    C --> D["Spread / depth / queue / latency / fees"]
+    D --> E["Fill / no fill"]
+    E --> F["Markout / inventory / PnL"]
+    F --> G["Realized edge"]
+```
+
+The core research question is not whether a model produces a favorable discrepancy in isolation. It is how much of that discrepancy remains after the order is selected, submitted, exposed to the book, filled or not filled, charged fees, and marked forward.
+
+## Quick Start
+
+Install the package and regenerate the execution-research reference pack from the bundled input and configuration:
+
+```bash
+python -m pip install -e ".[dev]"
+python scripts/refresh_execution_research.py
+```
+
+The canonical refresh writes the deterministic execution pack under `docs/sample_outputs/execution_research_reference/`, copies the execution casebook, and runs the committed-artifact verifier.
+
+### 60-Second Path
+
+1. Read the [execution report](docs/sample_outputs/execution_research_reference/execution_report.md).
+2. Inspect [execution attribution](docs/sample_outputs/execution_research_reference/execution_attribution.csv) for raw model edge, execution cost, fill ratio, fees, latency impact, and net realized edge.
+3. Trace the [execution casebook](docs/execution_casebook.md) for concrete lifecycle, no-fill, risk, and markout examples.
+
+The execution harness consumes `fair_yes` as an input. It does not calibrate the fair value model; the football path is the separate offline probability and calibration workflow.
+
+## Model Edge To Realized Edge
+
+The execution reference pack keeps the major quantities separate:
+
+- `raw_model_edge` is the directional fair-value difference versus the decision midpoint.
+- `spread_paid_or_captured` measures the directional difference between the fill-time midpoint and execution price.
+- `latency_mid_impact` is the signed midpoint move from decision to fill; positive values indicate movement against the selected side.
+- `queue_depth_adjustment` is the filled/requested quantity ratio under the visible-depth proxy.
+- `net_realized_edge` is the directional fair-value difference at execution after the fill fee.
+- `markout_1`, `markout_3`, and `markout_5` are signed future midpoint changes from the fill price at the configured horizons.
+
+These measurements answer different questions. A positive fair-to-fill discrepancy can coexist with a negative post-fill markout, a partial fill, or no fill. The [attribution CSV](docs/sample_outputs/execution_research_reference/execution_attribution.csv) and [markout slices](docs/sample_outputs/execution_research_reference/execution_markout_slices.csv) expose those paths separately.
+
+## Passive And Aggressive Execution
+
+The reference pack compares passive and aggressive styles under conservative, base, and aggressive visible-depth assumptions. Passive execution can capture spread but depends on queue-ahead, participation, expiry, and cancel/fill races. Aggressive execution increases participation and pays the opposing quote, so the apparent edge must survive spread and fee assumptions.
+
+The [profile results](docs/sample_outputs/execution_research_reference/execution_profile_results.csv) show the trade-off on the fixed replay. The [experiment matrix](docs/sample_outputs/execution_research_reference/execution_experiment_matrix.csv) varies one execution assumption at a time, including fair-value edge, spread, imbalance, visible depth, queue-ahead, participation, latency, inventory, and fees. These are sensitivity results for a deterministic fixture, not a universal execution rule.
+
+## Lifecycle And Accounting
+
+The execution layer treats order state as part of the measurement. Invalid, stale, crossed, malformed, expired, or discontinuous market frames fail closed and cannot submit a new order. Valid scenarios record submit, acknowledgement, resting, partial or full fill, cancel request, cancel acknowledgement, expiry, rejection, and cancel/fill race events.
+
+The [lifecycle events](docs/sample_outputs/execution_research_reference/execution_lifecycle_events.csv), [fills](docs/sample_outputs/execution_research_reference/execution_fills.csv), and [account snapshots](docs/sample_outputs/execution_research_reference/execution_account.csv) connect those events to fees, inventory, realized and unrealized PnL, and marked PnL. The [casebook](docs/execution_casebook.md) follows the same path from book state to outcome instead of treating a final PnL number as the whole evaluation.
 
 ## Football Research Path
 
-The football front door is an offline research workflow built from bundled sample data. It de-vigs bookmaker 1X2 odds, maps that fair value into binary football markets, evaluates quote and no-trade decisions on a replay sample, and compares named strategy configurations under fixed inputs. It does not claim live football trading, and its replay outputs do not claim queue-position realism.
+Football is a separate offline fair-value and evaluation case study. It de-vigs bookmaker 1X2 odds, forms a simple consensus, maps that probability into binary football markets, applies book-quality and match-state no-trade rules, and compares strategy configurations on a fixed replay sample. It does not implement live football trading, and its replay fills have no queue-position realism.
+
+### Football Sample At A Glance
 
 | Metric | Committed value |
 | --- | --- |
@@ -20,68 +80,36 @@ The football front door is an offline research workflow built from bundled sampl
 | Quoteable replay snapshots under baseline | 17 |
 | Sweep winner | `more_aggressive` |
 
-- Index: [docs/sample_outputs/README.md](docs/sample_outputs/README.md)
-- Snapshot reference: [docs/sample_outputs/football_demo_reference/README.md](docs/sample_outputs/football_demo_reference/README.md)
-- Replay reference: [docs/sample_outputs/football_replay_reference/README.md](docs/sample_outputs/football_replay_reference/README.md)
-- Strategy sweep reference: [docs/sample_outputs/football_sweep_reference/README.md](docs/sample_outputs/football_sweep_reference/README.md)
+Start with the [football sample-output index](docs/sample_outputs/README.md). The direct reference packs are:
+
+- [snapshot reference](docs/sample_outputs/football_demo_reference/README.md)
+- [replay reference](docs/sample_outputs/football_replay_reference/README.md)
+- [strategy sweep reference](docs/sample_outputs/football_sweep_reference/README.md)
 
 ## Football Reviewer Path
 
-For a sports-trading review, start with the committed football artifacts rather than generated `runs/<run_id>/` directories.
+The football path is easiest to inspect through the index and its zero-click reference packs rather than generated `runs/<run_id>/` directories.
 
-- Dashboard: [docs/football_research_dashboard.md](docs/football_research_dashboard.md)
-- Post-trade analysis: [docs/football_post_trade_analysis_note.md](docs/football_post_trade_analysis_note.md)
-- Match-state reactions: [docs/football_match_state_reaction_note.md](docs/football_match_state_reaction_note.md)
+1. Open the [football research dashboard](docs/football_research_dashboard.md).
+2. Read the [football trading research note](docs/football_trading_research_note.md).
+3. Inspect the [replay report](docs/sample_outputs/football_replay_reference/football_report.md).
+4. Read the [decision casebook](docs/football_decision_casebook.md) for fair-value, no-trade, replay, and strategy examples.
+5. Read the [strategy configuration note](docs/football_strategy_configuration_note.md) for the tuned policy surface.
 
-### 60-Second Path
-
-1. [docs/sample_outputs/football_demo_reference/README.md](docs/sample_outputs/football_demo_reference/README.md)
-2. [docs/sample_outputs/football_demo_reference/football_edges.csv](docs/sample_outputs/football_demo_reference/football_edges.csv)
-3. [docs/football_trading_research_note.md](docs/football_trading_research_note.md)
-4. [docs/sample_outputs/football_replay_reference/football_report.md](docs/sample_outputs/football_replay_reference/football_report.md)
-
-### 5-Minute Path
-
-1. [docs/sample_outputs/README.md](docs/sample_outputs/README.md)
-2. [docs/sample_outputs/football_demo_reference/README.md](docs/sample_outputs/football_demo_reference/README.md)
-3. [docs/sample_outputs/football_replay_reference/README.md](docs/sample_outputs/football_replay_reference/README.md)
-4. [docs/sample_outputs/football_replay_reference/football_report.md](docs/sample_outputs/football_replay_reference/football_report.md)
-5. [docs/sample_outputs/football_sweep_reference/README.md](docs/sample_outputs/football_sweep_reference/README.md)
-6. [docs/sample_outputs/football_sweep_reference/football_strategy_report.md](docs/sample_outputs/football_sweep_reference/football_strategy_report.md)
-7. [docs/sample_outputs/football_sweep_reference/football_strategy_best.json](docs/sample_outputs/football_sweep_reference/football_strategy_best.json)
-8. [docs/football_trading_research_note.md](docs/football_trading_research_note.md)
-9. [docs/football_decision_casebook.md](docs/football_decision_casebook.md)
-10. [docs/football_strategy_configuration_note.md](docs/football_strategy_configuration_note.md)
-11. Then regenerate the packs with the commands in [Regeneration Commands](#regeneration-commands).
+The [sample-output index](docs/sample_outputs/README.md) routes to the remaining post-trade and match-state notes without putting every football artifact on the first screen.
 
 ## Football Research Notes
 
-- [docs/football_research_dashboard.md](docs/football_research_dashboard.md)
-- [docs/football_trading_research_note.md](docs/football_trading_research_note.md)
-- [docs/football_decision_casebook.md](docs/football_decision_casebook.md)
-- [docs/football_strategy_configuration_note.md](docs/football_strategy_configuration_note.md)
-- [docs/football_post_trade_analysis_note.md](docs/football_post_trade_analysis_note.md)
-- [docs/football_match_state_reaction_note.md](docs/football_match_state_reaction_note.md)
-
-## Execution Research Path
-
-The execution-research path asks one question: given a probabilistic fair value, when is the apparent edge still executable after spread, visible depth, queue uncertainty, latency, fees, inventory, and adverse selection? It is a deterministic binary-market CLOB replay around committed BTC-style market-state fixtures. It is separate from football probability calibration and does not claim live football execution.
-
-- Reference pack: [docs/sample_outputs/execution_research_reference/README.md](docs/sample_outputs/execution_research_reference/README.md)
-- Casebook: [docs/execution_casebook.md](docs/execution_casebook.md)
-- Review packet: [docs/execution_research_packet.md](docs/execution_research_packet.md)
-
-The pack compares passive and aggressive execution under conservative, base, and aggressive sensitivity profiles. It records fail-closed validity states, risk decisions, complete order lifecycle events, fills, fees, inventory, PnL, signed markouts, model-edge attribution, markout coverage slices, and one-factor sensitivity rows. The canonical reviewer refresh, after installing the editable package, is:
-
-```bash
-python scripts/refresh_execution_research.py
-```
+- [football research dashboard](docs/football_research_dashboard.md)
+- [football trading research note](docs/football_trading_research_note.md)
+- [football decision casebook](docs/football_decision_casebook.md)
+- [football strategy configuration note](docs/football_strategy_configuration_note.md)
+- [football post-trade analysis note](docs/football_post_trade_analysis_note.md)
+- [football match-state reaction note](docs/football_match_state_reaction_note.md)
 
 ## Regeneration Commands
 
-The committed football packs above are generated from bundled sample inputs. Football remains offline-only, BTC remains the only end-to-end paper/live path, and football replay fills still do not claim queue-position realism.
-
-Regenerate those committed packs with:
+The football packs are generated from bundled sample inputs. Football remains offline-only, and BTC remains the only end-to-end paper/live path.
 
 ```bash
 python scripts/refresh_sample_outputs.py
@@ -90,144 +118,40 @@ pmfe football-replay --sample --config configs/football_strategy_baseline.json -
 pmfe football-sweep --sample --config configs/football_sweep.json --run-id football-sweep-reference
 ```
 
-Those paths:
-
-- price the bundled football snapshot sample from `data/sample_football_markets.json`
-- replay the bundled football frame sample from `data/sample_football_replay.jsonl`
-- compare committed pricing/no-trade configurations from `configs/football_sweep.json`
-
-A tighter explanation of the replay flow lives in `docs/football_replay_walkthrough.md`.
-The strategy comparison layer is documented in `docs/football_strategy_sweep_walkthrough.md`.
+The [football replay walkthrough](docs/football_replay_walkthrough.md) explains state-aware evaluation and the [strategy sweep walkthrough](docs/football_strategy_sweep_walkthrough.md) explains configuration comparison.
 
 ## BTC Execution Sandbox
 
-The BTC path remains the secondary execution sandbox and the only end-to-end paper/live implementation in the repo.
-
-Fresh clone:
+BTC 5-minute up/down remains the only end-to-end paper/live implementation. The default path is paper mode and runs fully offline against `data/sample_replay.jsonl`:
 
 ```bash
-python -m pip install -e .[dev]
 pmfe demo
 ```
 
-That one command runs fully offline against the bundled BTC replay sample in `data/sample_replay.jsonl`, writes artifacts under `runs/<run_id>/`, and prints a JSON summary with the output directory and artifact paths.
-
-The alternate explicit BTC form is:
+The explicit forms are:
 
 ```bash
 pmfe backtest --sample --run-id sample-demo
 pmfe report --run-id sample-demo
 ```
 
-Convenience wrappers are available at `scripts/demo.sh` and `scripts/demo.ps1`. They install the editable package, run `pytest`, run the sample backtest, run `pmfe report`, and print the output directory. The canonical interface remains `pmfe ...`.
+The convenience wrappers at `scripts/demo.sh` and `scripts/demo.ps1` install the editable package, run tests, execute the sample backtest, run the report, and print the output directory. The canonical interface remains `pmfe ...`.
 
-## Architecture
+## Reproducibility
 
-```text
-Data -> Model -> Strategy -> Risk -> Order Manager -> Execution -> Reporting
+Execution research is regenerated with:
+
+```bash
+python scripts/refresh_execution_research.py
 ```
 
-- `Data`: market discovery, order books, and reference prices
-- `Model`: baseline fair-value estimate for `P(YES)`
-- `Strategy`: passive YES / NO quote intents around fair value, or offline candidate quotes around football fair value
-- `Risk`: market, gross, series, and open-order limits
-- `Order Manager`: reconcile desired quotes against current open orders
-- `Execution`: paper fills by replay/live market state, or an offline stop at pricing, quote decisions, markouts, and reporting for football
-- `Reporting`: CSV artifacts and JSON summaries under `runs/<run_id>/`
+It uses `data/sample_execution_replay.jsonl` and `configs/execution_research.json`, writes the reference pack, and binds `code_version`, `config_sha256`, `input_sha256`, and per-artifact SHA-256 values into `summary.json`. The football refresh uses the commands above and the bundled football inputs under `data/`.
 
-## What The Repo Actually Implements
+Temporary runs from the CLI write to `runs/<run_id>/`. The sample-output packs under `docs/sample_outputs/` are the inspectable reference copies generated from those inputs; their numerical contents are not live-feed claims.
 
-Today the package can:
+## Output Artifacts
 
-- discover and normalize active BTC 5-minute up/down markets
-- ingest YES / NO order books from the Polymarket CLOB REST API
-- ingest a BTC reference price and recent minute closes from Coinbase
-- estimate a baseline fair value for `P(YES)` using short-horizon diffusion logic
-- blend that estimate with market midpoint and apply an uncertainty buffer
-- turn fair value into passive YES / NO quote intents
-- skew quoting based on current YES-minus-NO inventory
-- enforce explicit pre-trade limits
-- reconcile open orders versus desired quotes
-- simulate paper fills and mark inventory to market
-- replay stored JSONL market states and export run artifacts
-- gate live execution behind explicit flags and config
-- load bundled football fixtures with bookmaker 1X2 odds and binary market snapshots
-- compute vig-adjusted football fair probabilities from bookmaker consensus
-- map football 1X2 fair value into binary YES probabilities for Polymarket-style markets
-- rank football markets by directional buy/sell edges versus midpoint, best bid, and best ask
-- replay bundled football frames with explicit match state, state changes, and no-trade rules
-- compute raw midpoint drift and directional capture metrics from the replay sample
-- compare multiple football strategy configurations with deterministic winner selection and regime breakdowns
-- export offline football pricing, replay, and strategy-sweep artifacts for inspection and review
-- replay bounded binary CLOB states with explicit stale, crossed, malformed, expired, and discontinuous validity decisions
-- compare passive and aggressive execution under named conservative, base, and aggressive visible-depth profiles, with separable queue-ahead and participation sensitivities
-- audit submit, acknowledgement, resting, partial/full fill, cancellation, expiry, rejection, and cancel/fill race transitions
-- measure spread paid/captured, fees, time resting, inventory, realised/unrealised/marked PnL, signed multi-horizon markouts, and model-edge-to-realized-edge attribution
-- bind execution-research runs to a code version, configuration hash, and input-data hash
-
-The repo still only implements BTC for end-to-end execution. Football stops at offline fair value formation, quote decisions, replay evaluation, and strategy comparison. That is deliberate.
-
-## Replay And Output Artifacts
-
-Backtests, demos, and paper runs write:
-
-```text
-runs/<run_id>/
-  summary.json
-  orders.csv
-  fills.csv
-  inventory.csv
-  pnl.csv
-```
-
-`pmfe report --run-id <run_id>` reads the stored summary and prints the run location plus the artifact paths again.
-
-BTC replay and paper summaries also expose the decision path: observations priced or skipped, reason-coded skip counts, generated/approved/rejected quotes, risk rejection categories, final open orders, and the stop reason. This keeps an outcome trace alongside the order, fill, inventory, and PnL artifacts.
-
-`pmfe football-demo` writes:
-
-```text
-runs/<run_id>/
-  summary.json
-  football_fair_values.csv
-  football_edges.csv
-```
-
-`pmfe football-replay --sample` writes:
-
-```text
-runs/<run_id>/
-  summary.json
-  football_replay_quotes.csv
-  football_markouts.csv
-  football_calibration.csv
-  football_state_changes.csv
-  football_no_trade_reasons.csv
-  football_report.md
-```
-
-`pmfe football-sweep --sample` writes:
-
-```text
-runs/<run_id>/
-  summary.json
-  football_strategy_results.csv
-  football_strategy_slices.csv
-  football_strategy_report.md
-  football_strategy_best.json
-  best_strategy/
-    summary.json
-    football_replay_quotes.csv
-    football_markouts.csv
-    football_calibration.csv
-    football_state_changes.csv
-    football_no_trade_reasons.csv
-    football_report.md
-```
-
-Committed sample-output packs for those football paths live under [docs/sample_outputs/README.md](docs/sample_outputs/README.md) and are generated from the bundled sample inputs.
-
-`pmfe execution-research --sample --config configs/execution_research.json` writes:
+The execution-research CLI writes:
 
 ```text
 runs/<run_id>/
@@ -247,27 +171,33 @@ runs/<run_id>/
   execution_casebook.md
 ```
 
-The committed execution reference pack under [docs/sample_outputs/execution_research_reference/README.md](docs/sample_outputs/execution_research_reference/README.md) is the zero-click version of those artifacts.
+The football commands write their pricing, replay, and strategy-sweep CSV/JSON/Markdown artifacts under the same run directory. The [sample-output index](docs/sample_outputs/README.md) lists the committed football and execution packs.
 
-Paper fill behavior is intentionally simple:
+## Architecture
 
-- `PMFE_TOUCH_FILL_ONLY=1`: fill only when the quoted price touches or crosses the best quote
-- `PMFE_TOUCH_FILL_ONLY=0`: allow more permissive replay fills within `PMFE_REPLAY_FILL_SLACK`
-- no queue-position realism
-- no hidden-liquidity modeling
-- no claim that replay fills equal live fills
+```text
+Data -> Model -> Strategy -> Risk -> Order Manager -> Execution -> Reporting
+```
+
+- `Data`: market discovery, order books, reference prices, and replay inputs
+- `Model`: baseline fair-value estimate for `P(YES)` or supplied football probabilities
+- `Strategy`: passive YES / NO quote intents or football candidate quote decisions
+- `Risk`: market, gross, series, position, and open-order limits
+- `Order Manager`: reconcile desired quotes against current open orders
+- `Execution`: paper/live BTC fills or offline football evaluation up to quote decisions and markouts
+- `Reporting`: CSV artifacts and JSON summaries under `runs/<run_id>/`
 
 ## Live Execution Guardrails
 
-The live path is present but deliberately guarded:
+The live adapter is present but deliberately guarded:
 
 - paper mode is the default
 - `--live` and `--ack-live-risk` are required
 - `PMFE_LIVE_ENABLED=1` must be set
-- auth or config failures raise loudly
+- authentication and configuration failures raise loudly
 - `cancel-all` remains the explicit kill-switch path
 
-Those guardrails apply to the BTC execution path. Live football execution is not implemented.
+These guardrails apply to BTC. Live football execution is not implemented.
 
 ## Repository Layout
 
@@ -276,15 +206,15 @@ src/polymarket_fair_value_engine/
   cli.py                 # scan / quote / backtest / demo / football-* / execution-research / report / cancel-all
   config.py              # env and runtime config
   data/                  # Gamma, CLOB REST, external prices
-  markets/               # market discovery + normalization
+  markets/               # market discovery and normalization
   models/                # fair-value models
   strategy/              # passive quoting logic
   risk/                  # exposure and order limits
-  execution/             # paper + live execution paths
-  analytics/             # exports + run summaries
-  backtest/              # replay loader + simulator
+  execution/             # paper and live execution paths
+  analytics/             # exports and run summaries
+  backtest/              # replay loader and simulator
   execution_research/    # deterministic CLOB execution replay and evaluation
-  sports/                # offline football pricing + sports helpers
+  sports/                # offline football pricing and sports helpers
 
 legacy/
   polymarket_bot.py      # archived single-file prototype
@@ -303,21 +233,34 @@ scripts/
 Editable install with tests:
 
 ```bash
-python -m pip install -e .[dev]
+python -m pip install -e ".[dev]"
 ```
 
-If you want the optional live dependency too:
+For the optional live dependency:
 
 ```bash
-python -m pip install -e .[dev,live]
+python -m pip install -e ".[dev,live]"
 ```
 
 ## Limitations
 
 - the BTC fair-value model is a baseline, not a claim of persistent alpha
-- scan and live-data paper quoting still depend on public Polymarket and Coinbase endpoints
-- the paper fill model is intentionally simple
+- public Polymarket and Coinbase endpoints can be noisy or wide for short-dated binaries
+- the paper fill model is intentionally simple and has no queue-position or hidden-liquidity realism
+- visible-depth depletion in execution replay is a queue proxy, not participant-level historical FIFO
+- execution replay uses a fixed synthetic fixture with no holdout or production validation
 - live order management only knows about orders placed by the current running process
 - websocket ingestion is still scaffolding
-- football is an offline pricing/replay/strategy-comparison workflow only, not a live trading path
-- the football sweep is an evaluation/tooling exercise on synthetic data, not production validation
+- football fair value comes from bundled bookmaker snapshots rather than an independent in-play model
+- football is an offline pricing, replay, and strategy-comparison workflow only
+- live football trading is not implemented
+
+## Deeper Docs
+
+- [design note](docs/design.md)
+- [execution research packet](docs/execution_research_packet.md)
+- [execution casebook](docs/execution_casebook.md)
+- [execution reference pack](docs/sample_outputs/execution_research_reference/README.md)
+- [football sample-output index](docs/sample_outputs/README.md)
+- [football replay walkthrough](docs/football_replay_walkthrough.md)
+- [football strategy sweep walkthrough](docs/football_strategy_sweep_walkthrough.md)
