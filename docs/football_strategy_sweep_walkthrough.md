@@ -4,10 +4,10 @@ This walkthrough explains the offline football strategy sweep only.
 
 It does not describe live football trading, because live football trading is not implemented in this repo.
 
-For zero-click inspection on GitHub, start with [docs/sample_outputs/football_sweep_reference/README.md](sample_outputs/football_sweep_reference/README.md). That committed pack is generated from the bundled replay sample plus the committed sweep config.
-For a short cross-pack summary, see [docs/football_trading_research_note.md](football_trading_research_note.md).
-For concrete examples drawn from the committed football packs, see [docs/football_decision_casebook.md](football_decision_casebook.md).
-For the committed config surface behind the sweep, see [docs/football_strategy_configuration_note.md](football_strategy_configuration_note.md).
+Start with [docs/sample_outputs/football_sweep_reference/README.md](sample_outputs/football_sweep_reference/README.md). That pack is generated from the bundled replay sample and sweep config.
+For the cross-pack summary, see [docs/football_trading_research_note.md](football_trading_research_note.md).
+For concrete examples, see [docs/football_decision_casebook.md](football_decision_casebook.md).
+For the config surface behind the sweep, see [docs/football_strategy_configuration_note.md](football_strategy_configuration_note.md).
 For post-trade replay evaluation and calibration commentary, see [docs/football_post_trade_analysis_note.md](football_post_trade_analysis_note.md).
 
 ## Run It
@@ -31,7 +31,7 @@ The sweep adds the next research step:
 - rank them with explicit, deterministic rules
 - explain why one configuration is preferred
 
-That makes the football path more useful as a research harness without pretending it is a live trading system.
+This adds a controlled comparison layer without turning the football path into a live trading system.
 
 ## 2. How Configs Override Behavior
 
@@ -114,7 +114,7 @@ The top-level run contains the comparison outputs:
 
 The selected winner also gets a full nested replay run under `best_strategy/`.
 
-That keeps the comparison layer and the detailed replay evidence in the same place.
+The comparison and the detailed replay for the selected strategy stay together.
 
 ## 7. Limitations Of The Synthetic Sample
 
@@ -123,7 +123,7 @@ That keeps the comparison layer and the detailed replay evidence in the same pla
 - there is no fill simulation in the sweep itself
 - the results are illustrative and should not be treated as production validation
 
-The sweep is a tooling and evaluation exercise, not a claim that the best row proves real edge.
+The sweep is a way to compare settings. The best row is not evidence of a real trading edge.
 
 ## 8. Real Next Step Later
 

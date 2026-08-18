@@ -1,8 +1,8 @@
 # Sample Outputs
 
-The primary reference pack is the deterministic binary-market execution study under [Execution Research Reference](execution_research_reference/README.md). It records how supplied fair value becomes a decision, order lifecycle, fill or no fill, markout, inventory, and PnL outcome.
+Start with the [Execution Research Reference](execution_research_reference/README.md) for the binary-market execution study. It follows supplied fair value through the decision, order lifecycle, fill or no fill, markout, inventory, and PnL outcome.
 
-The football packs are a separate offline fair-value, replay, and strategy-comparison case study generated from bundled sample inputs. The index keeps both research layers inspectable without writing new `runs/<run_id>/` directories.
+The football packs sit alongside it as a separate offline fair-value, replay, and strategy-comparison case study generated from bundled sample inputs. Both paths can be read without writing new `runs/<run_id>/` directories.
 
 - Refresh command: `python scripts/refresh_sample_outputs.py`
 - Dashboard: [docs/football_research_dashboard.md](../football_research_dashboard.md)
@@ -12,7 +12,7 @@ The football packs are a separate offline fair-value, replay, and strategy-compa
 - Post-trade analysis note: [docs/football_post_trade_analysis_note.md](../football_post_trade_analysis_note.md)
 - Match-state reaction note: [docs/football_match_state_reaction_note.md](../football_match_state_reaction_note.md)
 - Execution casebook: [docs/execution_casebook.md](../execution_casebook.md)
-- Execution research packet: [docs/execution_research_packet.md](../execution_research_packet.md)
+- Execution research note: [docs/execution_research_packet.md](../execution_research_packet.md)
 
 ## Football Snapshot Reference
 

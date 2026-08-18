@@ -19,4 +19,4 @@ pmfe football-replay --sample --config configs/football_strategy_baseline.json -
 - `football_no_trade_reasons.csv`
 - `football_report.md`
 
-This pack is an offline replay/evaluation reference generated from bundled sample data. It does not imply live football trading.
+This is an offline replay and evaluation run generated from bundled sample data. It measures quote decisions, markouts, calibration, state changes, and no-trade reasons; live football trading is not implemented.

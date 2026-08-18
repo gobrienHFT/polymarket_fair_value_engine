@@ -1,12 +1,12 @@
 # Football Replay Walkthrough
 
-This walkthrough is for the offline football replay path only.
+This walkthrough follows the offline football replay path.
 
-It does not describe live football trading, because live football trading is not implemented in this repo.
+Live football trading is not implemented in this repo.
 
-For zero-click inspection on GitHub, start with [docs/sample_outputs/football_replay_reference/README.md](sample_outputs/football_replay_reference/README.md). That committed pack is generated from the bundled replay sample.
-For a short cross-pack summary, see [docs/football_trading_research_note.md](football_trading_research_note.md).
-For concrete examples drawn from the committed football packs, see [docs/football_decision_casebook.md](football_decision_casebook.md).
+Start with [docs/sample_outputs/football_replay_reference/README.md](sample_outputs/football_replay_reference/README.md). That pack is generated from the bundled replay sample.
+For the cross-pack summary, see [docs/football_trading_research_note.md](football_trading_research_note.md).
+For concrete examples, see [docs/football_decision_casebook.md](football_decision_casebook.md).
 For post-trade replay evaluation and calibration commentary, see [docs/football_post_trade_analysis_note.md](football_post_trade_analysis_note.md).
 For match-state shock and cooldown commentary, see [docs/football_match_state_reaction_note.md](football_match_state_reaction_note.md).
 
@@ -18,7 +18,7 @@ pmfe football-replay --sample --config configs/football_strategy_baseline.json -
 pmfe report --run-id verify-football-replay
 ```
 
-Artifacts are written under `runs/<run_id>/`.
+The files are written under `runs/<run_id>/`.
 
 ## 1. Input Replay Frame Structure
 
@@ -72,7 +72,7 @@ Examples:
 - `home_or_draw` -> `P(home) + P(draw)`
 - `either_team_wins` -> `1 - P(draw)`
 
-This keeps football fair value formation honest and explicit: the repo is not pretending to have a deeper in-play football model yet.
+This keeps the current scope clear: fair value still comes from bookmaker snapshots rather than a separate in-play football model.
 
 ## 4. Uncertainty And No-Trade Logic
 
@@ -151,7 +151,7 @@ The replay writes `football_markouts.csv` with explicit definitions:
 
 Legacy fields such as `next_snapshot_markout` are still present for backward compatibility, but the newer raw/directional split is the clearer way to explain the output.
 
-These are simple, inspectable evaluation outputs rather than claims of statistical significance.
+These outputs are intentionally simple. The sample is too small to support a statistical conclusion.
 
 ## 8. Calibration Outputs
 
@@ -172,7 +172,7 @@ The replay also writes `football_calibration.csv` with small aggregated summarie
 - the replay sample is small and synthetic
 - fair value still comes from bookmaker snapshots, not an independent in-play football model
 - there is no live football market discovery, live football execution, or live football order management here
-- markouts are useful for repo review and inspection, but not strong enough to support broad claims
+- markouts help explain the decision path, but the sample is too small for a broad conclusion
 
 ## 10. How This Could Extend Later
 

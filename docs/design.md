@@ -2,7 +2,7 @@
 
 ## Research Thesis
 
-The central research problem is the gap between probabilistic fair value and executable trading edge. A fair-value estimate creates an apparent discrepancy; the execution layer determines how that discrepancy interacts with spread, visible depth, queue uncertainty, latency, fees, inventory, fills, and post-fill movement.
+The question behind the repo is what happens between a fair-value estimate and a trade. A model can point to a discrepancy; the execution layer decides how much survives spread, visible depth, queue uncertainty, latency, fees, inventory, fills, and post-fill movement.
 
 ```text
 Fair value -> apparent edge -> execution choice -> fill / no fill -> markout / inventory / PnL -> realized edge
@@ -21,11 +21,11 @@ This is a deliberate first target:
 - an external reference price exists
 - the market family is narrow enough to support an honest end-to-end execution workflow
 
-The repo is structured so other event markets can be added later. The current end-to-end execution path is this BTC family only.
+Other event markets can be added later, but the end-to-end execution path today is this BTC family only.
 
 ## Football Fair-Value Case Study
 
-The sports layer now includes a narrow football path that stays offline and inspectable.
+Football has its own narrow path, kept offline so the pricing and evaluation steps stay visible.
 
 It does not attempt live football trading. Instead it:
 
@@ -36,11 +36,11 @@ It does not attempt live football trading. Instead it:
 - compares fair value versus sample best bid / best ask / midpoint using explicit directional edges such as `buy_edge_vs_ask` and `sell_edge_vs_bid`
 - replays bundled football frames with match state, state-change detection, no-trade rules, and markout/calibration outputs
 - compares multiple pricing/no-trade configurations on the same replay sample using directional capture metrics
-- writes deterministic CSV, JSON, and markdown artifacts for review
+- writes deterministic CSV, JSON, and Markdown files that make the path easy to follow
 
-The replay input is bundled and synthetic. That is stated explicitly in the docs and artifacts so the repo stays honest about what is and is not implemented.
+The replay input is bundled and synthetic. The documentation says so plainly: this is a pricing and evaluation workflow, not live football trading.
 
-This keeps football useful as a market-normalization and evaluation case study without treating it as a live execution system.
+That makes football useful as a market-normalization and evaluation case study without turning it into a pretend live execution system.
 
 ## Fair Value Model
 
@@ -67,7 +67,7 @@ Outputs:
 - uncertainty buffer
 - diagnostics for inspection
 
-This is a baseline fair-value model for the execution and replay layers, not a durable-alpha model.
+This is a baseline fair-value model for the execution and replay layers. It is not intended to support a durable-alpha claim.
 
 ## Strategy
 
@@ -92,7 +92,7 @@ The strategy uses net YES exposure to skew quoting:
 - long YES increases willingness to sell YES
 - long NO pushes the strategy the opposite way
 
-The goal is not sophisticated optimal control. The goal is a clean, inspectable inventory-aware quoting rule.
+This is not meant to be sophisticated optimal control. It is an inventory-aware quoting rule that is easy to follow.
 
 ## Risk Controls
 
@@ -108,7 +108,7 @@ Projected exposure is accumulated across already-approved quotes in the same pas
 
 ## Replay And Paper Execution
 
-Replay exists to make the stack deterministic and inspectable without live dependencies.
+Replay makes the stack deterministic and removes live dependencies from the evaluation loop.
 
 The paper engine intentionally uses simple fill rules:
 
@@ -117,7 +117,7 @@ The paper engine intentionally uses simple fill rules:
 
 It does not claim queue-position realism, hidden-liquidity realism, or live-equivalent fill quality.
 
-That keeps the assumptions explicit and defensible.
+The important thing is that the fill assumptions stay visible.
 
 For football specifically, replay is used differently from the BTC execution path:
 
@@ -126,18 +126,18 @@ For football specifically, replay is used differently from the BTC execution pat
 - evaluation focuses on no-trade logic, raw midpoint drift, directional capture metrics, and simple calibration summaries
 - the replay report explains state changes, markout definitions, and limitations in plain language
 
-Run summaries are also operational evidence rather than just a final PnL number. BTC replay and paper runs record observation counts, skip reasons, quote funnel counts, risk rejection categories, final open orders, and an explicit stop reason. The detailed CSV artifacts remain the source of truth for order, fill, inventory, and PnL inspection.
+The run summary is more useful when it explains the path to the final number. BTC replay and paper runs record observation counts, skip reasons, quote funnel counts, risk rejection categories, final open orders, and an explicit stop reason. The detailed CSV files then carry the order, fill, inventory, and PnL history.
 
-The strategy sweep extends that replay path without pretending to be a live trading stack:
+The strategy sweep extends that replay path without trying to turn it into a live trading stack:
 
 - each strategy is just a named pricing/no-trade configuration
 - the same replay frames are reused for every configuration
 - winner selection is deterministic and config-driven
-- the output is meant to justify configuration choices, not to claim proven edge
+- the output helps compare configuration choices; it does not establish proven edge
 
 ## Fair Value To Execution Research
 
-The separate `execution-research` command studies binary-market execution around a fixed synthetic CLOB replay. It keeps probability formation and execution quality as different measurements:
+The separate `execution-research` command studies binary-market execution around a fixed synthetic CLOB replay. Probability formation and execution quality stay as separate measurements:
 
 - each frame normalizes market identity, timestamps, sequence, bid/ask depth, spread, depth imbalance, microprice, and validity state
 - malformed, stale, crossed, expired, or discontinuous frames fail closed and cannot submit a new order
@@ -149,9 +149,9 @@ The separate `execution-research` command studies binary-market execution around
 - a one-factor experiment matrix varies fair-value edge, spread, imbalance, visible depth, queue-ahead, participation, latency, execution profile, inventory, and fees against fixed input frames
 - the evaluation config and definitions are frozen for each refresh; the synthetic fixture has no calibration/holdout split and is not used to validate production profitability
 
-The run identity binds `code_version`, `config_sha256`, `input_sha256`, and hashes for every generated artifact into `summary.json`. The reference pack under `docs/sample_outputs/execution_research_reference/` is regenerated by `python scripts/refresh_execution_research.py` and is the reproducible public output.
+The run identity records `code_version`, `config_sha256`, `input_sha256`, and hashes for every output file in `summary.json`. The reference pack under `docs/sample_outputs/execution_research_reference/` is regenerated by `python scripts/refresh_execution_research.py` and is the reproducible public output.
 
-The study does not establish live football execution, participant-level FIFO, hidden-liquidity knowledge, historical fill truth, venue-measured latency, or production alpha. Public snapshots support a visible-depth queue proxy only. A recorded public evidence pack is not included because this repository does not have deterministic historical depth, fair-value inputs, and provenance bound together; adding one without those inputs would overstate the evidence. See `docs/execution_research_packet.md` and `docs/execution_casebook.md` for the compact path through the evidence.
+The study does not establish live football execution, participant-level FIFO, hidden-liquidity knowledge, historical fill truth, venue-measured latency, or production alpha. Public snapshots support a visible-depth queue proxy only. A historical evidence pack is not included because the repo does not have deterministic historical depth, fair-value inputs, and provenance bound together; adding one without those inputs would overstate the evidence. See `docs/execution_research_packet.md` and `docs/execution_casebook.md` for the short path through the results.
 
 ## Live Execution
 

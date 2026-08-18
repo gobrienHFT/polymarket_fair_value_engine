@@ -1,12 +1,12 @@
 # polymarket_fair_value_engine
 
-`polymarket_fair_value_engine` traces a binary-market idea from probabilistic fair value to executable edge. It separates model edge from the execution process that determines whether that edge survives spread, depth, queue uncertainty, latency, fees, inventory, and adverse selection.
+What interested me here is the gap between being right about fair value and being able to trade it. `polymarket_fair_value_engine` follows that apparent edge through spread, depth, queue uncertainty, latency, fees, partial fills, inventory, and post-fill markout.
 
-The implemented scope is deliberately narrow:
+The project has two related but separate paths:
 
-- the execution-research path is a deterministic binary CLOB replay around supplied fair values
-- the football path is an offline probability, fair-value, replay, and calibration case study
-- BTC 5-minute up/down is the only end-to-end paper/live-capable path
+- execution research: a deterministic binary CLOB replay that starts with supplied fair values and measures what survives the book
+- football research: an offline probability, fair-value, replay, and calibration case study
+- BTC 5-minute up/down: the only end-to-end paper/live-capable path
 
 ## Research Pipeline
 
@@ -23,14 +23,14 @@ The core research question is not whether a model produces a favorable discrepan
 
 ## Quick Start
 
-Install the package and regenerate the execution-research reference pack from the bundled input and configuration:
+Install the package and regenerate the execution-research reference run from the bundled input and configuration:
 
 ```bash
 python -m pip install -e ".[dev]"
 python scripts/refresh_execution_research.py
 ```
 
-The canonical refresh writes the deterministic execution pack under `docs/sample_outputs/execution_research_reference/`, copies the execution casebook, and runs the committed-artifact verifier.
+The refresh writes the deterministic execution files under `docs/sample_outputs/execution_research_reference/`, copies the execution casebook, and checks the published links and files.
 
 ### 60-Second Path
 
@@ -38,11 +38,11 @@ The canonical refresh writes the deterministic execution pack under `docs/sample
 2. Inspect [execution attribution](docs/sample_outputs/execution_research_reference/execution_attribution.csv) for raw model edge, execution cost, fill ratio, fees, latency impact, and net realized edge.
 3. Trace the [execution casebook](docs/execution_casebook.md) for concrete lifecycle, no-fill, risk, and markout examples.
 
-The execution harness consumes `fair_yes` as an input. It does not calibrate the fair value model; the football path is the separate offline probability and calibration workflow.
+For the execution study, `fair_yes` is an input. The study starts after fair value has been formed; football is where this repo handles probability formation and calibration.
 
 ## Model Edge To Realized Edge
 
-The execution reference pack keeps the major quantities separate:
+The useful accounting split is:
 
 - `raw_model_edge` is the directional fair-value difference versus the decision midpoint.
 - `spread_paid_or_captured` measures the directional difference between the fill-time midpoint and execution price.
@@ -51,17 +51,17 @@ The execution reference pack keeps the major quantities separate:
 - `net_realized_edge` is the directional fair-value difference at execution after the fill fee.
 - `markout_1`, `markout_3`, and `markout_5` are signed future midpoint changes from the fill price at the configured horizons.
 
-These measurements answer different questions. A positive fair-to-fill discrepancy can coexist with a negative post-fill markout, a partial fill, or no fill. The [attribution CSV](docs/sample_outputs/execution_research_reference/execution_attribution.csv) and [markout slices](docs/sample_outputs/execution_research_reference/execution_markout_slices.csv) expose those paths separately.
+These quantities answer different questions. A positive fair-to-fill discrepancy can still lead to a negative post-fill markout, a partial fill, or no fill. The [attribution CSV](docs/sample_outputs/execution_research_reference/execution_attribution.csv) and [markout slices](docs/sample_outputs/execution_research_reference/execution_markout_slices.csv) let you follow each effect separately.
 
 ## Passive And Aggressive Execution
 
-The reference pack compares passive and aggressive styles under conservative, base, and aggressive visible-depth assumptions. Passive execution can capture spread but depends on queue-ahead, participation, expiry, and cancel/fill races. Aggressive execution increases participation and pays the opposing quote, so the apparent edge must survive spread and fee assumptions.
+The replay puts passive and aggressive styles through the same market states under conservative, base, and aggressive visible-depth assumptions. Passive execution can capture spread, but it depends on queue-ahead, participation, expiry, and cancel/fill races. Aggressive execution increases participation and pays the opposing quote, so the apparent edge has to survive spread and fees.
 
-The [profile results](docs/sample_outputs/execution_research_reference/execution_profile_results.csv) show the trade-off on the fixed replay. The [experiment matrix](docs/sample_outputs/execution_research_reference/execution_experiment_matrix.csv) varies one execution assumption at a time, including fair-value edge, spread, imbalance, visible depth, queue-ahead, participation, latency, inventory, and fees. These are sensitivity results for a deterministic fixture, not a universal execution rule.
+The [profile results](docs/sample_outputs/execution_research_reference/execution_profile_results.csv) show that trade-off on the fixed replay. The [experiment matrix](docs/sample_outputs/execution_research_reference/execution_experiment_matrix.csv) changes one assumption at a time: fair-value edge, spread, imbalance, visible depth, queue-ahead, participation, latency, inventory, or fees. It is a way to see which conclusions move when the assumptions move; it is not a universal execution rule.
 
 ## Lifecycle And Accounting
 
-The execution layer treats order state as part of the measurement. Invalid, stale, crossed, malformed, expired, or discontinuous market frames fail closed and cannot submit a new order. Valid scenarios record submit, acknowledgement, resting, partial or full fill, cancel request, cancel acknowledgement, expiry, rejection, and cancel/fill race events.
+Order state is part of the measurement. Invalid, stale, crossed, malformed, expired, or discontinuous market frames fail closed and cannot submit a new order. Valid scenarios record submit, acknowledgement, resting, partial or full fill, cancel request, cancel acknowledgement, expiry, rejection, and cancel/fill race events.
 
 The [lifecycle events](docs/sample_outputs/execution_research_reference/execution_lifecycle_events.csv), [fills](docs/sample_outputs/execution_research_reference/execution_fills.csv), and [account snapshots](docs/sample_outputs/execution_research_reference/execution_account.csv) connect those events to fees, inventory, realized and unrealized PnL, and marked PnL. The [casebook](docs/execution_casebook.md) follows the same path from book state to outcome instead of treating a final PnL number as the whole evaluation.
 
@@ -88,7 +88,7 @@ Start with the [football sample-output index](docs/sample_outputs/README.md). Th
 
 ## Football Reviewer Path
 
-The football path is easiest to inspect through the index and its zero-click reference packs rather than generated `runs/<run_id>/` directories.
+If you want to follow the football work, start with the index and its reference packs rather than generated `runs/<run_id>/` directories.
 
 1. Open the [football research dashboard](docs/football_research_dashboard.md).
 2. Read the [football trading research note](docs/football_trading_research_note.md).
@@ -96,7 +96,7 @@ The football path is easiest to inspect through the index and its zero-click ref
 4. Read the [decision casebook](docs/football_decision_casebook.md) for fair-value, no-trade, replay, and strategy examples.
 5. Read the [strategy configuration note](docs/football_strategy_configuration_note.md) for the tuned policy surface.
 
-The [sample-output index](docs/sample_outputs/README.md) routes to the remaining post-trade and match-state notes without putting every football artifact on the first screen.
+The [sample-output index](docs/sample_outputs/README.md) links the post-trade and match-state notes as well as the three packs.
 
 ## Football Research Notes
 
@@ -145,11 +145,11 @@ Execution research is regenerated with:
 python scripts/refresh_execution_research.py
 ```
 
-It uses `data/sample_execution_replay.jsonl` and `configs/execution_research.json`, writes the reference pack, and binds `code_version`, `config_sha256`, `input_sha256`, and per-artifact SHA-256 values into `summary.json`. The football refresh uses the commands above and the bundled football inputs under `data/`.
+It uses `data/sample_execution_replay.jsonl` and `configs/execution_research.json`, writes the reference files, and records `code_version`, `config_sha256`, `input_sha256`, and per-file SHA-256 values in `summary.json`. The football refresh uses the commands above and the bundled football inputs under `data/`.
 
 Temporary runs from the CLI write to `runs/<run_id>/`. The sample-output packs under `docs/sample_outputs/` are the inspectable reference copies generated from those inputs; their numerical contents are not live-feed claims.
 
-## Output Artifacts
+## Output Files
 
 The execution-research CLI writes:
 
@@ -171,7 +171,7 @@ runs/<run_id>/
   execution_casebook.md
 ```
 
-The football commands write their pricing, replay, and strategy-sweep CSV/JSON/Markdown artifacts under the same run directory. The [sample-output index](docs/sample_outputs/README.md) lists the committed football and execution packs.
+The football commands write their pricing, replay, and strategy-sweep CSV/JSON/Markdown files under the same run directory. The [sample-output index](docs/sample_outputs/README.md) lists the football and execution packs.
 
 ## Architecture
 
@@ -185,11 +185,11 @@ Data -> Model -> Strategy -> Risk -> Order Manager -> Execution -> Reporting
 - `Risk`: market, gross, series, position, and open-order limits
 - `Order Manager`: reconcile desired quotes against current open orders
 - `Execution`: paper/live BTC fills or offline football evaluation up to quote decisions and markouts
-- `Reporting`: CSV artifacts and JSON summaries under `runs/<run_id>/`
+- `Reporting`: CSV files and JSON summaries under `runs/<run_id>/`
 
 ## Live Execution Guardrails
 
-The live adapter is present but deliberately guarded:
+The live adapter is guarded by default:
 
 - paper mode is the default
 - `--live` and `--ack-live-risk` are required
@@ -244,7 +244,7 @@ python -m pip install -e ".[dev,live]"
 
 ## Limitations
 
-- the BTC fair-value model is a baseline, not a claim of persistent alpha
+- the BTC fair-value model is a baseline; the repo makes no claim of persistent alpha
 - public Polymarket and Coinbase endpoints can be noisy or wide for short-dated binaries
 - the paper fill model is intentionally simple and has no queue-position or hidden-liquidity realism
 - visible-depth depletion in execution replay is a queue proxy, not participant-level historical FIFO
@@ -258,7 +258,7 @@ python -m pip install -e ".[dev,live]"
 ## Deeper Docs
 
 - [design note](docs/design.md)
-- [execution research packet](docs/execution_research_packet.md)
+- [execution research note](docs/execution_research_packet.md)
 - [execution casebook](docs/execution_casebook.md)
 - [execution reference pack](docs/sample_outputs/execution_research_reference/README.md)
 - [football sample-output index](docs/sample_outputs/README.md)

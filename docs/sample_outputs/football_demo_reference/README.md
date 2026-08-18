@@ -14,4 +14,4 @@ pmfe football-demo --input data/sample_football_markets.json --run-id football-d
 - `football_fair_values.csv`
 - `football_edges.csv`
 
-This pack is an offline football pricing reference generated from the committed sample input. It is not live football execution.
+This is an offline football pricing run generated from the bundled sample input. It stops at fair value and market comparison; live football execution is not implemented.

@@ -19,4 +19,4 @@ pmfe football-sweep --sample --config configs/football_sweep.json --run-id footb
 - `best_strategy/summary.json`
 - `best_strategy/football_report.md`
 
-This pack is a committed strategy-comparison reference generated from bundled sample data. It is a tooling/evaluation artifact, not a production-validation claim.
+This is a strategy-comparison run generated from bundled sample data. It compares quote and no-trade settings on the same replay; it is not production validation or a live-football result.
