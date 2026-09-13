@@ -2,7 +2,7 @@
 
 What interested me here is the gap between being right about fair value and being able to trade it. `polymarket_fair_value_engine` follows that apparent edge through spread, depth, queue uncertainty, latency, fees, partial fills, inventory, and post-fill markout.
 
-The project has two related but separate paths:
+The project has three related but separate paths:
 
 - execution research: a deterministic binary CLOB replay that starts with supplied fair values and measures what survives the book
 - football research: an offline probability, fair-value, replay, and calibration case study
@@ -46,12 +46,12 @@ The useful accounting split is:
 
 - `raw_model_edge` is the directional fair-value difference versus the decision midpoint.
 - `spread_paid_or_captured` measures the directional difference between the fill-time midpoint and execution price.
-- `latency_mid_impact` is the signed midpoint move from decision to fill; positive values indicate movement against the selected side.
+- `latency_mid_impact` is direction times (decision midpoint minus fill-time midpoint), where direction is +1 for BUY and -1 for SELL.
 - `queue_depth_adjustment` is the filled/requested quantity ratio under the visible-depth proxy.
 - `net_realized_edge` is the directional fair-value difference at execution after the fill fee.
 - `markout_1`, `markout_3`, and `markout_5` are signed future midpoint changes from the fill price at the configured horizons.
 
-These quantities answer different questions. A positive fair-to-fill discrepancy can still lead to a negative post-fill markout, a partial fill, or no fill. The [attribution CSV](docs/sample_outputs/execution_research_reference/execution_attribution.csv) and [markout slices](docs/sample_outputs/execution_research_reference/execution_markout_slices.csv) let you follow each effect separately.
+These quantities answer different questions. Positive model edge does not guarantee a fill; a filled order can still have a negative post-fill markout. `net_realized_edge` measures the discrepancy against supplied fair value, not realized PnL. The [attribution CSV](docs/sample_outputs/execution_research_reference/execution_attribution.csv) and [markout slices](docs/sample_outputs/execution_research_reference/execution_markout_slices.csv) let you follow each effect separately.
 
 ## Passive And Aggressive Execution
 
@@ -96,7 +96,10 @@ If you want to follow the football work, start with the index and its reference 
 4. Read the [decision casebook](docs/football_decision_casebook.md) for fair-value, no-trade, replay, and strategy examples.
 5. Read the [strategy configuration note](docs/football_strategy_configuration_note.md) for the tuned policy surface.
 
-The [sample-output index](docs/sample_outputs/README.md) links the post-trade and match-state notes as well as the three packs.
+The [sample-output index](docs/sample_outputs/README.md) links the three packs. For further analysis:
+
+- Post-trade analysis: [docs/football_post_trade_analysis_note.md](docs/football_post_trade_analysis_note.md)
+- Match-state reactions: [docs/football_match_state_reaction_note.md](docs/football_match_state_reaction_note.md)
 
 ## Football Research Notes
 
