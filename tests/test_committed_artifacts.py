@@ -148,4 +148,6 @@ def test_execution_reference_artifact_hashes_match_committed_files() -> None:
         path = Path(artifact_path)
         if not path.is_absolute():
             path = REPO_ROOT / path
-        assert summary["artifact_sha256"][artifact_key] == sha256(path.read_bytes()).hexdigest()
+        artifact_bytes = path.read_bytes()
+        assert b"\r\n" not in artifact_bytes
+        assert summary["artifact_sha256"][artifact_key] == sha256(artifact_bytes).hexdigest()

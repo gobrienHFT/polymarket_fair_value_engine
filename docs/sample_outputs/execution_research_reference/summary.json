@@ -299,19 +299,19 @@
     "execution_casebook_md": "docs/sample_outputs/execution_research_reference/execution_casebook.md"
   },
   "artifact_sha256": {
-    "execution_replay_validity_csv": "2191a994144ff9ec76653e5139cf7dd8bda669249499861be52fda93c94fc769",
-    "execution_decisions_csv": "0903e042b0e355318dbd538468306e658d0a4bad4297f5cee260607268822b9a",
-    "execution_orders_csv": "3ee32cd22e6f116ebefc3c79d0bd699e985b5964b6409d369347e3b833bfd713",
-    "execution_lifecycle_events_csv": "541929ddeef061a120e2495ae6c2a96228928905a75f2d1538c3965160dcdd27",
-    "execution_fills_csv": "81e36858ba1b3f7bb6fda2ded13fc809850268962029f6815223019018b07d99",
-    "execution_markouts_csv": "32472828bf4e63bc1e5726ce20803c12c30abe6065ca2e7b156cc7414c19a2f4",
-    "execution_attribution_csv": "c47f814b71f24c801efffa561ee8f0503ff45c4cfa1f5b2290532ab8a2a72269",
-    "execution_markout_slices_csv": "26a39564abedb25dcb99d2b072e359ac822c3e57b924492d602974a54e3da26b",
-    "execution_account_csv": "8b1aa23091dcd51a48ae8e596fadddacb5695a9040f43098a28f2c342c96691a",
-    "execution_profile_results_csv": "5a668b86d1914efd2837b7d11c35a593d8d8150a9f9e489cd5d655f8ff935888",
-    "execution_experiment_matrix_csv": "ab59ec896381698d447860d946f78215746140982216771beaace16bde016567",
-    "execution_report_md": "ca896febcb0886cdf9e264ab0292339be4aca583e0db2672f020842b29470805",
-    "execution_casebook_md": "05bb438ae5eb91b09aa3b5b131ef586d1dd33c287023cc1d225edf040c991955"
+    "execution_replay_validity_csv": "116c31b1f78689136bd0af72efda4daa0d75d3eab2487fe868265d33bb3436ba",
+    "execution_decisions_csv": "93cc1cd91f0a6ef223c046aa84257ca8ec8ba12b0f6743756366afe79e57b687",
+    "execution_orders_csv": "405f9ca90f48cedd6dc6af87e084daa241d83ee73dbc9e85cc9fef1ee17d1a44",
+    "execution_lifecycle_events_csv": "168c92c95efd723cf611ac3e417637c23368c225758c94459374b555a8094190",
+    "execution_fills_csv": "4294a14520639fd223c580160ffea3f614df80cadb4bd9d6aafd8ab51e17da14",
+    "execution_markouts_csv": "b7048dde5f8d6f56acce561904d14fad616a835e93d5f5d8f8a932418818742c",
+    "execution_attribution_csv": "6ec2706f202ea0b33d844df8c58d7f349d0abbe34226c87394f3d91ec15e900b",
+    "execution_markout_slices_csv": "3b9afa05bc81d672340fade8efa3bdcbfd5d559853e97e0eca00f604ad7d0b1a",
+    "execution_account_csv": "2b5b53ff3a93558dba1f7a936540061877c3a09f91ed644fb167460f1027c174",
+    "execution_profile_results_csv": "85c4c58204c66ed5b12f7fbf1ceb9c61f8316eadabb20d9048561d6a36aec00d",
+    "execution_experiment_matrix_csv": "cc6aba7c6c7bfae9f9ec0eda7750c5af99494e62a0d2d6135a4c2c181732ec75",
+    "execution_report_md": "18832d1d1f3823a6d4e8431b00ec026104ff7c0dae27b49012e35772e3b74ca6",
+    "execution_casebook_md": "f803972336f941f69b8b2cba53c2d3176bada382df0730e8346c12fa4bea10a8"
   },
   "claims": {
     "fair_value_to_execution": true,

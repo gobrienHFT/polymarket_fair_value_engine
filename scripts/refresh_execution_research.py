@@ -4,6 +4,7 @@ import json
 import shutil
 import subprocess
 import sys
+from hashlib import sha256
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from typing import Any
@@ -84,14 +85,18 @@ def refresh_execution_research() -> dict[str, str]:
             source = output_dir / filename
             if not source.exists():
                 raise FileNotFoundError(f"Generated execution artifact is missing: {source}")
-            shutil.copyfile(source, PACK_DIR / filename)
+            (PACK_DIR / filename).write_bytes(source.read_bytes().replace(b"\r\n", b"\n"))
         replacements = [
             (str(output_dir), _repo_relative(PACK_DIR)),
             (str(INPUT_PATH), _repo_relative(INPUT_PATH)),
             (str(CONFIG_PATH), _repo_relative(CONFIG_PATH)),
         ]
         sanitized_summary = _sanitize(summary, replacements)
-        (PACK_DIR / "summary.json").write_text(json.dumps(sanitized_summary, indent=2) + "\n", encoding="utf-8")
+        sanitized_summary["artifact_sha256"] = {
+            artifact_key: sha256((PACK_DIR / Path(artifact_path).name).read_bytes()).hexdigest()
+            for artifact_key, artifact_path in sanitized_summary["artifacts"].items()
+        }
+        (PACK_DIR / "summary.json").write_bytes((json.dumps(sanitized_summary, indent=2) + "\n").encode("utf-8"))
 
     verifier = REPO_ROOT / "scripts" / "verify_committed_artifacts.py"
     result = subprocess.run([sys.executable, str(verifier)], cwd=REPO_ROOT, check=False)
