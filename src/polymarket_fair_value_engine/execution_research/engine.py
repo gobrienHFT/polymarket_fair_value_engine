@@ -5,6 +5,7 @@ from hashlib import sha256
 from collections import Counter
 from dataclasses import asdict, replace
 from datetime import datetime, timedelta, timezone
+from math import fsum
 from pathlib import Path
 from statistics import fmean
 from typing import Any, Iterable
@@ -621,7 +622,7 @@ def _simulate(
         markout_observations=markout_observations,
         markout_coverage=(markout_observations / len(fills)) if fills else 0.0,
         positive_next_markout_rate=(sum(row.next_snapshot_signed_markout > 0.0 for row in markout_rows if row.next_snapshot_signed_markout is not None) / markout_observations) if markout_observations else None,
-        total_fees=sum(fill.fee for fill in fills),
+        total_fees=fsum(fill.fee for fill in fills),
         final_position_yes=account.position,
         realized_pnl=account.realized_pnl,
         unrealized_pnl=account.unrealized_pnl(latest_mark),

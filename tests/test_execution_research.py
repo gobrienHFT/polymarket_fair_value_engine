@@ -4,6 +4,7 @@ import csv
 import json
 from collections import Counter
 from hashlib import sha256
+from math import fsum
 from pathlib import Path
 from datetime import timedelta
 
@@ -176,6 +177,15 @@ def test_execution_research_writes_lifecycle_and_execution_artifacts(tmp_path) -
         "latency_bucket",
     }
     assert all("markout_coverage" in row for row in slice_rows)
+    with (output_dir / "execution_fills.csv").open(encoding="utf-8", newline="") as handle:
+        fill_rows = list(csv.DictReader(handle))
+    for profile in summary["profile_results"]:
+        fees = [
+            float(row["fee"])
+            for row in fill_rows
+            if row["profile_name"] == profile["profile_name"] and row["style"] == profile["style"]
+        ]
+        assert profile["total_fees"] == fsum(fees)
     for artifact_key, artifact_path in summary["artifacts"].items():
         assert summary["artifact_sha256"][artifact_key] == sha256(Path(artifact_path).read_bytes()).hexdigest()
     account_rows = list(csv.DictReader((output_dir / "execution_account.csv").open(encoding="utf-8", newline="")))
