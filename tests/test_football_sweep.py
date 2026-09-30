@@ -7,7 +7,7 @@ import pytest
 
 from polymarket_fair_value_engine import cli
 from polymarket_fair_value_engine.sports.pricing import load_named_football_pricing_config
-from polymarket_fair_value_engine.sports.sweep import FootballStrategyResultRow, FootballSweepSelectionConfig, load_football_sweep_config, run_football_sweep, select_best_strategy
+from polymarket_fair_value_engine.sports.sweep import FootballStrategyResultRow, FootballSweepSelectionConfig, _average, load_football_sweep_config, run_football_sweep, select_best_strategy
 
 
 def _result_row(
@@ -44,6 +44,11 @@ def _result_row(
         dominant_no_trade_reason="fair_inside_spread",
         notes=None,
     )
+
+
+def test_sweep_average_rounds_halfway_values_consistently() -> None:
+    assert _average([0.030049, 0.03005]) == 0.03005
+    assert _average([0.03005, 0.030049]) == 0.03005
 
 
 def test_load_named_football_pricing_config_reads_baseline_file() -> None:

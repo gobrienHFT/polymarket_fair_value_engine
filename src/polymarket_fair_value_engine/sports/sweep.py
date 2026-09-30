@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 from dataclasses import dataclass
+from decimal import Decimal, ROUND_HALF_EVEN
 from functools import cmp_to_key
 from pathlib import Path
 from typing import Any
@@ -103,7 +104,8 @@ def _average(values: list[float | None]) -> float | None:
     filtered = [value for value in values if value is not None]
     if not filtered:
         return None
-    return round(sum(filtered) / len(filtered), 6)
+    total = sum((Decimal(str(value)) for value in filtered), Decimal(0))
+    return float((total / len(filtered)).quantize(Decimal("0.000001"), rounding=ROUND_HALF_EVEN))
 
 
 def _positive_rate(values: list[float | None]) -> float | None:
