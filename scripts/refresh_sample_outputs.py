@@ -86,7 +86,7 @@ def _copy_required_files(source_dir: Path, pack_dir: Path, relative_paths: tuple
             raise FileNotFoundError(f"Missing generated artifact: {source_path}")
         destination_path = pack_dir / relative_path
         destination_path.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copyfile(source_path, destination_path)
+        destination_path.write_bytes(source_path.read_bytes().replace(b"\r\n", b"\n"))
 
 
 def _sanitize_paths(payload: Any, replacements: list[tuple[str, str]]) -> Any:
@@ -104,11 +104,11 @@ def _sanitize_paths(payload: Any, replacements: list[tuple[str, str]]) -> Any:
 
 
 def _write_summary(path: Path, payload: dict[str, Any]) -> None:
-    path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+    path.write_bytes((json.dumps(payload, indent=2) + "\n").encode("utf-8"))
 
 
 def _write_json(path: Path, payload: Any) -> None:
-    path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+    path.write_bytes((json.dumps(payload, indent=2) + "\n").encode("utf-8"))
 
 
 def _refresh_football_demo(temp_root: Path) -> dict[str, str]:

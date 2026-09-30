@@ -2,3 +2,6 @@ src/polymarket_fair_value_engine/execution_research/*.py text eol=lf
 data/sample_execution_replay.jsonl text eol=lf
 configs/execution_research.json text eol=lf
 docs/sample_outputs/execution_research_reference/** text eol=lf
+docs/sample_outputs/football_demo_reference/** text eol=lf
+docs/sample_outputs/football_replay_reference/** text eol=lf
+docs/sample_outputs/football_sweep_reference/** text eol=lf
