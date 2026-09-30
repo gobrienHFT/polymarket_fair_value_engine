@@ -21,7 +21,6 @@ from polymarket_fair_value_engine.execution_research.engine import run_execution
 INPUT_PATH = REPO_ROOT / "data" / "sample_execution_replay.jsonl"
 CONFIG_PATH = REPO_ROOT / "configs" / "execution_research.json"
 PACK_DIR = REPO_ROOT / "docs" / "sample_outputs" / "execution_research_reference"
-TOP_LEVEL_CASEBOOK = REPO_ROOT / "docs" / "execution_casebook.md"
 RUN_ID = "execution-research-reference"
 FILES = (
     "summary.json",
@@ -94,7 +93,6 @@ def refresh_execution_research() -> dict[str, str]:
         sanitized_summary = _sanitize(summary, replacements)
         (PACK_DIR / "summary.json").write_text(json.dumps(sanitized_summary, indent=2) + "\n", encoding="utf-8")
 
-    shutil.copyfile(PACK_DIR / "execution_casebook.md", TOP_LEVEL_CASEBOOK)
     verifier = REPO_ROOT / "scripts" / "verify_committed_artifacts.py"
     result = subprocess.run([sys.executable, str(verifier)], cwd=REPO_ROOT, check=False)
     if result.returncode != 0:
@@ -102,7 +100,7 @@ def refresh_execution_research() -> dict[str, str]:
     return {
         "pack": _repo_relative(PACK_DIR),
         "summary": _repo_relative(PACK_DIR / "summary.json"),
-        "casebook": _repo_relative(TOP_LEVEL_CASEBOOK),
+        "casebook": _repo_relative(PACK_DIR / "execution_casebook.md"),
     }
 
 

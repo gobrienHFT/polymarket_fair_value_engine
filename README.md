@@ -30,7 +30,7 @@ python -m pip install -e ".[dev]"
 python scripts/refresh_execution_research.py
 ```
 
-The refresh writes the deterministic execution files under `docs/sample_outputs/execution_research_reference/`, copies the execution casebook, and checks the published links and files.
+The refresh writes the deterministic execution files, including a generated casebook, under `docs/sample_outputs/execution_research_reference/` and checks the published links and files. The linked [casebook](docs/execution_casebook.md) is a short editorial guide to the same committed run.
 
 ### 60-Second Path
 

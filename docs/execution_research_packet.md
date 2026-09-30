@@ -20,7 +20,7 @@ After installing the editable package, regenerate the reference pack with:
 python scripts/refresh_execution_research.py
 ```
 
-That script regenerates `docs/sample_outputs/execution_research_reference/`, copies the top-level casebook, and checks the links and files. A direct CLI run is useful for temporary experiments; the refresh script is the stable way to recreate the published files.
+That script regenerates `docs/sample_outputs/execution_research_reference/`, including its generated casebook, and checks the links and files. The [top-level casebook](execution_casebook.md) is an editorial guide to the same committed run. A direct CLI run is useful for temporary experiments; the refresh script is the stable way to recreate the published files.
 
 ## 60-Second Path
 
