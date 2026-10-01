@@ -152,6 +152,8 @@ It uses `data/sample_execution_replay.jsonl` and `configs/execution_research.jso
 
 Temporary runs from the CLI write to `runs/<run_id>/`. The sample-output packs under `docs/sample_outputs/` are the inspectable reference copies generated from those inputs; their numerical contents are not live-feed claims.
 
+`pmfe report` defaults to the run with the most recently written `summary.json`, skipping directories without a summary. Use `--run-id` to inspect a specific run; the report includes execution attribution and markout-slice files when present.
+
 ## Output Files
 
 The execution-research CLI writes:

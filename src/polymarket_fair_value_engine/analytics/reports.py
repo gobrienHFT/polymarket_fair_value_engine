@@ -37,6 +37,8 @@ ARTIFACT_FILENAMES = {
     "execution_lifecycle_events.csv": "execution_lifecycle_events_csv",
     "execution_fills.csv": "execution_fills_csv",
     "execution_markouts.csv": "execution_markouts_csv",
+    "execution_attribution.csv": "execution_attribution_csv",
+    "execution_markout_slices.csv": "execution_markout_slices_csv",
     "execution_account.csv": "execution_account_csv",
     "execution_profile_results.csv": "execution_profile_results_csv",
     "execution_experiment_matrix.csv": "execution_experiment_matrix_csv",
@@ -138,10 +140,10 @@ def run_artifacts(output_dir: Path) -> dict[str, str]:
 def latest_run_directory(root: Path) -> Path | None:
     if not root.exists():
         return None
-    directories = [entry for entry in root.iterdir() if entry.is_dir()]
+    directories = [entry for entry in root.iterdir() if entry.is_dir() and (entry / "summary.json").is_file()]
     if not directories:
         return None
-    return sorted(directories)[-1]
+    return max(directories, key=lambda entry: ((entry / "summary.json").stat().st_mtime_ns, entry.name))
 
 
 def load_summary(root: Path, run_id: str) -> tuple[Path, dict[str, Any]]:

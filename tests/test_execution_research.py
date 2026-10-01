@@ -255,6 +255,8 @@ def test_execution_research_cli_and_report_happy_path(tmp_path, monkeypatch, cap
     assert cli.main(["report", "--run-id", "execution-cli"]) == 0
     report_payload = json.loads(capsys.readouterr().out)
     assert "execution_profile_results_csv" in report_payload["artifacts"]
+    assert "execution_attribution_csv" in report_payload["artifacts"]
+    assert "execution_markout_slices_csv" in report_payload["artifacts"]
 
 
 def test_cancel_fill_race_is_audited(tmp_path) -> None:

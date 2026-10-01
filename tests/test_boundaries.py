@@ -1,4 +1,6 @@
 from datetime import datetime, timezone
+import json
+import os
 from math import nan
 
 import pytest
@@ -80,6 +82,43 @@ def test_run_decision_stats_are_reason_coded() -> None:
         "quotes_rejected": 1,
         "risk_rejection_reasons": {"market_notional": 1},
     }
+
+
+def test_latest_report_uses_summary_time_and_skips_incomplete_runs(tmp_path) -> None:
+    root = tmp_path / "runs"
+    _, older = create_run_directory(root, run_id="zzz-old")
+    _, newer = create_run_directory(root, run_id="aaa-new")
+    create_run_directory(root, run_id="zzz-incomplete")
+    for directory, timestamp in ((older, 1_000_000_000), (newer, 2_000_000_000)):
+        summary_path = directory / "summary.json"
+        summary_path.write_text(json.dumps({"run_id": directory.name}), encoding="utf-8")
+        os.utime(summary_path, ns=(timestamp, timestamp))
+
+    output_dir, summary = load_summary(root, "latest")
+
+    assert output_dir == newer
+    assert summary["run_id"] == "aaa-new"
+
+
+def test_latest_report_breaks_summary_time_ties_by_run_name(tmp_path) -> None:
+    root = tmp_path / "runs"
+    for run_id in ("aaa", "zzz"):
+        _, directory = create_run_directory(root, run_id=run_id)
+        summary_path = directory / "summary.json"
+        summary_path.write_text(json.dumps({"run_id": run_id}), encoding="utf-8")
+        os.utime(summary_path, ns=(1_000_000_000, 1_000_000_000))
+
+    _, summary = load_summary(root, "latest")
+
+    assert summary["run_id"] == "zzz"
+
+
+def test_latest_report_rejects_root_containing_only_incomplete_runs(tmp_path) -> None:
+    root = tmp_path / "runs"
+    create_run_directory(root, run_id="unfinished")
+
+    with pytest.raises(FileNotFoundError, match="No run directory"):
+        load_summary(root, "latest")
 
 
 def test_config_rejects_invalid_safety_environment_values(tmp_path, monkeypatch) -> None:
